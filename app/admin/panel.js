@@ -1,0 +1,361 @@
+'use client';
+
+import { useMemo, useState } from 'react';
+import Mecanicos from './mecanicos';
+import {
+  diaCorto,
+  diaISO,
+  desdeInput,
+  duracionMs,
+  enHoras,
+  paraInput,
+  soloFecha,
+  soloHora,
+} from '../../lib/tiempo';
+
+function Fila({ turno, editando, onEditar, onCancelar, onGuardar, onBorrar, ocupado }) {
+  const [entrada, setEntrada] = useState(paraInput(turno.entrada));
+  const [salida, setSalida] = useState(paraInput(turno.salida));
+  const [nota, setNota] = useState(turno.nota ?? '');
+
+  if (editando) {
+    return (
+      <tr className="fila-edicion">
+        <td data-rotulo="Usuario">{turno.usuario}</td>
+        <td data-rotulo="Entrada">
+          <input
+            type="datetime-local"
+            value={entrada}
+            onChange={(e) => setEntrada(e.target.value)}
+          />
+        </td>
+        <td data-rotulo="Salida">
+          <input
+            type="datetime-local"
+            value={salida}
+            onChange={(e) => setSalida(e.target.value)}
+          />
+          {salida && (
+            <button type="button" className="mini" onClick={() => setSalida('')}>
+              dejar abierto
+            </button>
+          )}
+        </td>
+        <td data-rotulo="Nota" colSpan={2}>
+          <input
+            type="text"
+            value={nota}
+            placeholder="Motivo de la corrección"
+            maxLength={120}
+            onChange={(e) => setNota(e.target.value)}
+          />
+        </td>
+        <td data-rotulo="">
+          <span className="fila-acciones">
+            <button
+              type="button"
+              className="accion"
+              disabled={ocupado}
+              onClick={() =>
+                onGuardar(turno.id, {
+                  entrada: desdeInput(entrada),
+                  salida: salida ? desdeInput(salida) : null,
+                  nota,
+                })
+              }
+            >
+              Guardar
+            </button>
+            <button type="button" className="accion" onClick={onCancelar}>
+              Cancelar
+            </button>
+          </span>
+        </td>
+      </tr>
+    );
+  }
+
+  const abierto = !turno.salida;
+
+  return (
+    <tr className={abierto ? 'abierto' : ''}>
+      <td data-rotulo="Usuario">
+        <span className="celda-usuario">{turno.usuario}</span>
+        {turno.corregido && (
+          <span className="marca-corregido" title={turno.nota || 'Corregido'}>
+            corregido
+          </span>
+        )}
+      </td>
+      <td data-rotulo="Fecha">
+        <span className="celda-dia">{diaCorto(turno.entrada)}</span> {soloFecha(turno.entrada)}
+      </td>
+      <td data-rotulo="Entrada">{soloHora(turno.entrada)}</td>
+      <td data-rotulo="Salida">
+        {abierto ? <span className="aun-dentro">en turno</span> : soloHora(turno.salida)}
+      </td>
+      <td data-rotulo="Horas">{enHoras(duracionMs(turno))}</td>
+      <td data-rotulo="">
+        <span className="fila-acciones">
+          <button type="button" className="accion" onClick={() => onEditar(turno.id)}>
+            Corregir
+          </button>
+          <button
+            type="button"
+            className="accion peligro"
+            disabled={ocupado}
+            onClick={() => onBorrar(turno.id)}
+          >
+            Borrar
+          </button>
+        </span>
+      </td>
+    </tr>
+  );
+}
+
+export default function Panel({
+  turnosIniciales,
+  usuariosIniciales,
+  almacen,
+  fallo,
+  quienSoy,
+}) {
+  const [turnos, setTurnos] = useState(turnosIniciales);
+  const [quien, setQuien] = useState('');
+  const [desde, setDesde] = useState('');
+  const [hasta, setHasta] = useState('');
+  const [editando, setEditando] = useState(null);
+  const [ocupado, setOcupado] = useState(false);
+  const [error, setError] = useState(fallo);
+
+  const recargar = async () => {
+    const r = await fetch('/api/turnos', { cache: 'no-store' });
+    const cuerpo = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      setError(cuerpo.error || 'No se pudo recargar.');
+      return;
+    }
+    setTurnos(cuerpo.turnos);
+    setError('');
+  };
+
+  const guardar = async (id, cambios) => {
+    setOcupado(true);
+    setError('');
+    try {
+      const r = await fetch(`/api/turnos/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(cambios),
+      });
+      const cuerpo = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        setError(cuerpo.error || 'No se pudo guardar.');
+        return;
+      }
+      setEditando(null);
+      await recargar();
+    } finally {
+      setOcupado(false);
+    }
+  };
+
+  const borrar = async (id) => {
+    const t = turnos.find((x) => x.id === id);
+    const cuando = t ? `${soloFecha(t.entrada)} ${soloHora(t.entrada)}` : '';
+    if (!window.confirm(`¿Borrar el turno de ${t?.usuario} del ${cuando}? No se puede deshacer.`)) {
+      return;
+    }
+    setOcupado(true);
+    setError('');
+    try {
+      const r = await fetch(`/api/turnos/${id}`, { method: 'DELETE' });
+      const cuerpo = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        setError(cuerpo.error || 'No se pudo borrar.');
+        return;
+      }
+      await recargar();
+    } finally {
+      setOcupado(false);
+    }
+  };
+
+  const filtrados = useMemo(
+    () =>
+      turnos.filter((t) => {
+        if (quien && t.usuario !== quien) return false;
+        const dia = diaISO(t.entrada);
+        if (desde && dia < desde) return false;
+        if (hasta && dia > hasta) return false;
+        return true;
+      }),
+    [turnos, quien, desde, hasta]
+  );
+
+  const resumen = useMemo(() => {
+    const porUsuario = new Map();
+    for (const t of filtrados) {
+      const previo = porUsuario.get(t.usuario) ?? { ms: 0, turnos: 0, abiertos: 0 };
+      porUsuario.set(t.usuario, {
+        ms: previo.ms + duracionMs(t),
+        turnos: previo.turnos + 1,
+        abiertos: previo.abiertos + (t.salida ? 0 : 1),
+      });
+    }
+    return [...porUsuario.entries()].sort((a, b) => b[1].ms - a[1].ms);
+  }, [filtrados]);
+
+  const totalMs = filtrados.reduce((suma, t) => suma + duracionMs(t), 0);
+  const enTurno = filtrados.filter((t) => !t.salida).length;
+  const hayFiltro = quien || desde || hasta;
+
+  return (
+    <>
+      <div className="franja" />
+      <main className="envoltura">
+        <header className="marca">
+          <h1 className="marca-nombre">
+            REGISTRO DE <em>TURNOS</em>
+          </h1>
+          <p className="marca-bajada">Entradas y salidas · Sunset Motors</p>
+          <div className="sesion">
+            <span className="sesion-nombre">
+              {quienSoy} · administrador
+              <span className="sesion-almacen">
+                {almacen === 'redis' ? 'guardado en Redis' : 'guardado en archivo local'}
+              </span>
+            </span>
+            <span className="sesion-acciones">
+              <a className="accion" href="/">
+                Calculadora
+              </a>
+              <button type="button" className="accion" onClick={recargar}>
+                Recargar
+              </button>
+            </span>
+          </div>
+        </header>
+
+        {error && <p className="panel-error">{error}</p>}
+
+        {almacen === 'archivo' && (
+          <p className="panel-aviso">
+            Guardando en <code>.datos/turnos.json</code>, en el disco de este servidor. En
+            Vercel ese disco se borra en cada despliegue: conecta un almacén KV antes de
+            usarlo en serio.
+          </p>
+        )}
+
+        <div className="filtros">
+          <label className="campo-inline">
+            <span>Mecánico</span>
+            <select value={quien} onChange={(e) => setQuien(e.target.value)}>
+              <option value="">Todos</option>
+              {usuariosIniciales.map((u) => (
+                <option key={u.usuario} value={u.usuario}>
+                  {u.usuario}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="campo-inline">
+            <span>Desde</span>
+            <input type="date" value={desde} onChange={(e) => setDesde(e.target.value)} />
+          </label>
+          <label className="campo-inline">
+            <span>Hasta</span>
+            <input type="date" value={hasta} onChange={(e) => setHasta(e.target.value)} />
+          </label>
+          {hayFiltro && (
+            <button
+              type="button"
+              className="accion"
+              onClick={() => {
+                setQuien('');
+                setDesde('');
+                setHasta('');
+              }}
+            >
+              Quitar filtros
+            </button>
+          )}
+        </div>
+
+        {resumen.length > 0 && (
+          <div className="resumen">
+            {resumen.map(([usuario, r]) => (
+              <div className="resumen-ficha" key={usuario}>
+                <span className="resumen-usuario">{usuario}</span>
+                <span className="resumen-horas">{enHoras(r.ms)}</span>
+                <span className="resumen-detalle">
+                  {r.turnos} turno{r.turnos > 1 ? 's' : ''}
+                  {r.abiertos > 0 && ' · en turno ahora'}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {filtrados.length === 0 ? (
+          <p className="vacio">
+            {turnos.length === 0
+              ? 'Todavía no hay turnos registrados.'
+              : 'Ningún turno cae dentro de esos filtros.'}
+          </p>
+        ) : (
+          <div className="tabla-envoltura">
+            <table className="tabla">
+              <thead>
+                <tr>
+                  <th>Mecánico</th>
+                  <th>Fecha</th>
+                  <th>Entrada</th>
+                  <th>Salida</th>
+                  <th>Horas</th>
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                {filtrados.map((t) => (
+                  <Fila
+                    key={`${t.id}:${t.entrada}:${t.salida}`}
+                    turno={t}
+                    editando={editando === t.id}
+                    ocupado={ocupado}
+                    onEditar={setEditando}
+                    onCancelar={() => setEditando(null)}
+                    onGuardar={guardar}
+                    onBorrar={borrar}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        <div className="surtidor">
+          <div className="surtidor-fila">
+            <span className="surtidor-rotulo">Total de horas</span>
+            <span className="surtidor-cifra">{enHoras(totalMs)}</span>
+          </div>
+          <div className="surtidor-detalle">
+            <span>
+              {filtrados.length} turno{filtrados.length === 1 ? '' : 's'}
+              {enTurno > 0 && ` · ${enTurno} en el taller ahora`}
+              {hayFiltro && ' · filtrado'}
+            </span>
+          </div>
+        </div>
+
+        <Mecanicos iniciales={usuariosIniciales} quienSoy={quienSoy} />
+
+        <p className="pie">
+          Las horas se muestran en hora de Chile. Un turno abierto suma hasta este momento,
+          así que su total sigue creciendo mientras la persona no marque salida.
+        </p>
+      </main>
+    </>
+  );
+}
