@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import Barra from '../barra';
 import Mecanicos from './mecanicos';
+import Discord from './discord';
 import {
   diaCorto,
   diaISO,
@@ -86,6 +87,7 @@ function Fila({ turno, editando, onEditar, onCancelar, onGuardar, onBorrar, ocup
       <td data-rotulo="Usuario">
         <span className="celda-usuario">{turno.usuario}</span>
         {turno.corregido && <span className="marca-corregido">corregido</span>}
+        {turno.cerradoAuto && <span className="marca-auto">cerrado solo</span>}
         {/* El motivo se muestra escrito, no escondido en un tooltip: es la explicación de
             por qué las horas de alguien no son las que marcó, y tiene que poder leerse. */}
         {turno.corregido && (
@@ -125,6 +127,7 @@ export default function Panel({
   turnosIniciales,
   usuariosIniciales,
   turnoPropio,
+  configInicial,
   almacen,
   fallo,
   quienSoy,
@@ -364,6 +367,8 @@ export default function Panel({
         </div>
 
         <Mecanicos iniciales={usuariosIniciales} quienSoy={quienSoy} />
+
+        <Discord inicial={configInicial} />
 
         <p className="pie">
           Las horas se muestran en hora de Chile. Un turno abierto suma hasta este momento,

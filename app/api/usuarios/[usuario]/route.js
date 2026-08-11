@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server';
 import { sesionActual } from '../../../../lib/servidor';
-import { borrarUsuario, cambiarClave, cambiarRol, esAdmin } from '../../../../lib/usuarios';
+import {
+  borrarUsuario,
+  cambiarClave,
+  cambiarDiscord,
+  cambiarRol,
+  esAdmin,
+} from '../../../../lib/usuarios';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -25,6 +31,12 @@ export async function PATCH(peticion, { params }) {
   try {
     if (typeof cambios.clave === 'string') {
       const { error } = await cambiarClave(usuario, cambios.clave);
+      if (error) return NextResponse.json({ error }, { status: 400 });
+      return NextResponse.json({ ok: true });
+    }
+
+    if (typeof cambios.discord === 'string') {
+      const { error } = await cambiarDiscord(usuario, cambios.discord);
       if (error) return NextResponse.json({ error }, { status: 400 });
       return NextResponse.json({ ok: true });
     }

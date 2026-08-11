@@ -17,7 +17,11 @@ async function exigirAdmin() {
 }
 
 /** Nunca devuelve sal ni hash: el panel no los necesita y no tienen por qué viajar. */
-const publico = ({ usuario, admin }) => ({ usuario, admin: Boolean(admin) });
+const publico = ({ usuario, admin, discord }) => ({
+  usuario,
+  admin: Boolean(admin),
+  discord: discord ?? null,
+});
 
 export async function GET() {
   const { corte } = await exigirAdmin();

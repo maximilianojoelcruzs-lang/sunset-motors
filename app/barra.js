@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { duracionMs, enHoras, soloHora } from '../lib/tiempo';
 import { marcarTurno } from './marcar';
+import { restanMinutos } from './marcaje';
 import Campana from './campana';
 import Dialogo from './dialogo';
 import CambiarClave from './perfil-clave';
@@ -186,6 +187,9 @@ export default function Barra({ usuario, admin, seccion, turno, onTurnoCambio })
                         <span className="marcaje-punto" aria-hidden="true" />
                         Desde las {soloHora(turno.entrada)} ·{' '}
                         <strong>{enHoras(duracionMs(turno, ahora))}</strong>
+                        <span className="marcaje-resta">
+                          se cierra solo en {restanMinutos(turno, ahora)} min
+                        </span>
                       </>
                     ) : (
                       'Sin turno abierto'

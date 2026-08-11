@@ -269,6 +269,39 @@ si no, el mismo turno se leería distinto según quién lo mire. `desdeInput()`/
 `lib/tiempo.js` hacen la conversión para los `<input type="datetime-local">` del panel; sin ellas
 un admin en otra zona horaria correría cada turno que tocara.
 
+### Un turno se cierra solo a las 2 horas
+
+Regla de negocio, no detalle técnico: **no hay conexión con FiveM**, así que un turno abierto no
+prueba que la persona siga en el taller. A las `HORAS_MAXIMAS` horas se cierra y quien siga
+trabajando vuelve a marcar entrada. Así las horas registradas nunca son inventadas.
+
+**El cierre ocurre al leer, no en un proceso de fondo** — esta app no tiene ninguno. `leerAlDia()`
+cierra lo vencido y **todo lo que consulte turnos debe pasar por ahí**; si alguna ruta lee la
+lista cruda, mostrará abiertos turnos que ya deberían estar cerrados.
+
+La salida no se pone en «ahora» sino en **`entrada + 2h` exactas**. Es lo que hace que el
+resultado no dependa de cuándo alguien abra la app: si nadie entra en tres días, el turno igual
+queda cerrado a las dos horas, no a los tres días.
+
+`avisarCierres()` avisa por campanita y por Discord, y va **envuelto en `try`**: el turno ya se
+guardó antes de llegar ahí, y un aviso que falla no puede tumbar el registro de horas.
+
+`HORAS_MAXIMAS` vive en [lib/turnos-limites.js](lib/turnos-limites.js), aparte, porque la barra de
+marcaje la necesita en el navegador y `lib/turnos.js` arrastra `node:fs`.
+
+### Avisos a Discord
+
+**[lib/discord.js](lib/discord.js)** — webhook configurable desde el panel, guardado en
+`sunset:config`. La URL **nunca vuelve al navegador**: quien la tenga puede publicar en ese canal,
+así que la API solo dice si hay una puesta. Cada usuario puede tener un `discord` (su ID) para que
+el mensaje lo mencione; sin él se usa el nombre en negrita.
+
+`allowed_mentions: { parse: ['users'] }` no es decorativo: sin eso, un `@everyone` escrito por
+accidente en un mensaje notificaría a todo el servidor.
+
+El validador exige el dominio de Discord **en producción** y lo relaja en desarrollo, para poder
+probar contra un servidor local.
+
 ### Reglas del servidor que no hay que relajar
 
 - **El registro del taller es exclusivo de admin.** `GET /api/turnos` responde 403 a cualquier

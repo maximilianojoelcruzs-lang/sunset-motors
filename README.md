@@ -87,6 +87,34 @@ estando en el registro. Los dos muestran siempre lo mismo.
 Marcar entrada dos veces no duplica nada: el turno abierto se respeta. Marcar salida sin
 turno abierto avisa y no hace nada.
 
+### El turno se cierra solo a las 2 horas
+
+La app no está conectada al juego, así que no puede saber si alguien sigue realmente
+trabajando. Por eso **un turno abierto se cierra automáticamente al cumplir 2 horas**, y quien
+siga en el taller vuelve a marcar entrada. Así las horas del registro son siempre horas que
+alguien confirmó.
+
+La barra muestra cuánto falta (*«se cierra solo en 34 min»*) y se pone roja en los últimos 15
+minutos, para que no pille a nadie de sorpresa.
+
+Cuando se cierra, la salida queda anotada en la hora exacta en que se cumplieron las 2 horas —
+no cuando alguien abrió la página. Y le llega un aviso a la persona: en la campanita, y en
+Discord si está configurado.
+
+En el registro esos turnos aparecen marcados como **cerrado solo**, para que el encargado sepa
+por qué terminaron ahí.
+
+### Avisos por Discord
+
+En *Registro* → **Avisos por Discord**, el encargado puede pegar la URL de un webhook. En tu
+servidor de Discord: *Editar canal → Integraciones → Crear webhook*.
+
+Con eso, cada cierre automático se anuncia en ese canal. Para que mencione a la persona en vez
+de solo nombrarla, ponle su **ID de Discord** desde *Mecánicos con cuenta* → botón *Discord*.
+
+Es opcional: sin webhook, el aviso llega igual a la campanita. Y hay un botón **Enviar prueba**
+para comprobar que quedó bien antes de confiar en él.
+
 ### El panel de administrador
 
 Los usuarios con `admin: true` ven un botón **Registro** que lleva a `/admin`. Ahí está

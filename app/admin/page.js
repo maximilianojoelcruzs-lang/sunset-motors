@@ -3,6 +3,7 @@ import { sesionActual } from '../../lib/servidor';
 import { esAdmin, listarUsuarios } from '../../lib/usuarios';
 import { dondeGuarda } from '../../lib/almacen';
 import { listar, turnoAbierto } from '../../lib/turnos';
+import { publica } from '../../lib/config';
 import Panel from './panel';
 
 export const dynamic = 'force-dynamic';
@@ -31,6 +32,7 @@ export default async function PaginaAdmin() {
       turnosIniciales={turnos}
       usuariosIniciales={usuarios}
       turnoPropio={abierto}
+      configInicial={await publica()}
       almacen={dondeGuarda()}
       fallo={fallo}
       quienSoy={sesion.usuario}

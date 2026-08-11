@@ -116,8 +116,34 @@ export default function Mecanicos({ iniciales, quienSoy }) {
                   {u.usuario}
                   {u.admin && <span className="etiqueta-admin">admin</span>}
                   {u.usuario === quienSoy && <span className="etiqueta-yo">tú</span>}
+                  {u.discord && <span className="etiqueta-yo">discord</span>}
                 </span>
                 <span className="fila-acciones">
+                  <button
+                    type="button"
+                    className="accion"
+                    disabled={ocupado}
+                    onClick={() => {
+                      const valor = window.prompt(
+                        `ID de Discord de ${u.usuario} (solo números; vacío para quitarlo):`,
+                        u.discord ?? ''
+                      );
+                      if (valor === null) return;
+                      pedir(
+                        `/api/usuarios/${u.usuario}`,
+                        {
+                          method: 'PATCH',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ discord: valor }),
+                        },
+                        valor.trim()
+                          ? `Discord de "${u.usuario}" guardado.`
+                          : `Se quitó el Discord de "${u.usuario}".`
+                      );
+                    }}
+                  >
+                    Discord
+                  </button>
                   <button
                     type="button"
                     className="accion"
