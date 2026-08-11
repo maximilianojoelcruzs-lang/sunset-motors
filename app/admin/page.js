@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import { sesionActual } from '../../lib/servidor';
 import { esAdmin, listarUsuarios } from '../../lib/usuarios';
 import { dondeGuarda } from '../../lib/almacen';
-import { listar } from '../../lib/turnos';
+import { listar, turnoAbierto } from '../../lib/turnos';
 import Panel from './panel';
 
 export const dynamic = 'force-dynamic';
@@ -15,10 +15,13 @@ export default async function PaginaAdmin() {
 
   let turnos = [];
   let usuarios = [];
+  let abierto = null;
   let fallo = '';
   try {
     turnos = await listar();
     usuarios = (await listarUsuarios()).map(({ usuario, admin }) => ({ usuario, admin }));
+    // El menú de perfil de la barra también deja marcar desde acá.
+    abierto = await turnoAbierto(sesion.usuario);
   } catch (e) {
     fallo = e.message;
   }
@@ -27,6 +30,7 @@ export default async function PaginaAdmin() {
     <Panel
       turnosIniciales={turnos}
       usuariosIniciales={usuarios}
+      turnoPropio={abierto}
       almacen={dondeGuarda()}
       fallo={fallo}
       quienSoy={sesion.usuario}

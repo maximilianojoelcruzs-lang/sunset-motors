@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { SECCIONES, COMANDOS, CODIGOS } from '../lib/catalogo';
 import Marcaje from './marcaje';
+import Barra from './barra';
 
 const pesos = new Intl.NumberFormat('es-CL');
 const money = (n) => `$${pesos.format(n)}`;
@@ -84,6 +85,9 @@ function Contador({ valor, onCambio, etiqueta }) {
 }
 
 export default function Boleta({ nombre, admin, turnoAbierto }) {
+  // El turno vive acá porque lo muestran dos hijos: la barra de marcaje y el menú de
+  // perfil dentro de <Barra>. Una sola fuente, para que no se contradigan.
+  const [turno, setTurno] = useState(turnoAbierto);
   const [cantidades, setCantidades] = useState({});
   const [filtro, setFiltro] = useState('');
   const [abiertas, setAbiertas] = useState(() => new Set(['principales']));
@@ -172,36 +176,24 @@ export default function Boleta({ nombre, admin, turnoAbierto }) {
     setFiltro('');
   };
 
-  const salir = async () => {
-    await fetch('/api/logout', { method: 'POST' }).catch(() => {});
-    window.location.href = '/login';
-  };
-
   return (
     <>
-      <div className="franja" />
+      <Barra
+        usuario={nombre}
+        admin={admin}
+        seccion="calculadora"
+        turno={turno}
+        onTurnoCambio={setTurno}
+      />
       <main className="envoltura">
-        <header className="marca">
-          <h1 className="marca-nombre">
-            SUNSET <em>MOTORS</em>
-          </h1>
-          <p className="marca-bajada">Boleta de cobro · Taller mecánico</p>
-          <div className="sesion">
-            <span className="sesion-nombre">Turno de {nombre}</span>
-            <span className="sesion-acciones">
-              {admin && (
-                <a className="accion" href="/admin">
-                  Registro
-                </a>
-              )}
-              <button type="button" className="accion" onClick={salir}>
-                Salir
-              </button>
-            </span>
+        <header className="titulo">
+          <div>
+            <h1 className="titulo-texto">Boleta de cobro</h1>
+            <p className="titulo-bajada">Taller mecánico</p>
           </div>
         </header>
 
-        <Marcaje abiertoInicial={turnoAbierto} />
+        <Marcaje turno={turno} onCambio={setTurno} />
 
         <div className="buscador">
           <input

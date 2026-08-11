@@ -118,6 +118,20 @@ hacerlo: quitarle el rol a alguien dejaría de surtir efecto hasta que caduque s
   presencia de variables de entorno. Ver abajo.
 - **[lib/tiempo.js](lib/tiempo.js)** — formato y aritmética de horas.
 - **[app/marcaje.js](app/marcaje.js)** — la barra de entrada/salida sobre la calculadora.
+
+### La barra superior y el menú de perfil
+
+**[app/barra.js](app/barra.js)** se usa en las dos páginas: marca, navegación y menú de perfil con
+marcaje, *Mis turnos*, *Cambiar mi clave* y *Cerrar sesión*.
+
+El turno **no** se guarda dentro de `Barra` ni de `Marcaje`: lo tiene la página (`Boleta`,
+`Panel`) y baja por props, porque los dos componentes muestran el mismo dato. Con una copia cada
+uno, marcar desde el menú dejaba la barra de la calculadora mintiendo. Si agregas un tercer lugar
+que muestre el turno, pásalo igual — no lo dupliques.
+
+*Mis turnos* y *Cambiar mi clave* abren un **diálogo** ([app/dialogo.js](app/dialogo.js)), no una
+página. Es deliberado: las cantidades de la boleta viven en `useState`, así que navegar a otra ruta
+las borra. Cualquier opción nueva del menú debe seguir ese camino.
 - **[app/admin/](app/admin/)** — `page.js` (servidor, revalida admin y carga los turnos) +
   `panel.js` (cliente: filtros, totales, edición en línea).
 
@@ -162,10 +176,14 @@ un admin en otra zona horaria correría cada turno que tocara.
 
 ### Reglas del servidor que no hay que relajar
 
-- **Leer el registro es exclusivo de admin.** `GET /api/turnos` responde 403 a cualquier otro; no
-  existe variante para consultar el historial propio, y no hay que agregarla. Lo único que llega a
-  un mecánico sobre sus turnos es el turno abierto actual, que `app/page.js` le pasa a la barra de
-  marcaje para saber si el botón dice "entrada" o "salida".
+- **El registro del taller es exclusivo de admin.** `GET /api/turnos` responde 403 a cualquier
+  otro. Cada persona sí puede ver **lo suyo** por `GET /api/perfil/turnos`, que saca el usuario de
+  la cookie y nunca de un parámetro: no hay forma de pedir los turnos de otro. Son dos cosas
+  distintas y hay que mantenerlas separadas — el registro completo nunca debe volverse accesible
+  desde la ruta de perfil.
+- `POST /api/perfil/clave` cambia la clave **de quien tiene la sesión, y solo la suya**. El usuario
+  sale de la cookie; si viniera del cuerpo, cualquiera podría cambiarle la clave a otro. Exige la
+  clave actual: sin eso, quien pille una sesión abierta dejaría fuera al dueño de la cuenta.
 - Corregir y borrar son solo de admin, verificado en el route handler, no solo en el middleware.
 - `corregir()` rechaza fechas inválidas y salidas anteriores a la entrada — un turno negativo
   rompe todos los totales del panel.

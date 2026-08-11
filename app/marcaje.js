@@ -2,55 +2,45 @@
 
 import { useEffect, useState } from 'react';
 import { duracionMs, enHoras, soloHora } from '../lib/tiempo';
+import { marcarTurno } from './marcar';
 
 /**
- * Reloj del taller: marca entrada y salida, y mientras el turno esté abierto muestra
- * cuánto lleva la persona adentro.
+ * Reloj del taller sobre la calculadora. Es un componente controlado: el turno lo manda
+ * quien lo usa, porque el menú de perfil muestra y cambia el mismo dato. Si guardara su
+ * propia copia, marcar desde el menú lo dejaría mostrando algo falso.
  */
-export default function Marcaje({ abiertoInicial }) {
-  const [abierto, setAbierto] = useState(abiertoInicial);
+export default function Marcaje({ turno, onCambio }) {
   const [ocupado, setOcupado] = useState(false);
   const [error, setError] = useState('');
   const [ahora, setAhora] = useState(() => Date.now());
 
   // El contador solo corre si hay algo que contar.
   useEffect(() => {
-    if (!abierto) return;
+    if (!turno) return;
     const t = setInterval(() => setAhora(Date.now()), 30000);
     return () => clearInterval(t);
-  }, [abierto]);
+  }, [turno]);
 
-  const marcar = async (accion) => {
+  const marcar = async () => {
     setOcupado(true);
     setError('');
-    try {
-      const r = await fetch('/api/turnos', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accion }),
-      });
-      const cuerpo = await r.json().catch(() => ({}));
-      if (!r.ok) {
-        setError(cuerpo.error || 'No se pudo marcar.');
-        return;
-      }
-      setAbierto(accion === 'entrada' ? cuerpo.turno : null);
+    const { turno: nuevo, error: fallo } = await marcarTurno(turno ? 'salida' : 'entrada');
+    if (fallo) setError(fallo);
+    else {
+      onCambio(nuevo);
       setAhora(Date.now());
-    } catch {
-      setError('Sin conexión con el servidor.');
-    } finally {
-      setOcupado(false);
     }
+    setOcupado(false);
   };
 
   return (
-    <div className={`marcaje ${abierto ? 'dentro' : ''}`}>
+    <div className={`marcaje ${turno ? 'dentro' : ''}`}>
       <span className="marcaje-estado">
-        {abierto ? (
+        {turno ? (
           <>
             <span className="marcaje-punto" aria-hidden="true" />
-            En turno desde las {soloHora(abierto.entrada)} ·{' '}
-            <strong>{enHoras(duracionMs(abierto, ahora))}</strong>
+            En turno desde las {soloHora(turno.entrada)} ·{' '}
+            <strong>{enHoras(duracionMs(turno, ahora))}</strong>
           </>
         ) : (
           'Sin turno abierto'
@@ -59,13 +49,8 @@ export default function Marcaje({ abiertoInicial }) {
 
       {error && <span className="marcaje-error">{error}</span>}
 
-      <button
-        type="button"
-        className="accion"
-        onClick={() => marcar(abierto ? 'salida' : 'entrada')}
-        disabled={ocupado}
-      >
-        {ocupado ? '…' : abierto ? 'Marcar salida' : 'Marcar entrada'}
+      <button type="button" className="accion" onClick={marcar} disabled={ocupado}>
+        {ocupado ? '…' : turno ? 'Marcar salida' : 'Marcar entrada'}
       </button>
     </div>
   );

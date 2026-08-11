@@ -81,6 +81,9 @@ automática de claves — el administrador le pone una nueva a quien la olvide.
 Arriba de la calculadora cada mecánico tiene una barra con **Marcar entrada** / **Marcar
 salida**. Mientras el turno está abierto muestra desde qué hora y cuánto lleva.
 
+Lo mismo se puede hacer desde el **menú de perfil**, arriba a la derecha, que además sirve
+estando en el registro. Los dos muestran siempre lo mismo.
+
 Marcar entrada dos veces no duplica nada: el turno abierto se respeta. Marcar salida sin
 turno abierto avisa y no hace nada.
 
@@ -95,13 +98,28 @@ abierto, dejar una nota con el motivo) y **borrar** uno. Los turnos corregidos q
 marcados como tales, con la nota visible al pasar el mouse. Un turno no puede quedar con la
 salida antes que la entrada: se rechaza.
 
-**El registro es solo del administrador.** Un mecánico común no puede verlo, ni siquiera
-la parte suya: `/admin` lo devuelve a la calculadora, no le aparece el botón *Registro*, y
-si pide el registro por API recibe un 403. Corregir y borrar también son solo suyos. Todo
-eso se verifica en el servidor, no escondiendo botones.
+**El registro del taller es solo del administrador.** Un mecánico no puede ver los turnos de
+nadie más: `/admin` lo devuelve a la calculadora, no le aparece el botón *Registro*, y si
+pide el registro por API recibe un 403. Corregir y borrar también son solo del encargado.
+Todo eso se verifica en el servidor, no escondiendo botones.
 
-Lo único que un mecánico ve de sus propios turnos es si tiene uno abierto ahora mismo, con
-la hora en que entró — porque sin eso el botón de marcaje no sabría qué decir.
+Lo que sí puede ver cada uno son **sus propios turnos**, desde el menú de perfil →
+*Mis turnos*: sus horas de los últimos 7 días, el acumulado y el detalle día por día. Solo
+lo suyo — no hay forma de pedir los turnos de otra persona.
+
+### El menú de perfil
+
+Arriba a la derecha, con las iniciales. Adentro:
+
+- **Marcar entrada / salida**, con el tiempo que lleva el turno abierto
+- **Mis turnos** — el historial propio
+- **Cambiar mi clave** — cada uno la suya, pidiendo la actual. Así nadie queda dependiendo
+  del encargado para cambiarla, y quien pille una sesión abierta no puede dejar fuera al
+  dueño de la cuenta
+- **Cerrar sesión**
+
+Los dos primeros abren una ventana sobre la página, no se van a otra: si estabas armando una
+boleta, no pierdes lo que llevabas cargado.
 
 ### Dónde se guarda
 

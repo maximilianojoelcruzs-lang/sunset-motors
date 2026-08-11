@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import Barra from '../barra';
 import Mecanicos from './mecanicos';
 import {
   diaCorto,
@@ -117,11 +118,13 @@ function Fila({ turno, editando, onEditar, onCancelar, onGuardar, onBorrar, ocup
 export default function Panel({
   turnosIniciales,
   usuariosIniciales,
+  turnoPropio,
   almacen,
   fallo,
   quienSoy,
 }) {
   const [turnos, setTurnos] = useState(turnosIniciales);
+  const [miTurno, setMiTurno] = useState(turnoPropio);
   const [quien, setQuien] = useState('');
   const [desde, setDesde] = useState('');
   const [hasta, setHasta] = useState('');
@@ -213,35 +216,35 @@ export default function Panel({
 
   return (
     <>
-      <div className="franja" />
+      <Barra
+        usuario={quienSoy}
+        admin
+        seccion="registro"
+        turno={miTurno}
+        onTurnoCambio={(t) => {
+          setMiTurno(t);
+          // Marcar desde el menú cambia el registro que se está mirando: hay que releerlo.
+          recargar();
+        }}
+      />
       <main className="envoltura">
-        <header className="marca">
-          <h1 className="marca-nombre">
-            REGISTRO DE <em>TURNOS</em>
-          </h1>
-          <p className="marca-bajada">Entradas y salidas · Sunset Motors</p>
-          <div className="sesion">
-            <span className="sesion-nombre">
-              {quienSoy} · administrador
-              <span className="sesion-almacen">
+        <header className="titulo">
+          <div>
+            <h1 className="titulo-texto">Registro de turnos</h1>
+            <p className="titulo-bajada">
+              Entradas y salidas ·{' '}
+              {
                 {
-                  {
-                    supabase: 'guardado en Supabase',
-                    redis: 'guardado en Redis',
-                    archivo: 'guardado en archivo local',
-                  }[almacen]
-                }
-              </span>
-            </span>
-            <span className="sesion-acciones">
-              <a className="accion" href="/">
-                Calculadora
-              </a>
-              <button type="button" className="accion" onClick={recargar}>
-                Recargar
-              </button>
-            </span>
+                  supabase: 'guardado en Supabase',
+                  redis: 'guardado en Redis',
+                  archivo: 'guardado en archivo local',
+                }[almacen]
+              }
+            </p>
           </div>
+          <button type="button" className="accion" onClick={recargar}>
+            Recargar
+          </button>
         </header>
 
         {error && <p className="panel-error">{error}</p>}
