@@ -80,7 +80,9 @@ export default function Login() {
             <p className="porton-arranque">
               La base de datos está vacía. Crea el primer administrador desde tu
               computador:
-              <code>npm run usuarios crear tu.usuario tu-clave --admin</code>
+              {/* El "--" antes de --admin es obligatorio: sin él npm se come la bandera
+                  y el usuario queda sin permisos de administrador. */}
+              <code>npm run usuarios crear tu.usuario tu-clave -- --admin</code>
             </p>
           )}
 

@@ -38,8 +38,13 @@ const [accion, ...resto] = process.argv.slice(2);
 const banderas = resto.filter((a) => a.startsWith('--'));
 const args = resto.filter((a) => !a.startsWith('--'));
 
-const donde = dondeGuarda();
-const rotulo = donde === 'redis' ? 'la base de datos (Redis)' : '.datos/usuarios.json (local)';
+// El rótulo tiene que nombrar el backend real: si miente, alguien cree que creó el
+// administrador de producción cuando lo dejó en su disco, o al revés.
+const rotulo = {
+  supabase: 'la base de datos (Supabase)',
+  redis: 'la base de datos (Redis)',
+  archivo: '.datos/usuarios.json (local)',
+}[dondeGuarda()];
 
 const salir = (mensaje, codigo = 1) => {
   console.error(mensaje);
@@ -70,15 +75,23 @@ switch (accion) {
   case 'crear': {
     const [usuario, clave] = args;
     if (!usuario || !clave) salir(ayuda);
-    const { error, usuario: creado } = await crearUsuario(
-      usuario,
-      clave,
-      banderas.includes('--admin')
-    );
+
+    // El primer usuario de una base vacía se crea administrador aunque no lo pidan. Un
+    // taller cuyo único usuario no es admin no puede crear a nadie más ni ver el registro:
+    // es un callejón sin salida. Además `npm run ... --admin` sin el "--" se come la
+    // bandera, y ese error terminaba justo acá.
+    const primero = (await listarUsuarios()).length === 0;
+    const admin = banderas.includes('--admin') || primero;
+
+    const { error, usuario: creado } = await crearUsuario(usuario, clave, admin);
     if (error) salir(`No se pudo crear: ${error}`);
+
     console.log(
       `Creado "${creado.usuario}"${creado.admin ? ' como administrador' : ''} en ${rotulo}.`
     );
+    if (primero && !banderas.includes('--admin')) {
+      console.log('(Es el primer usuario del taller, así que queda como administrador.)');
+    }
     break;
   }
 

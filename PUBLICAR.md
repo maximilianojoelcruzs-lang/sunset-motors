@@ -112,21 +112,72 @@ cierra de golpe todas las sesiones abiertas — el botón de «echar a todos».
 
 ---
 
-## Paso 5 — La base de datos
+## Paso 5 — La base de datos (Supabase)
 
 Acá se guardan los usuarios y los turnos.
 
-1. En tu proyecto de Vercel, pestaña **Storage**.
-2. **Create Database** → elige **Upstash for Redis** (aparece como KV) → **Continue**.
-3. Ponle un nombre, por ejemplo `sunset-datos`, y elige la región más cercana.
-4. **Connect** al proyecto `sunset-motors`, con los tres entornos marcados.
+### 5.1 — Crear el proyecto
 
-Vercel agrega solo las variables `KV_REST_API_URL` y `KV_REST_API_TOKEN`. La aplicación las
-detecta sin que toques una línea de código.
+1. Entra a <https://supabase.com/dashboard> y crea una cuenta (puedes entrar con GitHub).
+2. **New project**.
+3. **Name**: `sunset-motors`. **Database Password**: genera una y guárdala en algún lado —
+   no la vas a necesitar para esto, pero perderla después es molesto.
+4. **Region**: la más cercana a tu equipo. Para Chile, `South America (São Paulo)`.
+5. **Create new project**. Tarda un par de minutos en quedar listo.
+
+### 5.2 — Crear la tabla
+
+En el menú lateral: **SQL Editor** → **New query**. Pega esto tal cual y presiona **Run**:
+
+```sql
+create table if not exists datos (
+  clave text primary key,
+  valor jsonb not null
+);
+
+   alter table datos enable row level security;
+```
+
+Dos líneas y una tabla de dos columnas: eso es todo lo que necesita la app. Guarda cada
+colección (`sunset:usuarios`, `sunset:turnos`) como un documento JSON.
+
+La segunda instrucción es importante: enciende la seguridad por fila y **no** crea ninguna
+política. El efecto es que la llave pública de Supabase no puede leer ni escribir nada en esa
+tabla. Solo la llave de servicio, que vive únicamente en el servidor, se salta esa barrera.
+Sin esa línea, cualquiera con la llave pública podría leerse los hashes de tus usuarios.
+
+### 5.3 — Copiar las credenciales
+
+En el menú lateral: **Project Settings** → **API**. Necesitas dos cosas:
+
+| En Supabase | Cómo se llama acá |
+|---|---|
+| **Project URL** (`https://xxxx.supabase.co`) | `SUPABASE_URL` |
+| **Project API keys → `service_role`** (hay que presionar *Reveal*) | `SUPABASE_SERVICE_ROLE_KEY` |
+
+En esa misma pantalla Supabase muestra también la URL del API REST, que es la misma con
+`/rest/v1` al final. Da lo mismo cuál pegues: la app le quita esa parte si viene.
+
+> **La `service_role` es la llave maestra de tu base.** No la pegues en el código, ni en un
+> mensaje, ni en un archivo que vaya a GitHub. Solo va en las variables de entorno de Vercel y
+> en tu `.env.local`, que está en el `.gitignore`.
+>
+> Fíjate bien de copiar `service_role` y no `anon`. Con la `anon` la app no va a poder escribir
+> nada, porque acabas de encender RLS justamente para eso.
+
+### 5.4 — Ponerlas en Vercel
+
+**Settings → Environment Variables**, y agrega las dos, con los tres entornos marcados:
+
+| Key | Value |
+|---|---|
+| `SUPABASE_URL` | tu Project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | tu llave `service_role` |
 
 > **Sin este paso la app funciona igual, pero mal:** guarda todo en un archivo del servidor, y
 > ese disco se borra en cada despliegue. Perderías los usuarios y el registro de turnos cada vez
-> que subas un cambio. El panel de administración te avisa en pantalla mientras esté así.
+> que subas un cambio. El panel de administración te avisa en pantalla mientras esté así, y
+> arriba a la izquierda siempre dice en qué base está guardando.
 
 ---
 
@@ -146,18 +197,25 @@ login en vez de quedarse muda.
 Este primer usuario es el único que no se puede crear desde la aplicación — sería un agujero
 enorme que cualquiera pudiera. Se crea desde tu computador, apuntando a la base real.
 
-**Primero, trae las variables de Vercel a tu máquina:**
+**Primero, pon las credenciales de la base en tu máquina.** Crea un archivo `.env.local` en la
+carpeta del proyecto con estas dos líneas, copiando los mismos valores del Paso 5.3:
 
-```bash
-npm i -g vercel
-vercel login
-vercel link
-vercel env pull .env.local
+```
+SUPABASE_URL=https://xxxxxxxx.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=la-llave-service_role
 ```
 
-`vercel link` te pregunta a qué proyecto conectar: elige `sunset-motors`. El último comando
-escribe un archivo `.env.local` con las credenciales de la base. Ese archivo está en el
-`.gitignore`, así que nunca se sube.
+Sin comillas y sin espacios alrededor del `=`. Ese archivo está en el `.gitignore`: nunca se
+sube a GitHub.
+
+> **¿Y por qué no `vercel env pull`?** Porque si marcaste las variables como *Sensitive* en
+> Vercel —que es lo recomendable para una llave maestra— Vercel **no puede devolvértelas**: son
+> de solo escritura. `vercel env pull` te va a traer un archivo sin ellas y el comando siguiente
+> escribiría en tu disco en vez de la base. Copiarlas a mano desde Supabase es el camino
+> confiable.
+>
+> Si además ves un `WARNING! Failed to install the official Vercel Claude plugin`, ignóralo: es
+> una extensión del propio CLI, no tiene relación con tu proyecto.
 
 **Ahora crea tu cuenta:**
 
@@ -165,9 +223,18 @@ escribe un archivo `.env.local` con las credenciales de la base. Ese archivo est
 npm run usuarios crear mjcruz18 UNA-CLAVE-LARGA-Y-TUYA -- --admin
 ```
 
-Debe responder `Creado "mjcruz18" como administrador en la base de datos (Redis)`. Si dice
-`(local)`, el `.env.local` no se cargó: revisa que el archivo exista y que tenga
-`KV_REST_API_URL`.
+Debe responder:
+
+```
+Creado "mjcruz18" como administrador en la base de datos (Supabase).
+```
+
+**Lee esa última palabra.** Si dice `(local)`, escribió en tu disco y no en Supabase: el
+`.env.local` no se cargó. Revisa que el archivo exista, que tenga `SUPABASE_URL` y que estés
+parado en la carpeta del proyecto.
+
+Puedes confirmarlo desde Supabase: **Table Editor** → tabla `datos` → debe haber una fila con
+clave `sunset:usuarios`.
 
 **Entra a tu dirección de Vercel con ese usuario.** Ya está funcionando.
 
@@ -214,7 +281,30 @@ Falta el Paso 5, o el redespliegue posterior. Los datos que se guarden mientras 
 perderán en el próximo despliegue.
 
 **`npm run usuarios listar` dice «(local)» y esperabas la base real.**
-Falta `vercel env pull .env.local`, o lo corriste parado en otra carpeta.
+Falta el `.env.local` con `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY`, o lo corriste parado en
+otra carpeta. Revisa que no hayan quedado comillas ni espacios alrededor del `=`.
+
+**`vercel env pull` dice `✓ Updated .env.local` pero el archivo llega casi vacío.**
+Es lo esperado si tus variables son *Sensitive*: Vercel no puede devolverlas. Escríbelas a mano
+como dice el Paso 7. Tampoco las trae si están marcadas solo para Production y Preview, porque
+`env pull` lee el entorno Development.
+
+**«Supabase respondió 401 al leer».**
+Llave equivocada: revisa que copiaste `service_role` y no `anon`.
+
+**«Supabase respondió 404 al leer», con `PGRST205`.**
+La tabla `datos` no existe. Vuelve al Paso 5.2 y corre el SQL.
+
+**«Supabase respondió 404 al leer», con `PGRST125: Invalid path`.**
+La `SUPABASE_URL` trae una ruta rara. Debe ser solo `https://xxxx.supabase.co`, con o sin
+`/rest/v1` al final; cualquier otra cosa sobra.
+
+**«Supabase respondió 403» al guardar, pero leer funciona.**
+Estás usando la llave `anon` con RLS encendido. Cambia a `service_role`.
+
+**Todo anda, pero los turnos aparecen y desaparecen.**
+Tienes las variables solo en algunos entornos de Vercel. En *Settings → Environment Variables*,
+cada una debe estar marcada para Production, Preview y Development.
 
 **`git push` rechaza el envío diciendo «rejected».**
 Creaste el repositorio en GitHub con README o .gitignore. Lo más simple es borrar ese

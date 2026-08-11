@@ -224,7 +224,13 @@ export default function Panel({
             <span className="sesion-nombre">
               {quienSoy} · administrador
               <span className="sesion-almacen">
-                {almacen === 'redis' ? 'guardado en Redis' : 'guardado en archivo local'}
+                {
+                  {
+                    supabase: 'guardado en Supabase',
+                    redis: 'guardado en Redis',
+                    archivo: 'guardado en archivo local',
+                  }[almacen]
+                }
               </span>
             </span>
             <span className="sesion-acciones">
@@ -242,9 +248,8 @@ export default function Panel({
 
         {almacen === 'archivo' && (
           <p className="panel-aviso">
-            Guardando en <code>.datos/turnos.json</code>, en el disco de este servidor. En
-            Vercel ese disco se borra en cada despliegue: conecta un almacén KV antes de
-            usarlo en serio.
+            Guardando en <code>.datos/</code>, en el disco de este servidor. En Vercel ese
+            disco se borra en cada despliegue: conecta Supabase antes de usarlo en serio.
           </p>
         )}
 

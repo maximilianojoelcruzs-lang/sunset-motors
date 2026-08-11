@@ -121,23 +121,37 @@ hacerlo: quitarle el rol a alguien dejaría de surtir efecto hasta que caduque s
 - **[app/admin/](app/admin/)** — `page.js` (servidor, revalida admin y carga los turnos) +
   `panel.js` (cliente: filtros, totales, edición en línea).
 
-### Los dos backends de almacenamiento
+### Los tres backends de almacenamiento
 
-`dondeGuarda()` devuelve `'redis'` si existen `KV_REST_API_URL`+`KV_REST_API_TOKEN` (Vercel KV) o
-`UPSTASH_REDIS_REST_*`; si no, `'archivo'` y escribe `.datos/<coleccion>.json`. Usuarios y turnos
-comparten el mismo almacén, con claves `sunset:usuarios` y `sunset:turnos`.
+`dondeGuarda()` decide por presencia de variables, en este orden:
 
-Contra Redis se usa el **endpoint genérico de comandos** de Upstash (POST con `["GET", clave]` en
-el cuerpo) en vez de `/get/<clave>`: así las claves con dos puntos no dependen de cómo se
-codifique la URL.
+1. `'supabase'` — `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`. El modo de producción.
+2. `'redis'` — `KV_REST_API_*` o `UPSTASH_REDIS_REST_*`.
+3. `'archivo'` — ninguna; escribe `.datos/<coleccion>.json`.
+
+Usuarios y turnos comparten almacén, con claves `sunset:usuarios` y `sunset:turnos`.
+
+**Supabase** se usa vía PostgREST contra una tabla de dos columnas (`clave text primary key`,
+`valor jsonb`) — el SQL está en PUBLICAR.md. Escribir es un upsert: `POST ?on_conflict=clave` con
+`Prefer: resolution=merge-duplicates`. Sin ese `Prefer` la segunda escritura muere por clave
+duplicada.
+
+La llave es la **service_role**, no la anon, y la tabla tiene RLS encendido sin políticas: así
+nadie con la llave pública puede leer los hashes. Por eso `SUPABASE_SERVICE_ROLE_KEY` no lleva ni
+puede llevar prefijo `NEXT_PUBLIC_` — eso la mandaría al navegador.
+
+**Redis** usa el endpoint genérico de comandos de Upstash (POST con `["GET", clave]` en el cuerpo)
+en vez de `/get/<clave>`: así las claves con dos puntos no dependen de cómo se codifique la URL.
 
 Esto **no es un detalle de comodidad**: en Vercel el disco es efímero, así que el modo archivo
-pierde usuarios y turnos en cada despliegue. El panel muestra en pantalla cuál está activo, y ese
-aviso es intencional — no lo quites pensando que es ruido.
+pierde usuarios y turnos en cada despliegue. El panel muestra cuál está activo, y ese aviso es
+intencional — no lo quites pensando que es ruido. Cuando agregues un backend, agrégalo también a
+las tres etiquetas: el panel, el aviso y el rótulo de `scripts/usuarios.mjs`. Un rótulo que miente
+sobre en qué base estás escribiendo es peor que no tenerlo.
 
 Cada colección es un JSON que se lee y reescribe entero. A la escala de un taller sobra, pero dos
-escrituras simultáneas pueden pisarse. Si algún día importa, ahí es donde hay que cambiar a
-operaciones atómicas de Redis.
+escrituras simultáneas pueden pisarse. Si el registro creciera de verdad, la salida es pasar los
+turnos a una tabla propia en Postgres en vez de un documento.
 
 ### Zona horaria
 

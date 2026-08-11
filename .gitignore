@@ -6,3 +6,6 @@ out
 
 # Registro de turnos cuando se guarda en archivo (desarrollo)
 .datos
+
+.vercel
+.env*

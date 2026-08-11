@@ -12,7 +12,8 @@ se guardan en ningún servidor. Funciona igual en celular y en PC.
 de datos y el primer administrador. Sigue esa guía la primera vez.
 
 En resumen: repositorio en GitHub → importar en [vercel.com/new](https://vercel.com/new) →
-agregar la variable `SUNSET_SECRETO` → conectar una base KV → crear el primer usuario.
+agregar `SUNSET_SECRETO` → crear la base en Supabase y agregar sus dos variables → crear el
+primer usuario desde la terminal.
 
 Sin `SUNSET_SECRETO` y sin base de datos la app se publica pero **nadie puede entrar**. Es a
 propósito: así no queda un secreto por defecto dando vueltas en internet.
@@ -104,17 +105,22 @@ la hora en que entró — porque sin eso el botón de marcaje no sabría qué de
 
 ### Dónde se guarda
 
-Usuarios y turnos comparten el mismo almacén.
+Usuarios y turnos comparten el mismo almacén. Hay tres, y la app elige según las variables
+de entorno que existan:
 
-En **producción hace falta una base KV**. En Vercel: pestaña *Storage* → crear una base KV
-(Upstash Redis) → conectarla al proyecto. Eso agrega solo `KV_REST_API_URL` y
-`KV_REST_API_TOKEN`, y la app las toma sin tocar código. También sirven
-`UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` si la creas por fuera.
+| Backend | Se activa con | Para qué |
+|---|---|---|
+| **Supabase** | `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` | Producción. Es el recomendado. |
+| Redis | `KV_REST_API_*` o `UPSTASH_REDIS_REST_*` | Si ya tienes uno andando |
+| Archivo | ninguna de las anteriores | Solo tu computador |
 
-**Sin esas variables** todo va a `.datos/*.json`, archivos en el disco del servidor. En tu
+La configuración de Supabase está paso a paso en [PUBLICAR.md](PUBLICAR.md), incluido el SQL
+de la tabla, que son dos líneas.
+
+**Sin ninguna variable** todo va a `.datos/*.json`, archivos en el disco del servidor. En tu
 computador eso es cómodo y no requiere configurar nada. En Vercel **no sirve**: el disco es
-efímero y se borra en cada despliegue. El panel avisa en pantalla cuando está en ese modo,
-así que no hay forma de confundirse.
+efímero y se borra en cada despliegue. El panel avisa en pantalla cuando está en ese modo, y
+arriba a la izquierda siempre dice en qué base está guardando.
 
 Las horas se guardan en UTC y se muestran siempre en hora de Chile, sin importar desde
 dónde se abra la app.
