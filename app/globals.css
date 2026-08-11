@@ -1250,6 +1250,354 @@ button {
   background: #fff;
 }
 
+/* ================= Casino =================
+   Paleta propia, encerrada en .casino: es otro local, no el taller. Nada de esto pisa los
+   estilos de las demás páginas. */
+
+.casino {
+  --neon: #22e6d0;
+  --neon-2: #b14cff;
+  --oro: #ffcf5c;
+  --fondo: #06070f;
+  --carta: #0f1226;
+  --linea: #262c4d;
+
+  position: relative;
+  min-height: 100dvh;
+  background: var(--fondo);
+  overflow-x: hidden;
+}
+
+/* La franja del parabrisas es del taller; acá lleva los colores del local. */
+.casino .franja {
+  background: linear-gradient(90deg, var(--neon-2), var(--neon) 50%, var(--oro));
+}
+
+.casino .barra-casino {
+  position: relative;
+  z-index: 2;
+  background: rgba(9, 11, 26, 0.72);
+  border-bottom: 1px solid var(--linea);
+  backdrop-filter: blur(10px);
+}
+
+.casino .barra-marca em {
+  background: linear-gradient(90deg, var(--oro), var(--neon));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.casino .barra-enlace.activo {
+  color: var(--neon);
+  background: rgba(34, 230, 208, 0.1);
+}
+
+.casino .perfil-circulo {
+  background: linear-gradient(135deg, var(--neon-2), var(--neon));
+  color: #05070f;
+}
+
+/* ---------- Ambiente ---------- */
+
+.casino-fondo {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.casino-halo {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.5;
+}
+
+.halo-1 {
+  width: 46vw;
+  height: 46vw;
+  top: -12vw;
+  left: -8vw;
+  background: var(--neon-2);
+  animation: flotar 18s ease-in-out infinite;
+}
+
+.halo-2 {
+  width: 38vw;
+  height: 38vw;
+  top: 8vw;
+  right: -10vw;
+  background: var(--neon);
+  opacity: 0.32;
+  animation: flotar 22s ease-in-out infinite reverse;
+}
+
+.halo-3 {
+  width: 30vw;
+  height: 30vw;
+  bottom: -10vw;
+  left: 35vw;
+  background: var(--oro);
+  opacity: 0.18;
+  animation: flotar 26s ease-in-out infinite;
+}
+
+@keyframes flotar {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(3vw, 4vw, 0) scale(1.12); }
+}
+
+/* Retícula en fuga: da la sensación de suelo sin usar una imagen. */
+.casino-reja {
+  position: absolute;
+  left: -50%;
+  right: -50%;
+  bottom: -20vh;
+  height: 70vh;
+  background-image:
+    linear-gradient(rgba(34, 230, 208, 0.16) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34, 230, 208, 0.16) 1px, transparent 1px);
+  background-size: 64px 64px;
+  transform: perspective(320px) rotateX(62deg);
+  mask-image: linear-gradient(to top, #000 5%, transparent 75%);
+  -webkit-mask-image: linear-gradient(to top, #000 5%, transparent 75%);
+}
+
+/* ---------- Contenido ---------- */
+
+.casino-cuerpo {
+  position: relative;
+  z-index: 1;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 40px 16px 90px;
+  color: #e9ecff;
+}
+
+@media (min-width: 900px) {
+  .casino-cuerpo {
+    padding: 64px 28px 110px;
+  }
+}
+
+.casino-portada {
+  text-align: center;
+  margin-bottom: 56px;
+}
+
+.casino-cinta {
+  display: inline-block;
+  padding: 6px 14px;
+  border: 1px solid rgba(255, 207, 92, 0.4);
+  border-radius: 999px;
+  font-size: 0.66rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--oro);
+}
+
+.casino-nombre {
+  margin: 20px 0 0;
+  font-family: var(--font-stencil), var(--font-ui), sans-serif;
+  font-size: clamp(2.4rem, 11vw, 5.4rem);
+  line-height: 0.95;
+  letter-spacing: 0.04em;
+  color: #fff;
+  text-shadow: 0 0 40px rgba(177, 76, 255, 0.5);
+}
+
+.casino-nombre span {
+  background: linear-gradient(100deg, var(--oro), var(--neon) 55%, var(--neon-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.casino-bajada {
+  margin: 14px 0 0;
+  font-size: 0.95rem;
+  color: #9aa3cc;
+}
+
+.casino-bajada strong {
+  color: var(--neon);
+  font-weight: 500;
+}
+
+.casino-fichas {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-top: 30px;
+  padding: 13px 24px;
+  background: rgba(15, 18, 38, 0.7);
+  border: 1px solid var(--linea);
+  border-radius: 999px;
+  backdrop-filter: blur(6px);
+}
+
+.fichas-rotulo {
+  font-size: 0.64rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #6d76a3;
+}
+
+.fichas-cifra {
+  font-family: var(--font-data), monospace;
+  font-size: 1.5rem;
+  color: var(--oro);
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 22px rgba(255, 207, 92, 0.45);
+}
+
+.fichas-nota {
+  font-size: 0.64rem;
+  color: #6d76a3;
+}
+
+/* ---------- Mesas ---------- */
+
+.casino-titulo-fila {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.casino-titulo {
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #9aa3cc;
+}
+
+.casino-linea {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--linea), transparent);
+}
+
+.casino-cuenta {
+  font-family: var(--font-data), monospace;
+  font-size: 0.72rem;
+  color: var(--neon);
+}
+
+.mesas-rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(216px, 1fr));
+  gap: 16px;
+}
+
+.mesa {
+  position: relative;
+  padding: 22px 18px 20px;
+  text-align: center;
+  background: linear-gradient(180deg, rgba(20, 24, 50, 0.9), rgba(11, 13, 30, 0.9));
+  border: 1px solid var(--linea);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+}
+
+.mesa:hover {
+  transform: translateY(-4px);
+  border-color: rgba(34, 230, 208, 0.5);
+  box-shadow: 0 18px 44px rgba(34, 230, 208, 0.14);
+}
+
+.mesa-marco {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 25%, rgba(177, 76, 255, 0.3), transparent 65%);
+  border: 1px solid var(--linea);
+  overflow: hidden;
+}
+
+.mesa-icono {
+  width: 40px;
+  height: 40px;
+  color: var(--neon);
+  transition: color 0.25s;
+}
+
+.mesa:hover .mesa-icono {
+  color: var(--oro);
+}
+
+.mesa-brillo {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.22) 50%,
+    transparent 60%
+  );
+  transform: translateX(-130%);
+  transition: transform 0.65s ease;
+}
+
+.mesa:hover .mesa-brillo {
+  transform: translateX(130%);
+}
+
+.mesa-nombre {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #fff;
+}
+
+.mesa-lema {
+  margin: 6px 0 14px;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: #8b93bd;
+}
+
+.mesa-pronto {
+  display: inline-block;
+  padding: 4px 11px;
+  border: 1px solid rgba(255, 207, 92, 0.35);
+  border-radius: 999px;
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--oro);
+}
+
+.casino-aviso {
+  max-width: 620px;
+  margin: 52px auto 0;
+  text-align: center;
+  font-size: 0.74rem;
+  line-height: 1.7;
+  color: #5f6791;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .casino-halo,
+  .mesa,
+  .mesa-brillo,
+  .mesa-icono {
+    animation: none;
+    transition: none;
+  }
+
+  .mesa:hover {
+    transform: none;
+  }
+}
+
 /* ---------- Diálogo ---------- */
 
 .velo {

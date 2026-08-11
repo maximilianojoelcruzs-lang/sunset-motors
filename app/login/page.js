@@ -31,7 +31,8 @@ export default function Login() {
         setEntrando(false);
         return;
       }
-      router.replace('/');
+      const { destino } = await r.json().catch(() => ({}));
+      router.replace(destino || '/');
       router.refresh();
     } catch {
       setError('Sin conexión con el servidor.');

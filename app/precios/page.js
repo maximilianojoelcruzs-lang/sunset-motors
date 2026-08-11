@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { sesionActual } from '../../lib/servidor';
+import { sesionDeTaller } from '../../lib/servidor';
 import { esAdmin } from '../../lib/usuarios';
 import { obtener, esSemilla } from '../../lib/precios';
 import { turnoAbierto } from '../../lib/turnos';
@@ -8,8 +8,7 @@ import Editor from './editor';
 export const dynamic = 'force-dynamic';
 
 export default async function PaginaPrecios() {
-  const sesion = await sesionActual();
-  if (!sesion) redirect('/login');
+  const sesion = await sesionDeTaller();
   if (!(await esAdmin(sesion.usuario))) redirect('/');
 
   const catalogo = await obtener();

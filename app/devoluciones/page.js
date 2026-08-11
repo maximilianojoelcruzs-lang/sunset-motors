@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { sesionActual } from '../../lib/servidor';
+import { sesionDeTaller } from '../../lib/servidor';
 import { esAdmin } from '../../lib/usuarios';
 import { listar, listarEnviadas } from '../../lib/devoluciones';
 import { hayStorage } from '../../lib/imagenes';
@@ -9,8 +9,7 @@ import Devoluciones from './devoluciones';
 export const dynamic = 'force-dynamic';
 
 export default async function PaginaDevoluciones() {
-  const sesion = await sesionActual();
-  if (!sesion) redirect('/login');
+  const sesion = await sesionDeTaller();
 
   const admin = await esAdmin(sesion.usuario);
 

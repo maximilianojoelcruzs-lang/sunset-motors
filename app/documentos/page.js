@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { sesionActual } from '../../lib/servidor';
+import { sesionDeTaller } from '../../lib/servidor';
 import { esAdmin } from '../../lib/usuarios';
 import { listar } from '../../lib/documentos';
 import { hayStorage } from '../../lib/imagenes';
@@ -9,8 +9,7 @@ import Documentos from './documentos';
 export const dynamic = 'force-dynamic';
 
 export default async function PaginaDocumentos() {
-  const sesion = await sesionActual();
-  if (!sesion) redirect('/login');
+  const sesion = await sesionDeTaller();
 
   let documentos = [];
   let abierto = null;

@@ -10,7 +10,11 @@ import CambiarClave from './perfil-clave';
 import MisTurnos from './perfil-turnos';
 
 /** Iniciales para el círculo del perfil: "mjcruz12" -> "MJ". */
-const iniciales = (usuario) => (usuario || '?').replace(/[^a-z0-9]/gi, '').slice(0, 2).toUpperCase();
+const iniciales = (usuario) =>
+  (usuario || '?')
+    .replace(/[^a-z0-9]/gi, '')
+    .slice(0, 2)
+    .toUpperCase();
 
 /**
  * Barra superior con la marca, la navegación y el menú de perfil.
@@ -19,7 +23,19 @@ const iniciales = (usuario) => (usuario || '?').replace(/[^a-z0-9]/gi, '').slice
  * la calculadora muestra el mismo dato en su propia barra de marcaje, y si cada uno tuviera
  * su copia se contradirían apenas alguien marcara desde el menú.
  */
-export default function Barra({ usuario, admin, seccion, turno, onTurnoCambio }) {
+/**
+ * @param variante  'taller' (por defecto) o 'casino'. Cambia la marca, los enlaces y oculta
+ *                  el marcaje de turno: quien entra al casino no ficha horas de taller.
+ */
+export default function Barra({
+  usuario,
+  admin,
+  seccion,
+  turno,
+  onTurnoCambio,
+  variante = 'taller',
+}) {
+  const esCasino = variante === 'casino';
   const [abierto, setAbierto] = useState(false);
   const [saliendo, setSaliendo] = useState(false);
   const [marcando, setMarcando] = useState(false);
@@ -86,67 +102,89 @@ export default function Barra({ usuario, admin, seccion, turno, onTurnoCambio })
 
   return (
     <>
-      <header className="barra">
+      <header className={`barra ${esCasino ? 'barra-casino' : ''}`}>
         <div className="franja" />
 
         <div className="barra-cuerpo">
-          <a className="barra-marca" href="/">
-            SUNSET <em>MOTORS</em>
+          <a className="barra-marca" href={esCasino ? '/casino' : '/'}>
+            {esCasino ? (
+              <>
+                SUNSET <em>ROYALE</em>
+              </>
+            ) : (
+              <>
+                SUNSET <em>MOTORS</em>
+              </>
+            )}
           </a>
 
           <nav className="barra-nav" aria-label="Secciones">
-            <a
-              className={`barra-enlace ${seccion === 'calculadora' ? 'activo' : ''}`}
-              href="/"
-              aria-current={seccion === 'calculadora' ? 'page' : undefined}
-            >
-              Calculadora
-            </a>
-            <a
-              className={`barra-enlace ${seccion === 'licencias' ? 'activo' : ''}`}
-              href="/licencias"
-              aria-current={seccion === 'licencias' ? 'page' : undefined}
-            >
-              Licencias
-            </a>
-            <a
-              className={`barra-enlace ${seccion === 'devoluciones' ? 'activo' : ''}`}
-              href="/devoluciones"
-              aria-current={seccion === 'devoluciones' ? 'page' : undefined}
-            >
-              Devoluciones
-            </a>
-            <a
-              className={`barra-enlace ${seccion === 'anuncios' ? 'activo' : ''}`}
-              href="/anuncios"
-              aria-current={seccion === 'anuncios' ? 'page' : undefined}
-            >
-              Anuncios
-            </a>
-            <a
-              className={`barra-enlace ${seccion === 'documentos' ? 'activo' : ''}`}
-              href="/documentos"
-              aria-current={seccion === 'documentos' ? 'page' : undefined}
-            >
-              Documentos
-            </a>
-            {admin && (
+            {!esCasino && (
               <>
                 <a
-                  className={`barra-enlace ${seccion === 'precios' ? 'activo' : ''}`}
-                  href="/precios"
-                  aria-current={seccion === 'precios' ? 'page' : undefined}
+                  className={`barra-enlace ${seccion === 'calculadora' ? 'activo' : ''}`}
+                  href="/"
+                  aria-current={seccion === 'calculadora' ? 'page' : undefined}
                 >
-                  Precios
+                  Calculadora
                 </a>
                 <a
-                  className={`barra-enlace ${seccion === 'registro' ? 'activo' : ''}`}
-                  href="/admin"
-                  aria-current={seccion === 'registro' ? 'page' : undefined}
+                  className={`barra-enlace ${seccion === 'licencias' ? 'activo' : ''}`}
+                  href="/licencias"
+                  aria-current={seccion === 'licencias' ? 'page' : undefined}
                 >
-                  Registro
+                  Licencias
                 </a>
+                <a
+                  className={`barra-enlace ${seccion === 'devoluciones' ? 'activo' : ''}`}
+                  href="/devoluciones"
+                  aria-current={seccion === 'devoluciones' ? 'page' : undefined}
+                >
+                  Devoluciones
+                </a>
+                <a
+                  className={`barra-enlace ${seccion === 'anuncios' ? 'activo' : ''}`}
+                  href="/anuncios"
+                  aria-current={seccion === 'anuncios' ? 'page' : undefined}
+                >
+                  Anuncios
+                </a>
+                <a
+                  className={`barra-enlace ${seccion === 'documentos' ? 'activo' : ''}`}
+                  href="/documentos"
+                  aria-current={seccion === 'documentos' ? 'page' : undefined}
+                >
+                  Documentos
+                </a>
+                {admin && (
+                  <>
+                    <a
+                      className={`barra-enlace ${seccion === 'precios' ? 'activo' : ''}`}
+                      href="/precios"
+                      aria-current={seccion === 'precios' ? 'page' : undefined}
+                    >
+                      Precios
+                    </a>
+                    <a
+                      className={`barra-enlace ${seccion === 'registro' ? 'activo' : ''}`}
+                      href="/admin"
+                      aria-current={seccion === 'registro' ? 'page' : undefined}
+                    >
+                      Registro
+                    </a>
+                  </>
+                )}
               </>
+            )}
+
+            {(esCasino || admin) && (
+              <a
+                className={`barra-enlace ${seccion === 'casino' ? 'activo' : ''}`}
+                href="/casino"
+                aria-current={seccion === 'casino' ? 'page' : undefined}
+              >
+                Casino
+              </a>
             )}
           </nav>
 
@@ -165,7 +203,10 @@ export default function Barra({ usuario, admin, seccion, turno, onTurnoCambio })
                 {iniciales(usuario)}
               </span>
               <span className="perfil-usuario">{usuario}</span>
-              <span className={`flecha-perfil ${abierto ? 'abierta' : ''}`} aria-hidden="true" />
+              <span
+                className={`flecha-perfil ${abierto ? 'abierta' : ''}`}
+                aria-hidden="true"
+              />
             </button>
 
             {abierto && (
@@ -176,47 +217,53 @@ export default function Barra({ usuario, admin, seccion, turno, onTurnoCambio })
                   </span>
                   <span className="perfil-datos">
                     <strong>{usuario}</strong>
-                    <span>{admin ? 'Administrador' : 'Mecánico'}</span>
+                    <span>
+                      {admin ? 'Administrador' : esCasino ? 'Invitado del casino' : 'Mecánico'}
+                    </span>
                   </span>
                 </div>
 
-                <div className="perfil-turno">
-                  <span className="perfil-turno-estado">
-                    {turno ? (
-                      <>
-                        <span className="marcaje-punto" aria-hidden="true" />
-                        Desde las {soloHora(turno.entrada)} ·{' '}
-                        <strong>{enHoras(duracionMs(turno, ahora))}</strong>
-                        <span className="marcaje-resta">
-                          se cierra solo en {restanMinutos(turno, ahora)} min
-                        </span>
-                      </>
-                    ) : (
-                      'Sin turno abierto'
-                    )}
-                  </span>
-                  <button
-                    type="button"
-                    role="menuitem"
-                    className="accion"
-                    onClick={marcar}
-                    disabled={marcando}
-                  >
-                    {marcando ? '…' : turno ? 'Marcar salida' : 'Marcar entrada'}
-                  </button>
-                </div>
+                {!esCasino && (
+                  <div className="perfil-turno">
+                    <span className="perfil-turno-estado">
+                      {turno ? (
+                        <>
+                          <span className="marcaje-punto" aria-hidden="true" />
+                          Desde las {soloHora(turno.entrada)} ·{' '}
+                          <strong>{enHoras(duracionMs(turno, ahora))}</strong>
+                          <span className="marcaje-resta">
+                            se cierra solo en {restanMinutos(turno, ahora)} min
+                          </span>
+                        </>
+                      ) : (
+                        'Sin turno abierto'
+                      )}
+                    </span>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className="accion"
+                      onClick={marcar}
+                      disabled={marcando}
+                    >
+                      {marcando ? '…' : turno ? 'Marcar salida' : 'Marcar entrada'}
+                    </button>
+                  </div>
+                )}
 
                 {error && <p className="perfil-error">{error}</p>}
                 {aviso && <p className="perfil-aviso">{aviso}</p>}
 
-                <button
-                  type="button"
-                  role="menuitem"
-                  className="perfil-opcion"
-                  onClick={() => abrirVentana('turnos')}
-                >
-                  Mis turnos
-                </button>
+                {!esCasino && (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="perfil-opcion"
+                    onClick={() => abrirVentana('turnos')}
+                  >
+                    Mis turnos
+                  </button>
+                )}
                 <button
                   type="button"
                   role="menuitem"

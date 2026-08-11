@@ -1,7 +1,7 @@
 // Administra los usuarios directamente en la base de datos.
 //
 //   node scripts/usuarios.mjs listar
-//   node scripts/usuarios.mjs crear <usuario> <clave> [--admin]
+//   node scripts/usuarios.mjs crear <usuario> <clave> [--admin] [--casino]
 //   node scripts/usuarios.mjs clave <usuario> <clave-nueva>
 //   node scripts/usuarios.mjs admin <usuario> si|no
 //   node scripts/usuarios.mjs borrar <usuario>
@@ -53,7 +53,7 @@ const salir = (mensaje, codigo = 1) => {
 
 const ayuda = `Uso:
   node scripts/usuarios.mjs listar
-  node scripts/usuarios.mjs crear <usuario> <clave> [--admin]
+  node scripts/usuarios.mjs crear <usuario> <clave> [--admin] [--casino]
   node scripts/usuarios.mjs clave <usuario> <clave-nueva>
   node scripts/usuarios.mjs admin <usuario> si|no
   node scripts/usuarios.mjs borrar <usuario>`;
@@ -67,7 +67,11 @@ switch (accion) {
       break;
     }
     for (const u of lista) {
-      console.log(`  ${u.usuario}${u.admin ? '  [administrador]' : ''}`);
+      const etiquetas = [u.admin && 'administrador', u.casino && 'casino']
+        .filter(Boolean)
+        .map((e) => `  [${e}]`)
+        .join('');
+      console.log(`  ${u.usuario}${etiquetas}`);
     }
     break;
   }
@@ -82,12 +86,17 @@ switch (accion) {
     // bandera, y ese error terminaba justo acá.
     const primero = (await listarUsuarios()).length === 0;
     const admin = banderas.includes('--admin') || primero;
+    const casino = banderas.includes('--casino');
 
-    const { error, usuario: creado } = await crearUsuario(usuario, clave, admin);
+    const { error, usuario: creado } = await crearUsuario(usuario, clave, admin, casino);
     if (error) salir(`No se pudo crear: ${error}`);
 
+    const etiquetas = [creado.admin && 'administrador', creado.casino && 'casino']
+      .filter(Boolean)
+      .join(' y ');
+
     console.log(
-      `Creado "${creado.usuario}"${creado.admin ? ' como administrador' : ''} en ${rotulo}.`
+      `Creado "${creado.usuario}"${etiquetas ? ` como ${etiquetas}` : ''} en ${rotulo}.`
     );
     if (primero && !banderas.includes('--admin')) {
       console.log('(Es el primer usuario del taller, así que queda como administrador.)');

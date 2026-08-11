@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { COOKIE, HORAS, firmarSesion, secretoFirma } from '../../../lib/sesion';
-import { hayUsuarios, verificarUsuario } from '../../../lib/usuarios';
+import { hayUsuarios, soloCasino, verificarUsuario } from '../../../lib/usuarios';
 import { dondeGuarda } from '../../../lib/almacen';
 
 export const runtime = 'nodejs';
@@ -38,7 +38,11 @@ export async function POST(peticion) {
       return NextResponse.json({ error: 'Usuario o clave incorrectos.' }, { status: 401 });
     }
 
-    const respuesta = NextResponse.json({ ok: true });
+    // Cada categoría entra por su puerta: a quien solo tiene casino, la calculadora del
+    // taller no le sirve de nada.
+    const destino = (await soloCasino(verificado)) ? '/casino' : '/';
+
+    const respuesta = NextResponse.json({ ok: true, destino });
     respuesta.cookies.set(COOKIE, await firmarSesion(verificado), {
       httpOnly: true,
       sameSite: 'lax',

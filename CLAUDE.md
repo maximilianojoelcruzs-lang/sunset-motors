@@ -109,6 +109,36 @@ Por eso el middleware solo verifica que haya sesión, y la autorización vive en
 No muevas `esAdmin()` al middleware: rompe el build. Y no lo guardes en la cookie para poder
 hacerlo: quitarle el rol a alguien dejaría de surtir efecto hasta que caduque su sesión.
 
+## Casino (fachada)
+
+**[app/casino/](app/casino/)** — otro producto dentro de la misma app: entretención de rol, sin
+dinero real. **Por ahora es solo la vista**: no hay ningún juego, y las fichas que muestra son
+una constante escrita a mano en `casino.js`.
+
+### Tres categorías, no dos niveles
+
+`admin` y `casino` son banderas **independientes**, no una escala. Hay gente que solo entra al
+casino y nunca al taller:
+
+- `esCasino()` — puede ver el casino (los admin también).
+- `soloCasino()` — casino sin admin: no tiene nada que hacer en el taller.
+
+`POST /api/login` devuelve un `destino` según la categoría, y el login redirige ahí.
+
+**Toda página del taller empieza con `sesionDeTaller()`** ([lib/servidor.js](lib/servidor.js)),
+que manda al login a quien no tenga sesión y al casino a quien sea solo de casino. Si agregas una
+página del taller y usas `sesionActual()` en su lugar, un invitado del casino la va a ver.
+
+El chequeo va ahí y no en el middleware por lo de siempre: el rol se consulta contra la base y el
+middleware corre en Edge.
+
+### La paleta del casino está encerrada
+
+Todo el CSS del casino cuelga de `.casino`, con sus propias variables (`--neon`, `--oro`…). Es un
+local distinto: no debe parecerse al taller ni pisarle los estilos. `<Barra variante="casino">`
+cambia marca y enlaces, y esconde el marcaje de turno y *Mis turnos* — quien entra al casino no
+ficha horas.
+
 ## Licencias y ausencias
 
 - **[lib/licencias.js](lib/licencias.js)** — solicitudes con estados

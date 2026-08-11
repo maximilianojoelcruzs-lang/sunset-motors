@@ -139,6 +139,22 @@ Cuando el encargado corrige un turno, **el motivo queda escrito bajo la fila**, 
 lo corrigió, y también le aparece a esa persona en *Mis turnos*. Las horas de alguien no
 cambian sin explicación a la vista.
 
+## Casino
+
+Pestaña **Casino**: una sala aparte, con su propia identidad. Es entretención de rol para el
+servidor — **no se juega con dinero real ni se puede convertir en dinero real**.
+
+Por ahora es **solo la fachada**: se ven las mesas (Ruleta, Blackjack, Tragamonedas, Dados,
+Póker, Rasca y gana) marcadas como *Próximamente*, y unas fichas de muestra. Ningún juego
+funciona todavía.
+
+Entran quienes tengan la categoría **casino**, y los administradores. Quien solo tenga casino
+no ve las pantallas del taller: si intenta entrar, vuelve a la sala.
+
+```bash
+npm run usuarios crear nombre clave -- --casino
+```
+
 ## Licencias y ausencias
 
 Pestaña **Licencias**. Cada mecánico crea su solicitud con tipo, fechas de inicio y término,

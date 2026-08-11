@@ -1,4 +1,4 @@
-import { sesionActual } from '../lib/servidor';
+import { sesionDeTaller } from '../lib/servidor';
 import { esAdmin } from '../lib/usuarios';
 import { turnoAbierto } from '../lib/turnos';
 import { obtener } from '../lib/precios';
@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 
 // El middleware ya cortó el paso a quien no tiene sesión; acá solo armamos el contexto.
 export default async function Pagina() {
-  const sesion = await sesionActual();
+  const sesion = await sesionDeTaller();
   const usuario = sesion?.usuario ?? '';
 
   // El catálogo sí es imprescindible: sin él no hay calculadora. Si falla, que falle.
