@@ -109,6 +109,102 @@ Por eso el middleware solo verifica que haya sesión, y la autorización vive en
 No muevas `esAdmin()` al middleware: rompe el build. Y no lo guardes en la cookie para poder
 hacerlo: quitarle el rol a alguien dejaría de surtir efecto hasta que caduque su sesión.
 
+## Licencias y ausencias
+
+- **[lib/licencias.js](lib/licencias.js)** — solicitudes con estados
+  `borrador → enviada → aprobada|rechazada`.
+- **[app/licencias/](app/licencias/)** — una sola página sirve al mecánico y al admin; las
+  pestañas *Por revisar / Resueltas / Las mías* solo aparecen para admin.
+
+Reglas que no hay que aflojar:
+
+- **Un borrador es privado hasta que su autor lo envía.** `listarEnviadas()` excluye
+  `borrador`, y es lo único que ve el admin. El endpoint `?todas=1` exige admin (403 si no).
+- Editar, enviar y borrar exigen ser el dueño (`No es tuya.`). Aprobar y rechazar exigen admin.
+- Una solicitud resuelta queda de **solo lectura** para su autor: es el registro de una decisión,
+  no un formulario. Solo el admin puede borrarla, y al hacerlo se le avisa a la persona.
+
+## Devoluciones
+
+- **[lib/devoluciones.js](lib/devoluciones.js)** — `borrador → pendiente → pagado|rechazado`.
+  Mismo patrón que licencias: borrador privado, resuelta = solo lectura.
+- **[lib/imagenes.js](lib/imagenes.js)** — subida y borrado de capturas.
+
+### El bucket es privado, y de ahí salen dos reglas
+
+Las imágenes van a **Supabase Storage, bucket `sunset`, privado** (en local, a
+`.datos/imagenes/`). Que sea privado es lo que obliga a lo siguiente, y no hay que "simplificarlo":
+
+- `urlFirmada()` genera una URL de 5 minutos. **Nunca** se guarda ni se devuelve una URL pública.
+- Las capturas se piden por `GET /api/devoluciones/:id/imagen`, que comprueba que quien mira sea
+  el dueño o un admin **antes** de firmar. La ruta de la imagen por sí sola no sirve para verla.
+
+### La validación de imágenes mira los bytes, no la etiqueta
+
+`tipoReal()` reconoce PNG/JPEG/WEBP por los primeros bytes. El `Content-Type` que manda el
+navegador lo controla quien sube: con solo mirarlo, un `.txt` renombrado a `.png` pasaba. Si el
+tipo declarado y el real no calzan, se rechaza. SVG queda fuera a propósito — puede traer scripts.
+
+Al reemplazar la captura de una devolución se borra la anterior; si no, quedaría ocupando espacio
+sin que nadie pueda volver a verla.
+
+## Anuncios: flyers y mensajes
+
+**[lib/anuncios.js](lib/anuncios.js)** — dos colecciones separadas, `sunset:flyers` (imágenes) y
+`sunset:mensajes` (textos para copiar).
+
+A diferencia de licencias y devoluciones, **acá no hay estados ni aprobaciones**: el admin
+publica y todo el taller lo ve. No le agregues un flujo de revisión; ese no es el punto.
+
+- Publicar, editar y borrar exigen admin. **Ver y copiar es de cualquiera con sesión** — si
+  cierras eso, la función pierde el sentido.
+- La imagen se sirve por `GET /api/flyers/:id/imagen`, firmada por **una hora** y no cinco
+  minutos como las capturas de devoluciones: la galería se mira largo rato y se reabre, y con
+  cinco minutos la pestaña abierta se llenaría de imágenes rotas.
+- Al publicar se avisa a todo el taller con `crearAvisos()` (una sola escritura). Con
+  `crearAviso()` en un bucle se reescribiría la colección entera una vez por persona.
+
+El estilo "futurista" de la galería vive en `.flyer-marco`: el borde de degradado es un fondo con
+`padding: 1px` y un `::before`, porque los bordes CSS no aceptan degradados. El barrido de luz y
+el desplazamiento están anulados bajo `prefers-reduced-motion`.
+
+## Bodega (inventario por captura)
+
+- **[lib/leer-inventario.js](lib/leer-inventario.js)** — convierte el texto del OCR en
+  `[{nombre, cantidad}]`. **Función pura a propósito**: el OCR es la parte impredecible, y así al
+  menos la interpretación de lo que devuelve se puede probar sin imágenes. Prueba cinco formatos
+  (`x5`, `5x`, `(5)`, separado por espacios, sin cantidad) y descarta líneas de interfaz.
+- **[app/bodega/escaner.js](app/bodega/escaner.js)** — el OCR corre **en el navegador** con
+  tesseract.js, importado dinámicamente. Importarlo arriba metería varios MB en el bundle de toda
+  la app; con el import dinámico, `/bodega` pesa ~3,6 kB. La imagen nunca sale del navegador.
+- **[lib/bodega.js](lib/bodega.js)** — `normalizar()` deja la lista canónica y **suma** los
+  repetidos en vez de pisarlos: una captura puede traer el mismo producto en dos pilas.
+
+### El paso de revisión no es opcional
+
+El escáner **propone** y la persona confirma. El OCR se equivoca según la interfaz del servidor,
+el tamaño de la letra y el fondo; guardar directo produciría inventarios con nombres inventados.
+Si alguna vez "simplificas" saltándote la revisión, la función deja de ser usable.
+
+Por lo mismo `bodega.anterior` guarda la versión previa completa y hay un botón **Deshacer** para
+admins: un escaneo malo confirmado pisa el inventario bueno, y tiene que haber de dónde volver.
+
+Actualizar la bodega **lo puede hacer cualquiera con sesión**, no solo el admin: quien tiene el
+inventario abierto en el juego es el mecánico. Queda registrado quién lo dejó así.
+
+## Avisos (la campanita)
+
+**[lib/avisos.js](lib/avisos.js)** — notificaciones dentro de la app, compartidas por todas las
+funciones que necesiten avisar algo.
+
+`para` es un usuario, o el comodín `ADMINS` para todos los administradores. Ese comodín se
+resuelve **al leer**, no al escribir: quién es admin puede cambiar entremedio. Por lo mismo, los
+avisos a `ADMINS` guardan `leidoPor: []` en vez de un `leido` booleano — si un admin marcara leído
+un aviso compartido, desaparecería para los demás.
+
+No hay correo ni notificación al teléfono: eso necesita un servicio externo (Resend o similar) y
+no está montado.
+
 ## Registro de turnos
 
 - **[lib/turnos.js](lib/turnos.js)** — la lógica: `marcarEntrada`, `marcarSalida`, `listar`,

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { duracionMs, enHoras, soloHora } from '../lib/tiempo';
 import { marcarTurno } from './marcar';
+import Campana from './campana';
 import Dialogo from './dialogo';
 import CambiarClave from './perfil-clave';
 import MisTurnos from './perfil-turnos';
@@ -100,6 +101,34 @@ export default function Barra({ usuario, admin, seccion, turno, onTurnoCambio })
             >
               Calculadora
             </a>
+            <a
+              className={`barra-enlace ${seccion === 'licencias' ? 'activo' : ''}`}
+              href="/licencias"
+              aria-current={seccion === 'licencias' ? 'page' : undefined}
+            >
+              Licencias
+            </a>
+            <a
+              className={`barra-enlace ${seccion === 'devoluciones' ? 'activo' : ''}`}
+              href="/devoluciones"
+              aria-current={seccion === 'devoluciones' ? 'page' : undefined}
+            >
+              Devoluciones
+            </a>
+            <a
+              className={`barra-enlace ${seccion === 'anuncios' ? 'activo' : ''}`}
+              href="/anuncios"
+              aria-current={seccion === 'anuncios' ? 'page' : undefined}
+            >
+              Anuncios
+            </a>
+            <a
+              className={`barra-enlace ${seccion === 'bodega' ? 'activo' : ''}`}
+              href="/bodega"
+              aria-current={seccion === 'bodega' ? 'page' : undefined}
+            >
+              Bodega
+            </a>
             {admin && (
               <a
                 className={`barra-enlace ${seccion === 'registro' ? 'activo' : ''}`}
@@ -110,6 +139,8 @@ export default function Barra({ usuario, admin, seccion, turno, onTurnoCambio })
               </a>
             )}
           </nav>
+
+          <Campana />
 
           <div className="perfil" ref={caja}>
             <button

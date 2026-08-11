@@ -152,6 +152,120 @@ button {
   background: rgba(255, 157, 46, 0.1);
 }
 
+/* ---------- Campanita de avisos ---------- */
+
+.campana {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.campana-boton {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: #948c7d;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.campana-boton:hover {
+  color: var(--ticket);
+  border-color: var(--bay-line);
+}
+
+.campana-icono {
+  width: 19px;
+  height: 19px;
+}
+
+.campana-punto {
+  position: absolute;
+  top: 1px;
+  right: 0;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 3px;
+  border-radius: 999px;
+  background: var(--sun-3);
+  color: #fff;
+  font-family: var(--font-data), monospace;
+  font-size: 0.58rem;
+  line-height: 15px;
+  text-align: center;
+}
+
+.campana-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 60;
+  width: 300px;
+  max-width: calc(100vw - 24px);
+  background: var(--bay-2);
+  border: 1px solid var(--bay-line);
+  border-radius: 4px;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.55);
+  overflow: hidden;
+}
+
+.campana-cabeza {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--bay-line);
+  font-size: 0.66rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--sun-5);
+}
+
+.campana-vacio {
+  margin: 0;
+  padding: 18px 14px;
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+
+.campana-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.campana-lista li {
+  padding: 11px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: #948c7d;
+}
+
+.campana-lista li.nuevo {
+  border-left: 2px solid var(--sun-5);
+  color: var(--ticket);
+}
+
+.campana-lista a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.campana-lista a:hover {
+  color: var(--amber);
+}
+
+.campana-cuando {
+  display: block;
+  margin-top: 3px;
+  font-size: 0.66rem;
+  color: #5d5a53;
+}
+
 /* ---------- Menú de perfil ---------- */
 
 .perfil {
@@ -362,6 +476,658 @@ button {
 .perfil-opcion[disabled] {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* ---------- Licencias y ausencias ---------- */
+
+.pestanas {
+  display: flex;
+  gap: 6px;
+  margin: 20px 0 16px;
+  flex-wrap: wrap;
+}
+
+.pestana {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 13px;
+  background: transparent;
+  border: 1px solid var(--bay-line);
+  border-radius: 999px;
+  font-size: 0.76rem;
+  color: #948c7d;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.pestana:hover {
+  color: var(--ticket);
+}
+
+.pestana.activa {
+  color: var(--amber);
+  border-color: rgba(255, 157, 46, 0.5);
+  background: rgba(255, 157, 46, 0.08);
+}
+
+.pestana-cuenta {
+  min-width: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--sun-3);
+  color: #fff;
+  font-family: var(--font-data), monospace;
+  font-size: 0.62rem;
+  line-height: 18px;
+  text-align: center;
+}
+
+.soli-nueva {
+  margin: 20px 0;
+  padding: 16px;
+  background: var(--bay-2);
+  border: 1px solid var(--bay-line);
+  border-radius: 4px;
+}
+
+.soli-campos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 13px;
+}
+
+.soli-forma textarea {
+  font: inherit;
+  font-size: 0.9rem;
+  padding: 11px 12px;
+  background: var(--bay);
+  border: 1px solid var(--bay-line);
+  border-radius: 3px;
+  color: var(--ticket);
+  resize: vertical;
+}
+
+.soli-forma textarea:focus {
+  border-color: var(--amber);
+}
+
+.soli-botones {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.accion.destacada {
+  border-color: rgba(255, 157, 46, 0.55);
+  color: var(--amber);
+}
+
+.accion.destacada:hover {
+  border-color: var(--amber);
+  background: rgba(255, 157, 46, 0.1);
+}
+
+.accion.peligro:hover {
+  border-color: var(--sun-2);
+  color: var(--sun-2);
+}
+
+.soli-lista {
+  display: grid;
+  gap: 12px;
+}
+
+@media (min-width: 900px) {
+  .soli-lista {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+}
+
+.soli {
+  padding: 14px 15px;
+  background: var(--bay-2);
+  border: 1px solid var(--bay-line);
+  border-left: 3px solid var(--bay-line);
+  border-radius: 4px;
+}
+
+.soli-aprobada {
+  border-left-color: #3f8f4f;
+}
+
+.soli-rechazada {
+  border-left-color: var(--sun-2);
+}
+
+.soli-enviada {
+  border-left-color: var(--sun-4);
+}
+
+.soli-cabeza {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.soli-tipo {
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--sun-5);
+}
+
+.soli-quien {
+  font-family: var(--font-data), monospace;
+  font-size: 0.76rem;
+  color: var(--ticket);
+}
+
+.soli-estado {
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid var(--bay-line);
+  color: var(--ink-soft);
+}
+
+.soli-estado.enviada {
+  border-color: rgba(240, 138, 42, 0.5);
+  color: var(--sun-4);
+}
+
+.soli-estado.aprobada {
+  border-color: rgba(63, 143, 79, 0.6);
+  color: #6fbf7f;
+}
+
+.soli-estado.rechazada {
+  border-color: rgba(176, 58, 70, 0.6);
+  color: #d2707a;
+}
+
+.soli-fechas {
+  margin: 0 0 8px;
+  font-family: var(--font-data), monospace;
+  font-size: 0.82rem;
+  color: var(--ticket);
+}
+
+.soli-dias {
+  margin-left: 9px;
+  font-size: 0.7rem;
+  color: var(--ink-soft);
+}
+
+.soli-motivo {
+  margin: 0 0 10px;
+  font-size: 0.83rem;
+  line-height: 1.55;
+  color: #948c7d;
+  white-space: pre-wrap;
+}
+
+.soli-respuesta {
+  margin: 0 0 10px;
+  padding: 9px 11px;
+  background: var(--bay);
+  border-radius: 3px;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: #948c7d;
+}
+
+.soli-acciones,
+.soli-decision {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.soli-decision {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--bay-line);
+}
+
+.soli-decision input {
+  flex: 1;
+  min-width: 160px;
+  font: inherit;
+  font-size: 0.82rem;
+  padding: 7px 10px;
+  background: var(--bay);
+  border: 1px solid var(--bay-line);
+  border-radius: 3px;
+  color: var(--ticket);
+}
+
+.soli-decision input:focus {
+  border-color: var(--amber);
+}
+
+/* ---------- Devoluciones ---------- */
+
+.dev-monto {
+  font-family: var(--font-data), monospace;
+  font-size: 1.05rem;
+  color: var(--amber);
+  font-variant-numeric: tabular-nums;
+}
+
+.dev-pendiente {
+  border-left-color: var(--sun-4);
+}
+
+.dev-pagado {
+  border-left-color: #3f8f4f;
+}
+
+.dev-rechazado {
+  border-left-color: var(--sun-2);
+}
+
+.soli-estado.pendiente {
+  border-color: rgba(240, 138, 42, 0.5);
+  color: var(--sun-4);
+}
+
+.soli-estado.pagado {
+  border-color: rgba(63, 143, 79, 0.6);
+  color: #6fbf7f;
+}
+
+.soli-estado.rechazado {
+  border-color: rgba(176, 58, 70, 0.6);
+  color: #d2707a;
+}
+
+.dev-captura {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 7px;
+  background: var(--bay);
+  border: 1px solid var(--bay-line);
+  border-radius: 3px;
+  text-align: left;
+  transition: border-color 0.15s;
+}
+
+.dev-captura:hover {
+  border-color: var(--amber);
+}
+
+.dev-captura img {
+  width: 64px;
+  height: 44px;
+  object-fit: cover;
+  border-radius: 2px;
+  background: #000;
+  flex-shrink: 0;
+}
+
+.dev-captura span {
+  font-size: 0.74rem;
+  color: #948c7d;
+}
+
+.dev-sin-captura {
+  margin: 0 0 10px;
+  font-size: 0.74rem;
+  color: var(--sun-4);
+}
+
+.captura-previa {
+  display: block;
+  width: 100%;
+  max-height: 220px;
+  object-fit: contain;
+  margin-bottom: 13px;
+  border: 1px solid var(--bay-line);
+  border-radius: 3px;
+  background: #000;
+}
+
+.captura-grande {
+  display: block;
+  width: 100%;
+  border-radius: 3px;
+  background: #000;
+}
+
+.dev-total {
+  position: static;
+  margin: 0 0 16px;
+  box-shadow: none;
+}
+
+.soli-forma input[type='file'] {
+  font: inherit;
+  font-size: 0.8rem;
+  padding: 9px 10px;
+  background: var(--bay);
+  border: 1px solid var(--bay-line);
+  border-radius: 3px;
+  color: #948c7d;
+}
+
+.soli-forma input[type='file']::file-selector-button {
+  margin-right: 10px;
+  padding: 5px 10px;
+  border: 1px solid var(--bay-line);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--ticket);
+  font: inherit;
+  font-size: 0.74rem;
+  cursor: pointer;
+}
+
+/* ---------- Anuncios: bloques ---------- */
+
+.bloque {
+  margin-top: 30px;
+}
+
+.bloque-cabeza {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.bloque-cabeza .ref-titulo {
+  margin: 0;
+}
+
+.enlace {
+  color: var(--amber);
+}
+
+/* ---------- Galería de flyers ---------- */
+
+.galeria {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 16px;
+}
+
+.flyer {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+/*
+ * El marco es el detalle "futurista": un borde de degradado que solo se enciende al pasar
+ * por encima, sobre fondo negro. Se hace con dos capas de background y padding, en vez de
+ * un borde de verdad, porque los bordes no aceptan degradados.
+ */
+.flyer-marco {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 1px;
+  border: 0;
+  border-radius: 5px;
+  background: linear-gradient(150deg, var(--bay-line), var(--bay-line));
+  overflow: hidden;
+  transition: background 0.25s, transform 0.25s, box-shadow 0.25s;
+}
+
+.flyer-marco::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 5px;
+  background: var(--strip);
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+
+.flyer-marco:hover,
+.flyer-marco:focus-visible {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(255, 157, 46, 0.16);
+}
+
+.flyer-marco:hover::before,
+.flyer-marco:focus-visible::before {
+  opacity: 1;
+}
+
+.flyer-marco img {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  border-radius: 4px;
+  background: #06070a;
+}
+
+/* Barrido de luz que cruza el flyer al pasar el mouse. */
+.flyer-brillo {
+  position: absolute;
+  inset: 0;
+  border-radius: 4px;
+  background: linear-gradient(
+    105deg,
+    transparent 38%,
+    rgba(255, 255, 255, 0.16) 48%,
+    transparent 58%
+  );
+  transform: translateX(-110%);
+  transition: transform 0.6s ease;
+  pointer-events: none;
+}
+
+.flyer-marco:hover .flyer-brillo {
+  transform: translateX(110%);
+}
+
+.flyer-pie {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-left: 2px;
+}
+
+.flyer-titulo {
+  font-size: 0.84rem;
+  color: var(--ticket);
+  line-height: 1.35;
+}
+
+.flyer-autor {
+  font-family: var(--font-data), monospace;
+  font-size: 0.66rem;
+  color: var(--ink-soft);
+}
+
+.flyer-acciones {
+  display: flex;
+  gap: 6px;
+}
+
+.flyer-acciones .accion {
+  padding: 5px 9px;
+  font-size: 0.64rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flyer-marco,
+  .flyer-brillo {
+    transition: none;
+  }
+
+  .flyer-marco:hover {
+    transform: none;
+  }
+}
+
+/* ---------- Mensajes para copiar ---------- */
+
+.msj-lista {
+  display: grid;
+  gap: 12px;
+}
+
+@media (min-width: 900px) {
+  .msj-lista {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+}
+
+.msj {
+  padding: 14px 15px;
+  background: var(--bay-2);
+  border: 1px solid var(--bay-line);
+  border-left: 3px solid var(--sun-1);
+  border-radius: 4px;
+}
+
+.msj-cabeza {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.msj-titulo {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--ticket);
+}
+
+.msj-texto {
+  margin: 0 0 10px;
+  padding: 11px 12px;
+  max-height: 200px;
+  overflow-y: auto;
+  background: var(--bay);
+  border-radius: 3px;
+  font-family: var(--font-data), monospace;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: #948c7d;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ---------- Bodega y escáner ---------- */
+
+.bodega-cantidad {
+  font-family: var(--font-data), monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.escaner-leyendo {
+  text-align: center;
+}
+
+.escaner-estado {
+  margin: 12px 0 8px;
+  font-family: var(--font-data), monospace;
+  font-size: 0.82rem;
+  color: var(--amber);
+}
+
+.escaner-barra {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--bay);
+  overflow: hidden;
+}
+
+.escaner-barra span {
+  display: block;
+  height: 100%;
+  background: var(--strip);
+  transition: width 0.3s ease;
+}
+
+.escaner-aviso {
+  margin: 0 0 13px;
+  padding: 9px 12px;
+  border: 1px solid var(--bay-line);
+  border-left: 3px solid var(--sun-4);
+  border-radius: 3px;
+  font-size: 0.75rem;
+  line-height: 1.55;
+  color: #948c7d;
+}
+
+.escaner-filas {
+  display: grid;
+  gap: 7px;
+  max-height: 40vh;
+  overflow-y: auto;
+  margin-bottom: 11px;
+}
+
+.escaner-fila {
+  display: grid;
+  grid-template-columns: 1fr 76px auto;
+  gap: 7px;
+}
+
+.escaner-fila input {
+  font: inherit;
+  font-size: 0.82rem;
+  padding: 7px 9px;
+  min-width: 0;
+  background: var(--bay);
+  border: 1px solid var(--bay-line);
+  border-radius: 3px;
+  color: var(--ticket);
+}
+
+.escaner-fila input:focus {
+  border-color: var(--amber);
+}
+
+.escaner-fila .accion {
+  padding: 5px 9px;
+  font-size: 0.64rem;
+}
+
+.escaner-modo {
+  display: grid;
+  gap: 4px;
+  margin: 14px 0;
+  padding: 11px 12px;
+  background: var(--bay);
+  border: 1px solid var(--bay-line);
+  border-radius: 3px;
+}
+
+.escaner-modo .campo-casilla {
+  padding-bottom: 0;
+}
+
+.enlace-boton {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: inherit;
+  color: var(--amber);
+  text-decoration: underline;
 }
 
 /* ---------- Diálogo ---------- */
@@ -842,7 +1608,31 @@ a.accion {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--ink-soft);
-  cursor: help;
+}
+
+.celda-motivo {
+  display: block;
+  margin-top: 3px;
+  max-width: 34ch;
+  font-size: 0.68rem;
+  line-height: 1.45;
+  color: var(--ink-soft);
+  white-space: normal;
+}
+
+.edicion-previa {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.64rem;
+  color: var(--ink-soft);
+}
+
+.mis-motivo {
+  grid-column: 1 / -1;
+  margin-top: 3px;
+  font-size: 0.68rem;
+  line-height: 1.45;
+  color: var(--ink-soft);
 }
 
 .fila-acciones {

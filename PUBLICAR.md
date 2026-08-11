@@ -146,7 +146,25 @@ política. El efecto es que la llave pública de Supabase no puede leer ni escri
 tabla. Solo la llave de servicio, que vive únicamente en el servidor, se salta esa barrera.
 Sin esa línea, cualquiera con la llave pública podría leerse los hashes de tus usuarios.
 
-### 5.3 — Copiar las credenciales
+### 5.3 — Crear el bucket de imágenes
+
+Las capturas de las devoluciones y los flyers no caben en la tabla: van a Supabase Storage.
+
+En el menú lateral: **Storage** → **New bucket**.
+
+| Campo | Valor |
+|---|---|
+| Name | `sunset` |
+| Public bucket | **desmarcado** |
+
+**Deja el bucket privado.** Una captura del inventario de alguien no tiene por qué quedar
+abierta en internet para quien adivine la dirección. Con el bucket privado, la app pide una
+URL firmada que dura cinco minutos, y solo la pide después de comprobar que quien mira es el
+dueño de la solicitud o el encargado.
+
+No hace falta crear políticas: la app entra con la llave `service_role`, que se las salta.
+
+### 5.4 — Copiar las credenciales
 
 En el menú lateral: **Project Settings** → **API**. Necesitas dos cosas:
 
@@ -165,7 +183,7 @@ En esa misma pantalla Supabase muestra también la URL del API REST, que es la m
 > Fíjate bien de copiar `service_role` y no `anon`. Con la `anon` la app no va a poder escribir
 > nada, porque acabas de encender RLS justamente para eso.
 
-### 5.4 — Ponerlas en Vercel
+### 5.5 — Ponerlas en Vercel
 
 **Settings → Environment Variables**, y agrega las dos, con los tres entornos marcados:
 

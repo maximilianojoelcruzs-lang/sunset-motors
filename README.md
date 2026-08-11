@@ -107,6 +107,87 @@ Lo que sí puede ver cada uno son **sus propios turnos**, desde el menú de perf
 *Mis turnos*: sus horas de los últimos 7 días, el acumulado y el detalle día por día. Solo
 lo suyo — no hay forma de pedir los turnos de otra persona.
 
+Cuando el encargado corrige un turno, **el motivo queda escrito bajo la fila**, junto a quién
+lo corrigió, y también le aparece a esa persona en *Mis turnos*. Las horas de alguien no
+cambian sin explicación a la vista.
+
+## Licencias y ausencias
+
+Pestaña **Licencias**. Cada mecánico crea su solicitud con tipo, fechas de inicio y término,
+y motivo.
+
+Se guarda primero como **borrador**, que solo ve su autor y puede editar o eliminar las veces
+que quiera. Al pulsar **Enviar** le llega un aviso al encargado, que puede **aprobar** o
+**rechazar** dejando un comentario. En cualquiera de los dos casos le llega el aviso de vuelta
+a quien la pidió.
+
+Una vez resuelta queda de solo lectura: es el registro de una decisión, no un formulario.
+
+El encargado ve tres pestañas: *Por revisar* (con el número pendiente), *Resueltas* y
+*Las mías*.
+
+## Devoluciones
+
+Pestaña **Devoluciones**, para la plata que un mecánico puso de su bolsillo y el taller le
+tiene que reponer.
+
+Se crea con el monto, de qué es, y **la captura del juego donde se vea lo que pagó**. Sin esa
+captura no se puede enviar: es la prueba. Igual que en licencias, primero es un borrador
+privado que se puede editar o eliminar, y al pulsar **Enviar** queda *Pendiente de pagar*.
+
+El encargado la marca **Pagado** o la **Rechaza**, con un comentario. En su pestaña *Por
+pagar* ve además el total que el taller debe en ese momento.
+
+Los avisos van a los dos lados: al encargado cuando llega una solicitud, y al mecánico cuando
+la envía y cuando se resuelve.
+
+**Las capturas son privadas.** Solo las abre quien subió la solicitud y el encargado; a
+cualquier otro le responde «No autorizado», aunque tenga el enlace. Ver [PUBLICAR.md](PUBLICAR.md)
+para crear el bucket.
+
+## Anuncios
+
+Pestaña **Anuncios**, con dos partes.
+
+**Flyers.** La galería de imágenes que publica el encargado. Se abren en grande al hacer clic
+y se pueden descargar. Solo el encargado sube y elimina; todo el taller mira. Cuando publica
+uno nuevo, le llega el aviso a todos.
+
+**Mensajes listos para copiar.** Textos que el encargado deja guardados —anuncio de apertura,
+promoción de la semana, lo que sea— con un botón **Copiar** al lado. El mecánico lo copia y lo
+pega tal cual en el anuncio del juego, sin escribirlo de memoria ni equivocarse en el número
+de teléfono.
+
+## Bodega
+
+Pestaña **Bodega**: el inventario que el taller tiene dentro del juego, con buscador.
+
+Se actualiza con **una captura del inventario**. Subes la imagen, el escáner lee los nombres y
+las cantidades, y te muestra lo que entendió **para que lo revises antes de guardar**. Puedes
+corregir cualquier línea, agregar las que falten y quitar las que sobren.
+
+Ese paso de revisión existe porque el lector se equivoca: depende de cómo se vea el inventario
+en tu servidor, del tamaño de la letra y del fondo. Con letra nítida y la captura completa
+acierta bien; con letra chica, menos. Nunca guarda nada sin que alguien lo confirme.
+
+Al guardar puedes **reemplazar** todo el inventario o **sumar** a lo que ya había — útil cuando
+la captura es solo una parte porque el inventario tiene scroll.
+
+La imagen **se lee en tu propio navegador y no se sube a ninguna parte**: solo queda la lista
+que confirmes.
+
+Cualquiera del taller puede actualizarla, porque quien tiene el inventario abierto en el juego
+es el mecánico, no el encargado. Queda registrado quién la dejó así y cuándo. Si un escaneo
+sale mal, el encargado tiene un botón **Deshacer** que vuelve a la versión anterior.
+
+## Avisos
+
+La campanita de la barra, con el número de avisos sin leer. Ahí llegan las solicitudes nuevas
+para el encargado y las respuestas para el mecánico. Se marcan como leídos al abrirla.
+
+Son avisos **dentro de la app**: aparecen cuando la persona entra. No hay correo ni
+notificación al teléfono — eso necesita contratar un servicio aparte.
+
 ### El menú de perfil
 
 Arriba a la derecha, con las iniciales. Adentro:

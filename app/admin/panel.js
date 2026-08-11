@@ -50,6 +50,9 @@ function Fila({ turno, editando, onEditar, onCancelar, onGuardar, onBorrar, ocup
             maxLength={120}
             onChange={(e) => setNota(e.target.value)}
           />
+          {turno.corregido && (
+            <span className="edicion-previa">Corregido antes por {turno.corregido}</span>
+          )}
         </td>
         <td data-rotulo="">
           <span className="fila-acciones">
@@ -82,9 +85,12 @@ function Fila({ turno, editando, onEditar, onCancelar, onGuardar, onBorrar, ocup
     <tr className={abierto ? 'abierto' : ''}>
       <td data-rotulo="Usuario">
         <span className="celda-usuario">{turno.usuario}</span>
+        {turno.corregido && <span className="marca-corregido">corregido</span>}
+        {/* El motivo se muestra escrito, no escondido en un tooltip: es la explicación de
+            por qué las horas de alguien no son las que marcó, y tiene que poder leerse. */}
         {turno.corregido && (
-          <span className="marca-corregido" title={turno.nota || 'Corregido'}>
-            corregido
+          <span className="celda-motivo">
+            {turno.nota ? `«${turno.nota}»` : 'sin motivo anotado'} — {turno.corregido}
           </span>
         )}
       </td>

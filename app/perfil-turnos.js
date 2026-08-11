@@ -75,6 +75,13 @@ export default function MisTurnos() {
               {soloHora(t.entrada)} → {t.salida ? soloHora(t.salida) : <em>en turno</em>}
             </span>
             <span className="mis-horas">{enHoras(duracionMs(t))}</span>
+            {/* Si al mecánico le corrigieron las horas, tiene derecho a saber por qué. */}
+            {t.corregido && (
+              <span className="mis-motivo">
+                Corregido por {t.corregido}
+                {t.nota ? `: «${t.nota}»` : ''}
+              </span>
+            )}
           </li>
         ))}
       </ul>
