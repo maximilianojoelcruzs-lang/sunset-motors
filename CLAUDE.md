@@ -40,8 +40,8 @@ Requiere la variable de entorno `SUNSET_SECRETO` en producción (ver más abajo)
 
 La calculadora:
 
-- **[lib/catalogo.js](lib/catalogo.js)** — única fuente de datos: `SECCIONES` (secciones con sus
-  ítems y precios), `COMANDOS` y `CODIGOS`. Es lo único que se edita seguido.
+- **[lib/catalogo.js](lib/catalogo.js)** — `SECCIONES` (la semilla de precios, ver abajo), más
+  `COMANDOS`, `CODIGOS` y `TINTES`, que sí son fijos.
 - **[app/boleta.js](app/boleta.js)** — un solo componente cliente (`'use client'`) con toda la
   lógica: filtro de búsqueda, acordeón de secciones, contadores, subtotales, total animado y
   exportación a texto. Recibe `nombre` por props.
@@ -168,6 +168,29 @@ El estilo "futurista" de la galería vive en `.flyer-marco`: el borde de degrada
 `padding: 1px` y un `::before`, porque los bordes CSS no aceptan degradados. El barrido de luz y
 el desplazamiento están anulados bajo `prefers-reduced-motion`.
 
+## Documentos
+
+**[lib/documentos.js](lib/documentos.js)** — reglamento, contratos, manuales y acuerdos. Mismo
+patrón que los flyers: el admin publica, todo el taller consulta, sin estados ni aprobaciones.
+
+- La **categoría es texto libre**, con sugerencias en un `datalist`. Una lista cerrada obligaría a
+  tocar código cada vez que el taller inventa un tipo de documento, que es justo lo que estamos
+  sacando de Discord. La vista agrupa por categoría.
+- Editar cambia solo los datos. Para cambiar el archivo se sube uno nuevo y se borra el viejo:
+  así no queda un documento cuyo título dice una cosa y cuyo PDF dice otra.
+- Se firma por **una hora**, como los flyers: un PDF se abre y se lee un rato.
+
+`lib/imagenes.js` acepta ahora también PDF, reconocido por sus primeros bytes (`%PDF-`). El
+parámetro `permitidos` acota qué formatos toma cada uso: capturas y flyers siguen siendo solo
+imágenes, los documentos aceptan además PDF.
+
+### Constantes que necesita el cliente NO pueden vivir junto al almacén
+
+Pasó dos veces: `TINTES` y `CATEGORIAS_SUGERIDAS`. Cualquier `export` que importe un componente
+`'use client'` no puede estar en un módulo que —directa o indirectamente— importe
+`lib/almacen.js`, porque usa `node:fs` y **rompe el build**. Van en `lib/catalogo.js` (que es
+datos puros) o directamente en el componente.
+
 ## Avisos (la campanita)
 
 **[lib/avisos.js](lib/avisos.js)** — notificaciones dentro de la app, compartidas por todas las
@@ -261,21 +284,31 @@ un admin en otra zona horaria correría cada turno que tocara.
   rompe todos los totales del panel.
 - `marcarEntrada()` es idempotente: con un turno ya abierto lo devuelve en vez de crear otro.
 
-### El orden del catálogo es el orden en pantalla
+### El catálogo se edita desde el panel, no en el código
 
-`SECCIONES` se pinta en una grilla de dos columnas que reparte izquierda, derecha, izquierda… Para
-mover una sección de lugar en la pantalla se cambia su posición en el arreglo, no el CSS.
-Carrocería va segunda por eso: para quedar al lado de Partes principales.
+`SECCIONES` de `lib/catalogo.js` ya **no es la fuente de verdad**: es la **semilla**, lo que se usa
+mientras la base no tenga nada guardado. Desde el primer guardado manda `sunset:catalogo`.
 
-Reordenar *secciones* es seguro. Reordenar *ítems dentro* de una sección no lo es — ver abajo.
+- **[lib/precios.js](lib/precios.js)** — leer, validar y guardar el catálogo, más
+  `restaurarSemilla()` para volver al del código si alguien deja los precios inservibles.
+- **[app/precios/](app/precios/)** — el editor, solo admin. `app/page.js` carga el catálogo y se
+  lo pasa a `<Boleta secciones={…}>`; la calculadora ya no importa `SECCIONES`.
 
-### Claves de ítem: son posicionales
+El orden de las secciones en el arreglo **es** el orden en pantalla: la grilla las reparte
+izquierda, derecha, izquierda… Por eso el editor tiene flechas para moverlas.
 
-Cada cantidad se guarda en el objeto `cantidades` bajo la clave `` `${seccion.id}:${índice}` ``.
-El índice es la posición del ítem dentro de su array en `SECCIONES`. Consecuencia: **insertar o
-reordenar ítems en medio de una sección desplaza las claves** de todos los siguientes. No importa
-en runtime (el estado no se persiste), pero sí importa si alguna vez se agrega guardado o URLs
-compartibles — en ese momento hay que cambiar a un `id` explícito por ítem.
+### Claves de ítem: ahora por `id`, no por posición
+
+Cada cantidad se guarda bajo `` `${seccion.id}:${item.id}` ``. Antes era el índice en el arreglo,
+lo que daba igual con un catálogo fijo; ahora que el encargado reordena y borra ítems, una clave
+posicional haría que las cantidades saltaran de producto. `lib/precios.js` le pone `id` a los
+ítems de la semilla, que no lo traen.
+
+### `TINTES` vive en catalogo.js a propósito
+
+El editor es un componente cliente. Importar `TINTES` desde `lib/precios.js` arrastraría
+`lib/almacen.js` —que usa `node:fs`— al bundle del navegador y **rompe el build**. Es el mismo
+límite que impide usar `almacen.js` desde el middleware.
 
 ### Cómo se relacionan catálogo y estilos
 

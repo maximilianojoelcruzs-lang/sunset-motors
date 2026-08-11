@@ -122,14 +122,30 @@ export default function Barra({ usuario, admin, seccion, turno, onTurnoCambio })
             >
               Anuncios
             </a>
+            <a
+              className={`barra-enlace ${seccion === 'documentos' ? 'activo' : ''}`}
+              href="/documentos"
+              aria-current={seccion === 'documentos' ? 'page' : undefined}
+            >
+              Documentos
+            </a>
             {admin && (
-              <a
-                className={`barra-enlace ${seccion === 'registro' ? 'activo' : ''}`}
-                href="/admin"
-                aria-current={seccion === 'registro' ? 'page' : undefined}
-              >
-                Registro
-              </a>
+              <>
+                <a
+                  className={`barra-enlace ${seccion === 'precios' ? 'activo' : ''}`}
+                  href="/precios"
+                  aria-current={seccion === 'precios' ? 'page' : undefined}
+                >
+                  Precios
+                </a>
+                <a
+                  className={`barra-enlace ${seccion === 'registro' ? 'activo' : ''}`}
+                  href="/admin"
+                  aria-current={seccion === 'registro' ? 'page' : undefined}
+                >
+                  Registro
+                </a>
+              </>
             )}
           </nav>
 

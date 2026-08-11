@@ -1,6 +1,7 @@
 import { sesionActual } from '../lib/servidor';
 import { esAdmin } from '../lib/usuarios';
 import { turnoAbierto } from '../lib/turnos';
+import { obtener } from '../lib/precios';
 import Boleta from './boleta';
 
 export const dynamic = 'force-dynamic';
@@ -10,8 +11,10 @@ export default async function Pagina() {
   const sesion = await sesionActual();
   const usuario = sesion?.usuario ?? '';
 
-  // Si la base falla, la calculadora igual tiene que abrir: cobrar es lo importante,
-  // marcar turno es secundario.
+  // El catálogo sí es imprescindible: sin él no hay calculadora. Si falla, que falle.
+  const { secciones } = await obtener();
+
+  // Lo demás es secundario: si la base falla, la calculadora igual tiene que abrir.
   let abierto = null;
   let admin = false;
   try {
@@ -23,5 +26,7 @@ export default async function Pagina() {
     abierto = null;
   }
 
-  return <Boleta nombre={usuario} admin={admin} turnoAbierto={abierto} />;
+  return (
+    <Boleta nombre={usuario} admin={admin} turnoAbierto={abierto} secciones={secciones} />
+  );
 }

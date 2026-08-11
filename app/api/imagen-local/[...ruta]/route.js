@@ -4,7 +4,12 @@ import { sesionActual } from '../../../../lib/servidor';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const TIPOS = { jpg: 'image/jpeg', png: 'image/png', webp: 'image/webp' };
+const TIPOS = {
+  jpg: 'image/jpeg',
+  png: 'image/png',
+  webp: 'image/webp',
+  pdf: 'application/pdf',
+};
 
 /**
  * Sirve las imágenes cuando NO hay Supabase, es decir, en desarrollo. En producción esta
@@ -20,7 +25,7 @@ export async function GET(peticion, { params }) {
   const { ruta } = await params;
   const relativa = (ruta ?? []).join('/');
 
-  if (!/^[a-z0-9/_-]+\.(jpg|png|webp)$/i.test(relativa) || relativa.includes('..')) {
+  if (!/^[a-z0-9/_-]+\.(jpg|png|webp|pdf)$/i.test(relativa) || relativa.includes('..')) {
     return NextResponse.json({ error: 'Ruta no válida.' }, { status: 400 });
   }
 

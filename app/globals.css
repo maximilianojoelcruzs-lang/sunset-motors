@@ -804,7 +804,10 @@ button {
   background: #000;
 }
 
-.dev-total {
+/* Los dos selectores no son decoración: .surtidor está declarado más abajo en este mismo
+   archivo, así que con un solo `.dev-total` su `position: sticky` gana por orden y el
+   recuadro se queda flotando a media página. */
+.surtidor.dev-total {
   position: static;
   margin: 0 0 16px;
   box-shadow: none;
@@ -1027,6 +1030,224 @@ button {
   color: #948c7d;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+/* ---------- Editor de precios ---------- */
+
+.precios-lista {
+  display: grid;
+  gap: 14px;
+}
+
+.precio-seccion {
+  padding: 14px 15px;
+  background: var(--bay-2);
+  border: 1px solid var(--bay-line);
+  border-left: 3px solid var(--tinte, var(--bay-line));
+  border-radius: 4px;
+}
+
+.precio-cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.precio-titulo {
+  flex: 1;
+  min-width: 160px;
+  font: inherit;
+  font-size: 0.95rem;
+  padding: 8px 10px;
+  background: var(--bay);
+  border: 1px solid var(--bay-line);
+  border-radius: 3px;
+  color: var(--ticket);
+}
+
+.precio-titulo:focus {
+  border-color: var(--amber);
+}
+
+.precio-tintes {
+  display: flex;
+  gap: 4px;
+}
+
+.tinte {
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 50%;
+}
+
+.tinte.elegido {
+  border-color: var(--ticket);
+}
+
+.precio-orden {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.precio-orden .accion {
+  padding: 5px 8px;
+  font-size: 0.66rem;
+}
+
+.precio-items {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.precio-item {
+  display: grid;
+  grid-template-columns: 1fr 110px auto auto;
+  align-items: center;
+  gap: 7px;
+}
+
+@media (max-width: 700px) {
+  .precio-item {
+    grid-template-columns: 1fr 90px;
+  }
+
+  .precio-item .campo-casilla,
+  .precio-item .precio-orden {
+    grid-column: 1 / -1;
+  }
+}
+
+.precio-item input[type='text'],
+.precio-item input:not([type]),
+.precio-item input[type='number'] {
+  font: inherit;
+  font-size: 0.84rem;
+  padding: 7px 9px;
+  min-width: 0;
+  background: var(--bay);
+  border: 1px solid var(--bay-line);
+  border-radius: 3px;
+  color: var(--ticket);
+}
+
+.precio-item input:focus {
+  border-color: var(--amber);
+}
+
+.precio-item .campo-casilla {
+  padding-bottom: 0;
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+.precio-nueva {
+  margin-top: 14px;
+}
+
+/* ---------- Documentos ---------- */
+
+.doc-cuenta {
+  margin-left: 6px;
+  font-family: var(--font-data), monospace;
+  color: var(--sun-5);
+}
+
+.doc-lista {
+  display: grid;
+  gap: 10px;
+}
+
+.doc {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  padding: 13px 15px;
+  background: var(--bay-2);
+  border: 1px solid var(--bay-line);
+  border-radius: 4px;
+}
+
+.doc-icono {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border-radius: 3px;
+  font-family: var(--font-data), monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.04em;
+  color: #14161a;
+}
+
+.doc-icono.pdf {
+  background: var(--sun-3);
+}
+
+.doc-icono.img {
+  background: var(--sun-5);
+}
+
+.doc-texto {
+  flex: 1;
+  min-width: 0;
+}
+
+.doc-titulo {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--ticket);
+}
+
+.doc-descripcion {
+  margin: 4px 0 0;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: #948c7d;
+}
+
+.doc-meta {
+  margin: 5px 0 0;
+  font-family: var(--font-data), monospace;
+  font-size: 0.66rem;
+  color: #5d5a53;
+}
+
+.doc-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.doc-acciones .accion {
+  padding: 5px 9px;
+  font-size: 0.64rem;
+}
+
+@media (max-width: 700px) {
+  .doc {
+    flex-wrap: wrap;
+  }
+
+  .doc-acciones {
+    width: 100%;
+  }
+}
+
+.doc-visor {
+  width: 100%;
+  height: 65vh;
+  border: 1px solid var(--bay-line);
+  border-radius: 3px;
+  background: #fff;
 }
 
 /* ---------- Diálogo ---------- */

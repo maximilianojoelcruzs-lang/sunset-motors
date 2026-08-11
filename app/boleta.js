@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { SECCIONES, COMANDOS, CODIGOS } from '../lib/catalogo';
+import { COMANDOS, CODIGOS } from '../lib/catalogo';
 import Marcaje from './marcaje';
 import Barra from './barra';
 
@@ -84,13 +84,15 @@ function Contador({ valor, onCambio, etiqueta }) {
   );
 }
 
-export default function Boleta({ nombre, admin, turnoAbierto }) {
+export default function Boleta({ nombre, admin, turnoAbierto, secciones }) {
   // El turno vive acá porque lo muestran dos hijos: la barra de marcaje y el menú de
   // perfil dentro de <Barra>. Una sola fuente, para que no se contradigan.
   const [turno, setTurno] = useState(turnoAbierto);
   const [cantidades, setCantidades] = useState({});
   const [filtro, setFiltro] = useState('');
-  const [abiertas, setAbiertas] = useState(() => new Set(['principales']));
+  // Arranca abierta la primera sección, sea cual sea: el catálogo ahora es editable y
+  // «principales» podría no existir.
+  const [abiertas, setAbiertas] = useState(() => new Set([secciones[0]?.id].filter(Boolean)));
   const [copiado, setCopiado] = useState(false);
 
   const ponerCantidad = (clave, n) =>
@@ -107,21 +109,23 @@ export default function Boleta({ nombre, admin, turnoAbierto }) {
 
   const vista = useMemo(
     () =>
-      SECCIONES.map((seccion) => {
+      secciones.map((seccion) => {
         const items = seccion.items
-          .map((item, i) => ({ ...item, clave: `${seccion.id}:${i}` }))
+          .map((item) => ({ ...item, clave: `${seccion.id}:${item.id}` }))
           .filter((item) => !busqueda || limpiar(item.nombre).includes(busqueda));
 
         const subtotal = seccion.items.reduce(
-          (suma, item, i) => suma + (cantidades[`${seccion.id}:${i}`] || 0) * item.precio,
+          (suma, item) => suma + (cantidades[`${seccion.id}:${item.id}`] || 0) * item.precio,
           0
         );
 
-        const elegidos = seccion.items.filter((_, i) => cantidades[`${seccion.id}:${i}`]).length;
+        const elegidos = seccion.items.filter(
+          (item) => cantidades[`${seccion.id}:${item.id}`]
+        ).length;
 
         return { ...seccion, items, subtotal, elegidos };
       }),
-    [cantidades, busqueda]
+    [secciones, cantidades, busqueda]
   );
 
   const total = vista.reduce((suma, s) => suma + s.subtotal, 0);
@@ -143,22 +147,27 @@ export default function Boleta({ nombre, admin, turnoAbierto }) {
       return siguiente;
     });
 
+  /**
+   * Una sola línea, para pegar en el chat del juego. Sin encabezados de sección ni precio
+   * por ítem: el detalle alarga el mensaje y lo que importa al cobrar es qué y cuánto.
+   */
   const textoBoleta = () => {
-    const lineas = ['SUNSET MOTORS — Boleta de cobro', ''];
-    SECCIONES.forEach((seccion) => {
-      const filas = seccion.items
-        .map((item, i) => ({ item, cant: cantidades[`${seccion.id}:${i}`] || 0 }))
-        .filter((f) => f.cant > 0);
-      if (!filas.length) return;
-      lineas.push(seccion.titulo.toUpperCase());
-      filas.forEach(({ item, cant }) =>
-        lineas.push(`  ${cant}x ${item.nombre} — ${money(cant * item.precio)}`)
-      );
-      lineas.push('');
+    const partes = [];
+    secciones.forEach((seccion) => {
+      seccion.items.forEach((item) => {
+        const cant = cantidades[`${seccion.id}:${item.id}`] || 0;
+        if (cant > 0) partes.push(`${cant}x ${item.nombre}`);
+      });
     });
-    lineas.push(`TOTAL A COBRAR: ${money(total)}`);
-    if (nombre) lineas.push(`Atendió: ${nombre}`);
-    return lineas.join('\n');
+
+    return [
+      'SUNSET MOTORS',
+      partes.join(', '),
+      `TOTAL: ${money(total)}`,
+      nombre ? `Atendió: ${nombre}` : null,
+    ]
+      .filter(Boolean)
+      .join(' · ');
   };
 
   const copiarBoleta = async () => {
@@ -167,7 +176,7 @@ export default function Boleta({ nombre, admin, turnoAbierto }) {
       await navigator.clipboard.writeText(texto);
       setCopiado(true);
     } catch {
-      window.prompt('Copia la boleta desde aquí:', texto.replace(/\n/g, ' | '));
+      window.prompt('Copia la boleta desde aquí:', texto);
     }
   };
 

@@ -158,6 +158,21 @@ promoción de la semana, lo que sea— con un botón **Copiar** al lado. El mec�
 pega tal cual en el anuncio del juego, sin escribirlo de memoria ni equivocarse en el número
 de teléfono.
 
+## Documentos
+
+Pestaña **Documentos**: el reglamento interno, los contratos, los manuales, los acuerdos con
+la policía o el hospital. Lo que hoy anda suelto en un canal de Discord.
+
+El encargado sube archivos **PDF o imagen**, con título, descripción y categoría. La categoría
+la escribe él —no hay lista fija—, y la vista agrupa los documentos por esa categoría. Hay
+buscador por título, descripción o categoría.
+
+Todo el taller puede abrirlos: los PDF se ven dentro de la misma página, las imágenes en
+grande, y siempre está el botón de descargar.
+
+Se guardan en privado igual que las capturas: hace falta tener sesión para abrirlos, aunque se
+tenga el enlace directo.
+
 ## Avisos
 
 La campanita de la barra, con el número de avisos sin leer. Ahí llegan las solicitudes nuevas
@@ -204,15 +219,17 @@ dónde se abra la app.
 
 ## Cambiar precios o agregar ítems
 
-Todo el catálogo está en un solo archivo: **`lib/catalogo.js`**. Editas el número, guardas, y
-si está en Vercel se vuelve a publicar solo al hacer push.
+Desde la app: pestaña **Precios**, solo para administradores. Ahí cambias montos, agregas o
+quitas ítems, creas secciones, las reordenas con las flechas y eliges su color. Al pulsar
+**Guardar cambios** todo el taller ve los precios nuevos al instante, sin desplegar nada.
 
-```js
-{ nombre: 'Frenos', precio: 160 },
-```
+La casilla **Revisar** hace que el ítem muestre «precio por definir» en vez del monto, aunque
+el precio igual se suma al total.
 
-Para agregar un ítem nuevo, copia una línea igual dentro de la sección que corresponda. Para
-agregar una sección completa, copia un bloque `{ id, titulo, tinte, items }` completo.
+El orden de las secciones en el editor es el orden en pantalla: se reparten en dos columnas.
+
+Si alguna vez los precios quedan hechos un desastre, el botón **Volver al original** restaura
+el catálogo que trae el código (`lib/catalogo.js`), que es el que salió del Excel.
 
 ## Diferencias respecto al Excel
 
