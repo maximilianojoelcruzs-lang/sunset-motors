@@ -122,13 +122,6 @@ export default function Barra({ usuario, admin, seccion, turno, onTurnoCambio })
             >
               Anuncios
             </a>
-            <a
-              className={`barra-enlace ${seccion === 'bodega' ? 'activo' : ''}`}
-              href="/bodega"
-              aria-current={seccion === 'bodega' ? 'page' : undefined}
-            >
-              Bodega
-            </a>
             {admin && (
               <a
                 className={`barra-enlace ${seccion === 'registro' ? 'activo' : ''}`}

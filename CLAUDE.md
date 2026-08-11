@@ -168,30 +168,6 @@ El estilo "futurista" de la galería vive en `.flyer-marco`: el borde de degrada
 `padding: 1px` y un `::before`, porque los bordes CSS no aceptan degradados. El barrido de luz y
 el desplazamiento están anulados bajo `prefers-reduced-motion`.
 
-## Bodega (inventario por captura)
-
-- **[lib/leer-inventario.js](lib/leer-inventario.js)** — convierte el texto del OCR en
-  `[{nombre, cantidad}]`. **Función pura a propósito**: el OCR es la parte impredecible, y así al
-  menos la interpretación de lo que devuelve se puede probar sin imágenes. Prueba cinco formatos
-  (`x5`, `5x`, `(5)`, separado por espacios, sin cantidad) y descarta líneas de interfaz.
-- **[app/bodega/escaner.js](app/bodega/escaner.js)** — el OCR corre **en el navegador** con
-  tesseract.js, importado dinámicamente. Importarlo arriba metería varios MB en el bundle de toda
-  la app; con el import dinámico, `/bodega` pesa ~3,6 kB. La imagen nunca sale del navegador.
-- **[lib/bodega.js](lib/bodega.js)** — `normalizar()` deja la lista canónica y **suma** los
-  repetidos en vez de pisarlos: una captura puede traer el mismo producto en dos pilas.
-
-### El paso de revisión no es opcional
-
-El escáner **propone** y la persona confirma. El OCR se equivoca según la interfaz del servidor,
-el tamaño de la letra y el fondo; guardar directo produciría inventarios con nombres inventados.
-Si alguna vez "simplificas" saltándote la revisión, la función deja de ser usable.
-
-Por lo mismo `bodega.anterior` guarda la versión previa completa y hay un botón **Deshacer** para
-admins: un escaneo malo confirmado pisa el inventario bueno, y tiene que haber de dónde volver.
-
-Actualizar la bodega **lo puede hacer cualquiera con sesión**, no solo el admin: quien tiene el
-inventario abierto en el juego es el mecánico. Queda registrado quién lo dejó así.
-
 ## Avisos (la campanita)
 
 **[lib/avisos.js](lib/avisos.js)** — notificaciones dentro de la app, compartidas por todas las

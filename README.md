@@ -158,28 +158,6 @@ promoción de la semana, lo que sea— con un botón **Copiar** al lado. El mec�
 pega tal cual en el anuncio del juego, sin escribirlo de memoria ni equivocarse en el número
 de teléfono.
 
-## Bodega
-
-Pestaña **Bodega**: el inventario que el taller tiene dentro del juego, con buscador.
-
-Se actualiza con **una captura del inventario**. Subes la imagen, el escáner lee los nombres y
-las cantidades, y te muestra lo que entendió **para que lo revises antes de guardar**. Puedes
-corregir cualquier línea, agregar las que falten y quitar las que sobren.
-
-Ese paso de revisión existe porque el lector se equivoca: depende de cómo se vea el inventario
-en tu servidor, del tamaño de la letra y del fondo. Con letra nítida y la captura completa
-acierta bien; con letra chica, menos. Nunca guarda nada sin que alguien lo confirme.
-
-Al guardar puedes **reemplazar** todo el inventario o **sumar** a lo que ya había — útil cuando
-la captura es solo una parte porque el inventario tiene scroll.
-
-La imagen **se lee en tu propio navegador y no se sube a ninguna parte**: solo queda la lista
-que confirmes.
-
-Cualquiera del taller puede actualizarla, porque quien tiene el inventario abierto en el juego
-es el mecánico, no el encargado. Queda registrado quién la dejó así y cuándo. Si un escaneo
-sale mal, el encargado tiene un botón **Deshacer** que vuelve a la versión anterior.
-
 ## Avisos
 
 La campanita de la barra, con el número de avisos sin leer. Ahí llegan las solicitudes nuevas
