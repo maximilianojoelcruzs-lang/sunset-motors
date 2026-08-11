@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { COOKIE, HORAS, firmarSesion, secretoFirma } from '../../../lib/sesion';
 import { hayUsuarios, verificarUsuario } from '../../../lib/usuarios';
+import { dondeGuarda } from '../../../lib/almacen';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -21,8 +22,12 @@ export async function POST(peticion) {
 
   try {
     if (!(await hayUsuarios())) {
+      // Se informa el backend porque este estado casi siempre significa que la app está
+      // mirando un almacén distinto al que se cree. Sin el dato, el mensaje manda a crear
+      // un usuario que ya existe. Solo se expone cuando no hay ningún usuario, es decir,
+      // cuando la instalación todavía no está configurada.
       return NextResponse.json(
-        { error: 'Todavía no hay ningún usuario creado en este taller.' },
+        { error: 'Todavía no hay ningún usuario creado en este taller.', almacen: dondeGuarda() },
         { status: 503 }
       );
     }

@@ -9,6 +9,7 @@ export default function Login() {
   const [clave, setClave] = useState('');
   const [error, setError] = useState('');
   const [sinUsuarios, setSinUsuarios] = useState(false);
+  const [almacen, setAlmacen] = useState('');
   const [entrando, setEntrando] = useState(false);
 
   const entrar = async (e) => {
@@ -26,6 +27,7 @@ export default function Login() {
         const cuerpo = await r.json().catch(() => ({}));
         setError(cuerpo.error || 'No se pudo entrar.');
         setSinUsuarios(r.status === 503);
+        setAlmacen(cuerpo.almacen ?? '');
         setEntrando(false);
         return;
       }
@@ -76,13 +78,23 @@ export default function Login() {
 
           {error && <p className="porton-error">{error}</p>}
 
-          {sinUsuarios && (
+          {sinUsuarios && almacen !== 'archivo' && (
             <p className="porton-arranque">
-              La base de datos está vacía. Crea el primer administrador desde tu
+              No hay usuarios en la base ({almacen}). Crea el primer administrador desde tu
               computador:
               {/* El "--" antes de --admin es obligatorio: sin él npm se come la bandera
                   y el usuario queda sin permisos de administrador. */}
               <code>npm run usuarios crear tu.usuario tu-clave -- --admin</code>
+            </p>
+          )}
+
+          {sinUsuarios && almacen === 'archivo' && (
+            <p className="porton-arranque">
+              Este servidor está guardando en <b>archivo local</b>, no en una base de datos.
+              Si esperabas Supabase, faltan sus variables de entorno acá: revisa que
+              <code>SUPABASE_URL</code>
+              <code>SUPABASE_SERVICE_ROLE_KEY</code>
+              existan, estén marcadas para este entorno, y vuelve a desplegar.
             </p>
           )}
 
