@@ -144,7 +144,7 @@ cambian sin explicación a la vista.
 Pestaña **Casino**: una sala aparte, con su propia identidad. Es entretención de rol para el
 servidor — **no se juega con dinero real ni se puede convertir en dinero real**.
 
-**Las seis mesas están abiertas.**
+**Las nueve mesas están abiertas.**
 
 | Mesa | Retorno al jugador | Se queda la casa |
 |---|---|---|
@@ -153,6 +153,9 @@ servidor — **no se juega con dinero real ni se puede convertir en dinero real*
 | Ruleta europea | 97,30% | 2,70% |
 | Dados (apuestas sencillas) | 97,22% | 2,78% |
 | Dados (triples) | 83,8% – 86,1% | 13,9% – 16,2% |
+| Aviator | 97,00% | 3,00% |
+| Plinko | ~97,0% | ~3,0% |
+| Carrera de surf | 95,00% | 5,00% |
 | Tragamonedas | 94,27% | 5,73% |
 | Rasca y gana | 92,00% | 8,00% |
 
@@ -217,6 +220,57 @@ estaban decididas. Al terminar se marcan las cartas que pagaron y se apagan las 
 
 Si cierras la pestaña entre el reparto y el cambio, al volver te encuentras la misma mano: la
 apuesta ya estaba cobrada y dejarla botada sería quedarse con tus fichas.
+
+### El Aviator
+
+El avión despega y el multiplicador sube: x1,20, x1,50, x2… En algún momento se cae. Si te
+bajas antes, cobras lo que marcaba; si no, pierdes la apuesta.
+
+Puedes bajarte a mano con el botón, o dejar puesto un **retiro automático** y que se baje solo
+al llegar a la cifra que elijas.
+
+Lo bonito de este juego es que **da igual dónde te bajes**: en 1,50 aciertas 2 de cada 3 veces
+y pagas poco, en 10 aciertas 1 de cada 10 y pagas mucho. Los dos devuelven el mismo **97%**. No
+hay estrategia que cambie el margen — solo cambia cada cuánto ganas.
+
+Dónde se cae se sortea **antes de despegar** y no sale del servidor hasta que terminas. Y el
+multiplicador lo lleva el reloj del servidor, no el tuyo: atrasar el reloj del computador no
+sirve de nada. Si cierras la pestaña con un vuelo en el aire, al volver te encuentras el
+resultado — la apuesta ya estaba cobrada.
+
+### El Plinko
+
+La bolita cae por 12 filas de clavos y en cada choque se va a un lado o al otro. Por eso las
+casillas del centro se llenan y las de las puntas casi nunca salen: la del medio sale el 22,6%
+de las veces y cada punta **1 de cada 4.096**.
+
+Hay tres niveles de riesgo, y **los tres devuelven lo mismo**:
+
+| Riesgo | La punta paga | Cómo se siente |
+|---|---|---|
+| Bajo | x8,64 | casi nunca te vas con las manos vacías |
+| Medio | x38,37 | el equilibrio de siempre |
+| Alto | x244,10 | o la punta, o nada |
+
+Elegir riesgo cambia **cómo** se gana, no **cuánto**. Los pagos no están escritos a mano: se
+calculan desde la probabilidad de cada casilla, así que las tres tablas quedan cuadradas solas.
+
+### La carrera de surf
+
+Seis surfistas, una ola, un ganador. Se puede apostar a varios en la misma carrera.
+
+| Surfista | Gana | Paga |
+|---|---|---|
+| Kala (Shortboard) | 30% | 3,17 |
+| Nico (Fish) | 24% | 3,96 |
+| Mía (Gun) | 18% | 5,28 |
+| Tavo (Longboard) | 13% | 7,31 |
+| Rex (Bodyboard) | 9% | 10,56 |
+| Lupe (Foil) | 6% | 15,83 |
+
+Kala gana 3 de cada 10 olas; una cuota justa pagaría 3,33 y paga 3,17. Esa diferencia, **la
+misma en los seis**, es el 5% que se queda la casa — igual que en una casa de apuestas de
+verdad. Apostar al favorito o al que nadie mira da lo mismo a la larga.
 
 ### El blackjack
 

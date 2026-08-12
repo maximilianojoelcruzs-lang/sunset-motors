@@ -226,6 +226,9 @@ veces: si no, dos fichas al mismo lugar contarían distinto según cómo se suma
 | [lib/tragamonedas.js](lib/tragamonedas.js) | 3 rodillos, 1 línea | 94,27% | 5,73% |
 | [lib/poker.js](lib/poker.js) | Vídeo póker, Jacks or Better 9/6 | hasta 99,5% | 0,5% con juego perfecto |
 | [lib/blackjack.js](lib/blackjack.js) | Blackjack, 6 mazos S17 | ~99,4% | ~0,5% con estrategia básica |
+| [lib/aviator.js](lib/aviator.js) | Aviator (crash) | 97,00% | 3,00% a cualquier multiplicador |
+| [lib/plinko.js](lib/plinko.js) | Plinko, 12 filas | ~97,0% | ~3,0% en los tres riesgos |
+| [lib/surf.js](lib/surf.js) | Carrera de surf | 95,00% | 5,00% en los seis surfistas |
 
 Los números salen de tablas de pago reales, no inventadas. Antes de tocar cualquiera,
 compruébalo por muestreo: medio millón de tiradas basta para ver si la ventaja se movió.
@@ -249,6 +252,33 @@ es raro porque hay pocos sietes en la cinta, no porque el programa corrija el re
 El premio de «dos cerezas» existe para subir la frecuencia de premio del 5,5% al 24%: sin él la
 máquina se siente muerta aunque el retorno sea el mismo. `retornoTeorico()` calcula el RTP desde
 la tabla, así que si tocas un peso o un pago, la pantalla muestra el número nuevo sola.
+
+### Las tres tablas que se calculan solas
+
+Tres mesas nuevas siguen el mismo principio que la ruleta — **el pago sale de una fórmula, no
+de una tabla escrita a mano** — y por eso ninguna puede quedar descuadrada:
+
+- **Plinko** ([lib/plinko.js](lib/plinko.js)): `pago(k) ∝ (1/probabilidad(k)) ^ dureza`, escalado
+  para que el retorno sea 97%. `dureza` es lo único que separa las tres tablas de riesgo. A mano
+  se descuadró en el primer intento: la tabla alta pagaba **103%** y la casa perdía en cada
+  bolita. Elegir riesgo cambia cómo se gana, no cuánto.
+- **Carrera de surf** ([lib/surf.js](lib/surf.js)): `cuota = RETORNO / probabilidad`. Es el
+  sobrerredondeo de una casa de apuestas: los seis surfistas dejan el mismo 5%, así que apostar
+  al favorito o al que nadie mira da igual a la larga. El sorteo usa los pesos tal cual — nunca
+  se toca para "corregir" un pago.
+- **Aviator** ([lib/aviator.js](lib/aviator.js)): el choque se sortea como `RETORNO / u` con `u`
+  uniforme, que da exactamente `P(llegar a x) = RETORNO/x`. De ahí sale la propiedad que define
+  el juego: **retirarse en 1,10 o en 50 devuelve el mismo 97%**. Comprobado por muestreo en
+  nueve multiplicadores distintos. El 3% son los vuelos que se caen antes de 1,01.
+
+**El Aviator lleva el reloj del servidor.** El multiplicador es `exp(t/TAU)` sobre el tiempo
+transcurrido, y `cerrarEn()` lo calcula con `Date.now()` del servidor. Si viniera del navegador,
+bastaría con atrasar el reloj para retirarse siempre justo antes del choque.
+
+El navegador **no sabe dónde se cae el avión** — ese es el juego entero — así que pregunta cada
+350 ms si sigue arriba. Y como el vuelo se paga con el reloj, **un vuelo abandonado se resuelve
+al leerlo**, igual que los turnos vencidos: la apuesta ya está cobrada y dejarlo abierto sería
+quedarse con las fichas sin dar el resultado.
 
 ### Las mesas de dos pasos guardan el mazo en el servidor
 
@@ -310,6 +340,16 @@ Dos cosas, y las dos vuelven fácil si no se sabe:
 - **`<a href>` en vez de `next/link`**, que recargaba el documento entero en cada clic. La barra
   y las tarjetas de las mesas usan `Link`, así que la navegación es del cliente y la ruta se
   precarga sola. Un `<a>` nuevo en la barra reintroduce el parpadeo sin que nadie lo note.
+
+### La barra envuelve, no recorta
+
+`.barra-nav` tenía `overflow-x: auto`: con las siete secciones más el botón de cambiar de vista,
+los últimos enlaces quedaban fuera de la vista **sin ninguna señal de que estaban ahí**. Ahora
+`.barra-cuerpo` lleva `flex-wrap` y la navegación se baja entera a una segunda fila cuando no
+cabe (por debajo de 1100 px). Encima de eso va pegada a la derecha, junto al resto de los mandos.
+
+Comprobado midiendo cada pieza contra el borde de la barra en nueve anchos, de 390 a 1600 px: no
+se corta ninguna. Si agregas una sección más, vuelve a medir — no basta con mirarlo en tu pantalla.
 
 ### La paleta del casino está encerrada
 

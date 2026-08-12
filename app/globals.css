@@ -83,20 +83,31 @@ button {
   border-bottom: 1px solid var(--bay-line);
 }
 
+/*
+ * La barra se ensancha más que el contenido a propósito: con las siete secciones, el botón
+ * de cambiar de vista, la campana y el nombre de usuario, 1120 px no alcanzaban y los
+ * enlaces se salían por el costado.
+ *
+ * Y en vez de recortarlos, **envuelve**: `flex-wrap` deja que la navegación se baje a su
+ * propia fila cuando no cabe. Antes era `overflow-x: auto`, que los escondía sin avisar —
+ * había secciones que directamente no se veían y nadie sabía que estaban ahí.
+ */
 .barra-cuerpo {
-  max-width: 1120px;
+  max-width: 1500px;
   margin: 0 auto;
-  padding: 0 16px;
-  height: 58px;
+  padding: 8px 16px;
+  min-height: 58px;
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 10px;
+  row-gap: 6px;
 }
 
 @media (min-width: 900px) {
   .barra-cuerpo {
-    padding: 0 28px;
-    gap: 22px;
+    padding: 8px 28px;
+    gap: 16px;
   }
 }
 
@@ -108,6 +119,9 @@ button {
   text-decoration: none;
   white-space: nowrap;
   flex-shrink: 0;
+  /* Empuja la campana y el perfil a la derecha cuando la navegación se fue a su propia
+     fila y no queda nada que rellene el hueco. */
+  margin-right: auto;
 }
 
 .barra-marca em {
@@ -118,17 +132,26 @@ button {
   color: transparent;
 }
 
+/* Los enlaces van pegados a la derecha, junto al resto de los mandos, y no colgando de la
+   marca. Cuando no caben en la fila se bajan enteros, sin recortarse. */
+/* Debajo de 1100 px la navegación baja a una fila entera propia; encima va pegada a la
+   derecha, junto al resto de los mandos, y no colgando de la marca. */
 .barra-nav {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
   gap: 4px;
-  flex: 1;
+  flex: 1 1 100%;
+  order: 3;
   min-width: 0;
-  overflow-x: auto;
-  scrollbar-width: none;
 }
 
-.barra-nav::-webkit-scrollbar {
-  display: none;
+@media (min-width: 1100px) {
+  .barra-nav {
+    flex: 1 1 auto;
+    order: 0;
+    justify-content: flex-end;
+  }
 }
 
 .barra-enlace {
@@ -2409,6 +2432,411 @@ button {
   font-size: 0.7rem;
   line-height: 1.6;
   color: #6d76a3;
+}
+
+/* ---------- Plinko ---------- */
+
+.plinko {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 14px;
+  background: linear-gradient(180deg, #191233, #0c0a1c);
+  border: 1px solid var(--linea);
+  border-radius: 14px;
+}
+
+.plinko.gano {
+  border-color: var(--oro);
+  box-shadow: 0 0 40px rgba(255, 207, 92, 0.22);
+}
+
+/* El campo de clavos. Todo va posicionado en %, así que el tablero se puede achicar en el
+   teléfono sin recalcular nada: las posiciones las da `lib/plinko.js`. */
+.plinko-campo {
+  position: relative;
+  aspect-ratio: 1 / 0.82;
+  margin-bottom: 8px;
+}
+
+.clavo {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  margin: -2.5px 0 0 -2.5px;
+  border-radius: 50%;
+  background: #6d76a3;
+  box-shadow: 0 0 6px rgba(160, 170, 255, 0.35);
+}
+
+.bolita-plinko {
+  position: absolute;
+  z-index: 2;
+  width: 13px;
+  height: 13px;
+  margin: -6.5px 0 0 -6.5px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 33% 30%, #fff3cd, var(--oro) 60%, #c99700);
+  box-shadow: 0 0 14px rgba(255, 207, 92, 0.75);
+  opacity: 0;
+  /* Cada tramo dura lo mismo que el paso del temporizador: la bolita nunca "salta". */
+  transition:
+    left 0.09s linear,
+    top 0.09s linear;
+}
+
+.bolita-plinko.viva {
+  opacity: 1;
+}
+
+/* Sin `gap`: con separación entre columnas los centros se corren respecto del campo de
+   clavos y la bolita cae al lado de la casilla que le tocó. El aire va por dentro. */
+.plinko-casillas {
+  display: grid;
+  grid-template-columns: repeat(13, 1fr);
+}
+
+.casilla-plinko {
+  margin: 0 1px;
+  padding: 6px 1px;
+  border-radius: 4px;
+  font-family: var(--font-data), monospace;
+  font-size: 0.5rem;
+  text-align: center;
+  color: #0c0d16;
+  transition: transform 0.15s ease;
+}
+
+.casilla-plinko.ardiente { background: linear-gradient(180deg, #ff9d2e, #c02334); color: #fff; }
+.casilla-plinko.buena { background: #ffcf5c; }
+.casilla-plinko.tibia { background: #8ea0c8; }
+.casilla-plinko.fria { background: #3a4162; color: #9aa2cd; }
+
+.casilla-plinko.acertada {
+  transform: translateY(4px) scale(1.14);
+  box-shadow: 0 0 18px rgba(255, 207, 92, 0.8);
+}
+
+.bolita.ardiente { background: #c02334; }
+.bolita.buena { background: #a37500; }
+.bolita.tibia { background: #46507a; }
+.bolita.fria { background: #23273a; }
+
+.plinko-riesgos {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.plinko-riesgo {
+  display: grid;
+  gap: 1px;
+  padding: 9px 11px;
+  text-align: left;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--linea);
+  border-radius: 7px;
+  color: #d5daf5;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.plinko-riesgo:hover:not(:disabled) {
+  border-color: var(--oro);
+}
+
+.plinko-riesgo.activo {
+  border-color: var(--oro);
+  background: rgba(255, 207, 92, 0.12);
+}
+
+.plinko-riesgo strong {
+  font-size: 0.82rem;
+}
+
+.plinko-riesgo span {
+  font-size: 0.66rem;
+  color: #6d76a3;
+}
+
+.plinko-riesgo em {
+  font-style: normal;
+  font-family: var(--font-data), monospace;
+  font-size: 0.62rem;
+  color: var(--oro);
+}
+
+/* ---------- Aviator ---------- */
+
+.aviator {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  padding: 14px;
+  background:
+    radial-gradient(120% 90% at 10% 100%, rgba(34, 230, 208, 0.12), transparent 60%),
+    linear-gradient(180deg, #10132c, #05060f);
+  border: 1px solid var(--linea);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.aviator.volando {
+  border-color: rgba(34, 230, 208, 0.5);
+}
+
+.aviator.cayo {
+  border-color: rgba(192, 35, 52, 0.6);
+  animation: sacudir 0.35s ease-in-out;
+}
+
+@keyframes sacudir {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.aviator-cielo {
+  position: absolute;
+  inset: 14px;
+  width: calc(100% - 28px);
+  height: calc(100% - 28px);
+}
+
+.aviator-estela {
+  fill: none;
+  stroke: var(--neon);
+  stroke-width: 1.6;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 6px rgba(34, 230, 208, 0.7));
+}
+
+.aviator.cayo .aviator-estela {
+  stroke: #c02334;
+  filter: none;
+}
+
+.aviator-avion {
+  position: absolute;
+  z-index: 2;
+  font-size: 1.5rem;
+  line-height: 1;
+  /* El avión se coloca con las mismas coordenadas que la punta de la estela; el margen lo
+     centra sobre ella. Sin transición: el número se actualiza cada fotograma. */
+  transform: translate(-40%, 45%);
+  margin: 14px;
+}
+
+.aviator-cifra {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-data), monospace;
+  font-size: clamp(2rem, 9vw, 3.4rem);
+  color: #fff;
+  text-shadow: 0 0 30px rgba(34, 230, 208, 0.55);
+  pointer-events: none;
+}
+
+.aviator-cifra.roto {
+  color: #e0576a;
+  text-shadow: 0 0 30px rgba(192, 35, 52, 0.6);
+}
+
+.aviator-listo {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 16px;
+  text-align: center;
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #6d76a3;
+}
+
+.aviator-auto {
+  margin-bottom: 10px;
+}
+
+.aviator-auto input {
+  max-width: 130px;
+}
+
+.apuesta-girar.retirar {
+  background: linear-gradient(180deg, #2ee6b0, #12a077);
+  color: #04120d;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aviator.cayo {
+    animation: none;
+  }
+}
+
+/* ---------- Carrera de surf ---------- */
+
+.surf-mesa {
+  display: grid;
+  gap: 26px;
+}
+
+@media (min-width: 900px) {
+  .surf-mesa {
+    grid-template-columns: 1fr 320px;
+    align-items: start;
+  }
+}
+
+.surf-mar {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  background: linear-gradient(180deg, #06263a, #041824);
+  border: 1px solid #0d4a63;
+  border-radius: 14px;
+}
+
+.surf-mar.gano {
+  border-color: var(--oro);
+  box-shadow: 0 0 40px rgba(255, 207, 92, 0.2);
+}
+
+.calle {
+  display: grid;
+  grid-template-columns: 92px 1fr 58px;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid transparent;
+  border-left: 3px solid var(--surf);
+  border-radius: 8px;
+  text-align: left;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.calle:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.calle.apostada {
+  border-color: var(--oro);
+  border-left-color: var(--surf);
+}
+
+.calle.gana {
+  background: rgba(255, 207, 92, 0.14);
+}
+
+.calle-ficha {
+  display: grid;
+  line-height: 1.25;
+}
+
+.calle-nombre {
+  font-size: 0.82rem;
+  color: #eaf2ff;
+}
+
+.calle-tabla {
+  font-size: 0.6rem;
+  color: #6d9bb5;
+}
+
+/* El mar de cada calle: una línea de agua y el surfista corriendo sobre ella. */
+.calle-mar {
+  position: relative;
+  height: 26px;
+}
+
+.calle-linea {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 2px;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(124, 196, 255, 0.35) 0 7px,
+    transparent 7px 15px
+  );
+}
+
+.calle-surfista {
+  position: absolute;
+  top: 50%;
+  font-size: 1.05rem;
+  line-height: 1;
+  transform: translate(-50%, -55%);
+  /* Un tramo entero de la animación: el movimiento sale continuo aunque los saltos
+     lleguen de a nueve. */
+  transition: left 0.46s cubic-bezier(0.4, 0.1, 0.4, 1);
+  filter: drop-shadow(0 0 6px var(--surf));
+}
+
+.calle-puesto {
+  position: absolute;
+  right: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+  font-family: var(--font-data), monospace;
+  font-size: 0.58rem;
+  color: #9aa2cd;
+}
+
+.calle-puesto.p1 {
+  background: var(--oro);
+  color: #0c0d16;
+}
+
+.calle-cuota {
+  display: grid;
+  justify-items: end;
+  line-height: 1.2;
+}
+
+.calle-cuota strong {
+  font-family: var(--font-data), monospace;
+  font-size: 0.8rem;
+  color: var(--oro);
+}
+
+.calle-cuota em {
+  font-style: normal;
+  font-size: 0.58rem;
+  color: #6d9bb5;
+}
+
+.calle-apostado {
+  grid-column: 1 / -1;
+  justify-self: start;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: rgba(255, 207, 92, 0.16);
+  font-family: var(--font-data), monospace;
+  font-size: 0.6rem;
+  color: var(--oro);
+}
+
+.calle-apostado.cobro {
+  background: var(--oro);
+  color: #0c0d16;
+}
+
+@media (max-width: 520px) {
+  .calle {
+    grid-template-columns: 74px 1fr 48px;
+    gap: 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .calle-surfista {
+    transition: none;
+  }
 }
 
 /* ---------- Vídeo póker ---------- */

@@ -75,6 +75,50 @@ const MESAS = [
     ),
   },
   {
+    id: 'aviator',
+    nombre: 'Aviator',
+    lema: 'Bájate antes de que se caiga',
+    ruta: '/casino/aviator',
+    icono: (
+      <>
+        <path d="M7 39c8-2 15-8 20-16s8-12 14-14" />
+        <path d="M35 9h6v6" />
+        <path d="M14 30l7 3 3-7-7-3z" />
+      </>
+    ),
+  },
+  {
+    id: 'surf',
+    nombre: 'Carrera de surf',
+    lema: 'Seis tablas, una ola, un ganador',
+    ruta: '/casino/surf',
+    icono: (
+      <>
+        <path d="M6 32c4-3 7-3 11 0s7 3 11 0 7-3 11 0" />
+        <path d="M6 39c4-3 7-3 11 0s7 3 11 0 7-3 11 0" />
+        <path d="M31 9c-6 3-11 9-13 16l10 3c4-6 5-13 3-19z" />
+      </>
+    ),
+  },
+  {
+    id: 'plinko',
+    nombre: 'Plinko',
+    lema: 'Doce rebotes y a ver dónde cae',
+    ruta: '/casino/plinko',
+    icono: (
+      <>
+        <path d="M24 6v6" />
+        <circle cx="24" cy="17" r="1.6" />
+        <circle cx="17" cy="25" r="1.6" />
+        <circle cx="31" cy="25" r="1.6" />
+        <circle cx="10" cy="33" r="1.6" />
+        <circle cx="24" cy="33" r="1.6" />
+        <circle cx="38" cy="33" r="1.6" />
+        <path d="M7 41h34" />
+      </>
+    ),
+  },
+  {
     id: 'rasca',
     nombre: 'Rasca y gana',
     lema: 'Un raspón y a ver qué sale',
