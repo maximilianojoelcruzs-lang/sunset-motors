@@ -184,7 +184,6 @@ export default function Mesa({ usuario, admin, accesos, saldoInicial }) {
           <Apuesta
             apuesta={apuesta}
             setApuesta={setApuesta}
-            minimo={APUESTA_MINIMA}
             bloqueado={rodando || apuesta < APUESTA_MINIMA || apuesta > saldo}
             error={error}
             onJugar={jugar}

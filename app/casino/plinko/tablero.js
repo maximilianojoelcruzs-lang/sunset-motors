@@ -2,11 +2,22 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Sala, { Apuesta, fichas } from '../sala';
-import { CASILLAS, FILAS, TABLAS, probabilidadDe, retornoDe } from '../../../lib/plinko';
+import {
+  CASILLAS,
+  FILAS,
+  PUÑADOS,
+  TABLAS,
+  probabilidadDe,
+  retornoDe,
+} from '../../../lib/plinko';
 import { APUESTA_MINIMA } from '../../../lib/fichas-limites';
 
 /** Medio hueco entre clavos, en % del ancho. De acá salen todas las posiciones. */
 const PASO = 50 / CASILLAS;
+
+/** Cuánto tarda la bolita en bajar un clavo, y cuánto se separan entre sí las del puñado. */
+const CAIDA = 85;
+const ENTRE_BOLITAS = 110;
 
 /** Dónde está la bolita tras `i` rebotes, de los cuales `derechas` fueron a la derecha. */
 const equis = (i, derechas) => 50 + (2 * derechas - i) * PASO;
@@ -23,7 +34,9 @@ export default function Tablero({ usuario, admin, accesos, saldoInicial }) {
   const [saldo, setSaldo] = useState(saldoInicial);
   const [apuesta, setApuesta] = useState(100);
   const [riesgo, setRiesgo] = useState('medio');
-  const [paso, setPaso] = useState({ i: 0, derechas: 0 });
+  const [cuantas, setCuantas] = useState(1);
+  // Una entrada por bolita en el aire: { i, derechas }. Se pintan todas a la vez.
+  const [enElAire, setEnElAire] = useState([]);
   const [cayendo, setCayendo] = useState(false);
   const [ultima, setUltima] = useState(null);
   const [historial, setHistorial] = useState([]);
@@ -35,19 +48,23 @@ export default function Tablero({ usuario, admin, accesos, saldoInicial }) {
 
   const tabla = TABLAS[riesgo];
   const retorno = (retornoDe(riesgo) * 100).toFixed(2);
+  const total = apuesta * cuantas;
+
+  // Las casillas donde terminó cada bolita, para encenderlas al final.
+  const acertadas = ultima ? ultima.tiradas.map((t) => t.casilla) : [];
 
   const jugar = async () => {
     if (cayendo) return;
     setError('');
     setUltima(null);
     setCayendo(true);
-    setPaso({ i: 0, derechas: 0 });
+    setEnElAire([]);
 
     try {
       const r = await fetch('/api/casino/plinko', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ apuesta, riesgo }),
+        body: JSON.stringify({ apuesta, riesgo, bolitas: cuantas }),
       });
       const cuerpo = await r.json().catch(() => ({}));
       if (!r.ok) {
@@ -56,25 +73,43 @@ export default function Tablero({ usuario, admin, accesos, saldoInicial }) {
         return;
       }
 
-      // La bolita recorre el camino que ya vino decidido. Acá no se sortea nada.
+      // Cada bolita recorre el camino que ya vino decidido, saliendo escalonada. Acá no se
+      // sortea nada: lo que se ve caer es el resultado, no el cálculo.
       relojes.current.forEach(clearTimeout);
-      relojes.current = cuerpo.camino.map((_, i) =>
-        setTimeout(() => {
-          const derechas = cuerpo.camino.slice(0, i + 1).reduce((s, p) => s + p, 0);
-          setPaso({ i: i + 1, derechas });
-        }, (i + 1) * 90)
-      );
+      relojes.current = [];
+      setEnElAire(cuerpo.tiradas.map(() => ({ i: 0, derechas: 0, visible: false })));
 
+      cuerpo.tiradas.forEach((t, b) => {
+        const salida = b * ENTRE_BOLITAS;
+        relojes.current.push(
+          setTimeout(() => {
+            setEnElAire((a) => a.map((x, j) => (j === b ? { ...x, visible: true } : x)));
+          }, salida)
+        );
+
+        t.camino.forEach((_, i) => {
+          relojes.current.push(
+            setTimeout(
+              () => {
+                const derechas = t.camino.slice(0, i + 1).reduce((s, p) => s + p, 0);
+                setEnElAire((a) =>
+                  a.map((x, j) => (j === b ? { i: i + 1, derechas, visible: true } : x))
+                );
+              },
+              salida + (i + 1) * CAIDA
+            )
+          );
+        });
+      });
+
+      const fin = (cuerpo.tiradas.length - 1) * ENTRE_BOLITAS + (FILAS + 1) * CAIDA;
       relojes.current.push(
-        setTimeout(
-          () => {
-            setCayendo(false);
-            setUltima(cuerpo);
-            setSaldo(cuerpo.saldo);
-            setHistorial((h) => [cuerpo, ...h].slice(0, 14));
-          },
-          (FILAS + 1) * 90
-        )
+        setTimeout(() => {
+          setCayendo(false);
+          setUltima(cuerpo);
+          setSaldo(cuerpo.saldo);
+          setHistorial((h) => [...cuerpo.tiradas.slice().reverse(), ...h].slice(0, 14));
+        }, fin)
       );
     } catch {
       setError('Sin conexión con el servidor.');
@@ -91,8 +126,8 @@ export default function Tablero({ usuario, admin, accesos, saldoInicial }) {
       sub={`12 filas de clavos · retorno al jugador ${retorno}%`}
       saldo={saldo}
       aviso="Cada rebote es una moneda al aire que sortea el servidor, y por eso el centro se
-             llena y las puntas casi nunca salen. Elegir riesgo cambia cómo se gana, no cuánto:
-             las tres tablas devuelven lo mismo a la larga. Fichas de rol — no valen dinero."
+             llena y las puntas casi nunca salen. Cada bolita es independiente de las demás.
+             Elegir riesgo cambia cómo se gana, no cuánto. Fichas de rol — no valen dinero."
     >
       <div className="rasca-mesa">
         <section>
@@ -107,28 +142,33 @@ export default function Tablero({ usuario, admin, accesos, saldoInicial }) {
                 />
               ))}
 
-              <span
-                className={`bolita-plinko ${cayendo || paso.i ? 'viva' : ''}`}
-                style={{
-                  left: `${equis(paso.i, paso.derechas)}%`,
-                  top: `${(paso.i / FILAS) * 100}%`,
-                }}
-                aria-hidden="true"
-              />
+              {enElAire.map((b, i) => (
+                <span
+                  key={i}
+                  className={`bolita-plinko ${b.visible ? 'viva' : ''}`}
+                  style={{
+                    left: `${equis(b.i, b.derechas)}%`,
+                    top: `${(b.i / FILAS) * 100}%`,
+                  }}
+                  aria-hidden="true"
+                />
+              ))}
             </div>
 
             <div className="plinko-casillas">
-              {tabla.pagos.map((m, k) => (
-                <span
-                  key={k}
-                  className={`casilla-plinko ${calor(m)} ${
-                    ultima && ultima.casilla === k ? 'acertada' : ''
-                  }`}
-                  title={`1 de cada ${Math.round(1 / probabilidadDe(k)).toLocaleString('es-CL')}`}
-                >
-                  x{m}
-                </span>
-              ))}
+              {tabla.pagos.map((m, k) => {
+                const cuantasAhi = acertadas.filter((c) => c === k).length;
+                return (
+                  <span
+                    key={k}
+                    className={`casilla-plinko ${calor(m)} ${cuantasAhi ? 'acertada' : ''}`}
+                    title={`1 de cada ${Math.round(1 / probabilidadDe(k)).toLocaleString('es-CL')}`}
+                  >
+                    x{m}
+                    {cuantasAhi > 1 ? <em className="casilla-cuantas">{cuantasAhi}</em> : null}
+                  </span>
+                );
+              })}
             </div>
           </div>
 
@@ -137,9 +177,13 @@ export default function Tablero({ usuario, admin, accesos, saldoInicial }) {
               <span className="resultado-girando">Cayendo…</span>
             ) : ultima ? (
               <>
-                <span className="rasca-multi">x{ultima.multiplicador}</span>
+                <span className="rasca-multi">
+                  x{(ultima.premio / ultima.apuestaTotal).toFixed(2)}
+                </span>
                 <span className="resultado-texto">
-                  Casilla {ultima.casilla} · {fichas(ultima.premio)} fichas
+                  {ultima.bolitas === 1
+                    ? `Casilla ${ultima.tiradas[0].casilla} · ${fichas(ultima.premio)} fichas`
+                    : `${ultima.bolitas} bolitas · ${fichas(ultima.premio)} de ${fichas(ultima.apuestaTotal)}`}
                 </span>
                 <span className="resultado-neto">
                   {ultima.neto >= 0 ? '+' : ''}
@@ -147,7 +191,9 @@ export default function Tablero({ usuario, admin, accesos, saldoInicial }) {
                 </span>
               </>
             ) : (
-              <span className="resultado-texto">Suelta la bolita</span>
+              <span className="resultado-texto">
+                {cuantas === 1 ? 'Suelta la bolita' : `${cuantas} bolitas listas`}
+              </span>
             )}
           </div>
 
@@ -183,21 +229,43 @@ export default function Tablero({ usuario, admin, accesos, saldoInicial }) {
                 </button>
               ))}
             </div>
+
+            <h2 className="casino-titulo plinko-titulo">Cuántas bolitas</h2>
+            <div className="plinko-punados">
+              {PUÑADOS.map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  className={`plinko-punado ${cuantas === n ? 'activo' : ''}`}
+                  disabled={cayendo}
+                  onClick={() => setCuantas(n)}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
+
             <p className="rasca-nota">
-              Las tres tablas devuelven el mismo {retorno}%: lo único que cambia es el reparto.
-              En la alta, la punta paga x{TABLAS.alto.pagos[0]} y sale 1 de cada 4.096 bolitas;
-              en la baja casi nunca te vas con las manos vacías.
+              Cada bolita cuesta la apuesta entera y cae por su cuenta: soltar diez no mejora
+              nada, solo reparte lo mismo en diez tiros. Las tres tablas devuelven el mismo{' '}
+              {retorno}%; en la alta la punta paga x{TABLAS.alto.pagos[0]} y sale 1 de cada
+              4.096 bolitas.
             </p>
           </div>
 
           <Apuesta
             apuesta={apuesta}
             setApuesta={setApuesta}
-            minimo={APUESTA_MINIMA}
-            bloqueado={cayendo || apuesta < APUESTA_MINIMA || apuesta > saldo}
+            bloqueado={cayendo || apuesta < APUESTA_MINIMA || total > saldo}
             error={error}
             onJugar={jugar}
-            texto={cayendo ? 'Cayendo…' : `Soltar por ${fichas(apuesta)}`}
+            texto={
+              cayendo
+                ? 'Cayendo…'
+                : cuantas === 1
+                  ? `Soltar por ${fichas(apuesta)}`
+                  : `Soltar ${cuantas} por ${fichas(total)}`
+            }
           />
         </section>
       </div>

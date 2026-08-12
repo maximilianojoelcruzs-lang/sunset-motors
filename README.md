@@ -153,9 +153,10 @@ servidor — **no se juega con dinero real ni se puede convertir en dinero real*
 | Ruleta europea | 97,30% | 2,70% |
 | Dados (apuestas sencillas) | 97,22% | 2,78% |
 | Dados (triples) | 83,8% – 86,1% | 13,9% – 16,2% |
-| Aviator | 97,00% | 3,00% |
 | Plinko | ~97,0% | ~3,0% |
+| Duelo de cartas (bando) | 96,30% | 3,70% |
 | Carrera de surf | 95,00% | 5,00% |
+| Duelo de cartas (empate) | 88,75% | 11,25% |
 | Tragamonedas | 94,27% | 5,73% |
 | Rasca y gana | 92,00% | 8,00% |
 
@@ -174,6 +175,11 @@ Ahí mismo se ven las últimas veinte jugadas de todo el mundo, con quién jugó
 apostó y cuánto ganó o perdió.
 
 Las fichas **no se compran, no valen dinero y no se convierten en dinero**. Son de rol.
+
+Se apuesta **poniendo fichas**: 50, 100, 500, 1.000 y 5.000. La cifra que aparece al lado no se
+escribe a mano, cambia al tocar una ficha — en una mesa de verdad no se puede apostar 501. En las
+mesas donde se apilan fichas en varios sitios (ruleta, surf, duelo) el total de un sitio sí puede
+ser cualquier suma armable con esas fichas, tocando varias veces.
 
 ### Las tragamonedas
 
@@ -221,23 +227,6 @@ estaban decididas. Al terminar se marcan las cartas que pagaron y se apagan las 
 Si cierras la pestaña entre el reparto y el cambio, al volver te encuentras la misma mano: la
 apuesta ya estaba cobrada y dejarla botada sería quedarse con tus fichas.
 
-### El Aviator
-
-El avión despega y el multiplicador sube: x1,20, x1,50, x2… En algún momento se cae. Si te
-bajas antes, cobras lo que marcaba; si no, pierdes la apuesta.
-
-Puedes bajarte a mano con el botón, o dejar puesto un **retiro automático** y que se baje solo
-al llegar a la cifra que elijas.
-
-Lo bonito de este juego es que **da igual dónde te bajes**: en 1,50 aciertas 2 de cada 3 veces
-y pagas poco, en 10 aciertas 1 de cada 10 y pagas mucho. Los dos devuelven el mismo **97%**. No
-hay estrategia que cambie el margen — solo cambia cada cuánto ganas.
-
-Dónde se cae se sortea **antes de despegar** y no sale del servidor hasta que terminas. Y el
-multiplicador lo lleva el reloj del servidor, no el tuyo: atrasar el reloj del computador no
-sirve de nada. Si cierras la pestaña con un vuelo en el aire, al volver te encuentras el
-resultado — la apuesta ya estaba cobrada.
-
 ### El Plinko
 
 La bolita cae por 12 filas de clavos y en cada choque se va a un lado o al otro. Por eso las
@@ -255,6 +244,9 @@ Hay tres niveles de riesgo, y **los tres devuelven lo mismo**:
 Elegir riesgo cambia **cómo** se gana, no **cuánto**. Los pagos no están escritos a mano: se
 calculan desde la probabilidad de cada casilla, así que las tres tablas quedan cuadradas solas.
 
+Se pueden soltar **1, 3, 5 o 10 bolitas de una vez**. Cada una cuesta la apuesta entera y cae
+por su cuenta: soltar diez no mejora nada, solo reparte lo mismo en diez tiros.
+
 ### La carrera de surf
 
 Seis surfistas, una ola, un ganador. Se puede apostar a varios en la misma carrera.
@@ -271,6 +263,23 @@ Seis surfistas, una ola, un ganador. Se puede apostar a varios en la misma carre
 Kala gana 3 de cada 10 olas; una cuota justa pagaría 3,33 y paga 3,17. Esa diferencia, **la
 misma en los seis**, es el 5% que se queda la casa — igual que en una casa de apuestas de
 verdad. Apostar al favorito o al que nadie mira da lo mismo a la larga.
+
+### El duelo de cartas
+
+Una carta para el Rojo, una para el Azul, gana la más alta. El as vale 1 y el rey 13; el palo da
+igual. Se apuesta a **Rojo**, a **Azul** o a **Empate**, y se puede poner ficha en más de uno.
+
+| Apuesta | Paga | Se queda la casa |
+|---|---|---|
+| Rojo o Azul | 1 a 1 | 3,70% |
+| Empate | 11 a 1 | 11,25% |
+
+**Si sale empate, quien apostó a un bando pierde la mitad.** No es un castigo suelto: es de ahí
+de donde sale la ventaja de la casa en este juego, y es la misma regla del Dragon Tiger de un
+casino de verdad. Sin ella, apostar a un bando sería una apuesta justa.
+
+El empate sale 7 de cada 100 manos. Paga mucho, pero es de lejos la peor apuesta de la mesa — y
+por eso su ventaja va escrita en la pantalla, al lado del pago.
 
 ### El blackjack
 

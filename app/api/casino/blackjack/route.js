@@ -13,9 +13,10 @@ import {
   vista,
 } from '../../../../lib/blackjack';
 import {
-  borrarPartida,
-  guardarPartida,
-  partidaDe,
+  conPartida,
+  escribirPartidas,
+  leerPartidas,
+  sinPartida,
 } from '../../../../lib/blackjack-partida';
 
 export const runtime = 'nodejs';
@@ -48,8 +49,13 @@ function avanzar(partida) {
   return true;
 }
 
-/** Destapa, juega el crupier si hace falta, paga todo junto y borra la partida. */
-async function cerrar(usuario, partida) {
+/**
+ * Destapa, juega el crupier si hace falta, paga todo junto y borra la partida.
+ *
+ * Recibe el mapa que ya se leyó y lo escribe una sola vez: volver a leerlo para borrar una
+ * clave sería un viaje de más contra la base.
+ */
+async function cerrar(usuario, partida, todas) {
   // El crupier solo roba si queda algo que decidir. Con todas las manos pasadas ya cobró, y
   // contra un blackjack servido tampoco hay nada que hacer: robar sería puro teatro.
   const hayQueJugar = partida.manos.some((m) => {
@@ -67,7 +73,7 @@ async function cerrar(usuario, partida) {
   const premio = resultados.reduce((s, r) => s + r.premio, 0);
   const apuesta = partida.manos.reduce((s, m) => s + m.apuesta, 0);
 
-  await borrarPartida(usuario);
+  await escribirPartidas(sinPartida(todas, usuario));
   const { saldo, neto } = await pagar({
     usuario,
     juego: 'blackjack',
@@ -92,13 +98,14 @@ export async function POST(peticion) {
   const { accion, apuesta } = await peticion.json().catch(() => ({}));
 
   try {
+    // Una lectura del mapa de partidas para toda la petición, y una escritura al final.
+    const todas = await leerPartidas();
+    const partida = todas[usuario] ?? null;
+
     if (accion === 'repartir') {
       // Idempotente: con una partida abierta la devuelve en vez de cobrar otra apuesta.
-      const abierta = await partidaDe(usuario);
-      if (abierta) {
-        return NextResponse.json(
-          vista(abierta, { saldo: await saldoDe(usuario), cierre: null })
-        );
+      if (partida) {
+        return NextResponse.json(vista(partida, { saldo: await saldoDe(usuario), cierre: null }));
       }
 
       const validada = await validarApuesta(usuario, apuesta);
@@ -111,7 +118,7 @@ export async function POST(peticion) {
       mias.push(zapato.shift());
       suyas.push(zapato.shift());
 
-      const partida = {
+      const nueva = {
         zapato,
         crupier: suyas,
         activa: 0,
@@ -127,20 +134,19 @@ export async function POST(peticion) {
         ],
       };
 
-      let saldo = await cobrar(usuario, validada.apuesta);
+      const saldo = await cobrar(usuario, validada.apuesta);
 
       // El crupier mira la tapada si enseña as o figura; con blackjack la mano termina ahí.
       const crupierBJ = crupierAsoma(suyas) && esBlackjack(suyas);
       if (crupierBJ || esBlackjack(mias)) {
-        const cierre = await cerrar(usuario, partida);
+        const cierre = await cerrar(usuario, nueva, todas);
         return NextResponse.json(vista(cierre.partida, { saldo: cierre.saldo, cierre }));
       }
 
-      await guardarPartida(usuario, partida);
-      return NextResponse.json(vista(partida, { saldo, cierre: null }));
+      await escribirPartidas(conPartida(todas, usuario, nueva));
+      return NextResponse.json(vista(nueva, { saldo, cierre: null }));
     }
 
-    const partida = await partidaDe(usuario);
     if (!partida) return no('No tienes una mano en juego.', 400);
 
     let saldo = await saldoDe(usuario);
@@ -176,11 +182,11 @@ export async function POST(peticion) {
     }
 
     if (avanzar(partida)) {
-      const cierre = await cerrar(usuario, partida);
+      const cierre = await cerrar(usuario, partida, todas);
       return NextResponse.json(vista(cierre.partida, { saldo: cierre.saldo, cierre }));
     }
 
-    await guardarPartida(usuario, partida);
+    await escribirPartidas(conPartida(todas, usuario, partida));
     return NextResponse.json(vista(partida, { saldo, cierre: null }));
   } catch (e) {
     return no(`No se pudo jugar: ${e.message}`, 500);

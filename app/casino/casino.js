@@ -75,15 +75,15 @@ const MESAS = [
     ),
   },
   {
-    id: 'aviator',
-    nombre: 'Aviator',
-    lema: 'Bájate antes de que se caiga',
-    ruta: '/casino/aviator',
+    id: 'duelo',
+    nombre: 'Duelo de cartas',
+    lema: 'Rojo contra azul · gana la más alta',
+    ruta: '/casino/duelo',
     icono: (
       <>
-        <path d="M7 39c8-2 15-8 20-16s8-12 14-14" />
-        <path d="M35 9h6v6" />
-        <path d="M14 30l7 3 3-7-7-3z" />
+        <rect x="6" y="12" width="16" height="24" rx="3" />
+        <rect x="26" y="12" width="16" height="24" rx="3" />
+        <path d="M24 18v12" />
       </>
     ),
   },

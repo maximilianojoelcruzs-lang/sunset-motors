@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Barra from '../barra';
+import { FICHAS } from '../../lib/fichas-limites';
 
 export const fmt = new Intl.NumberFormat('es-CL');
 export const fichas = (n) => fmt.format(n);
@@ -55,12 +56,19 @@ export default function Sala({ usuario, admin, accesos, titulo, sub, saldo, avis
   );
 }
 
-/** Selector de cuánto apostar, igual en todas las mesas. */
-export function Apuesta({ apuesta, setApuesta, minimo, bloqueado, error, onJugar, texto }) {
+/**
+ * Selector de cuánto apostar, igual en todas las mesas.
+ *
+ * La cifra **se mira, no se escribe**: cambia solo al tocar una ficha. Antes era un campo
+ * libre y se podía apostar 501, que es una cantidad que en una mesa no existe porque no hay
+ * ninguna combinación de fichas que la forme. El servidor lo comprueba igual —la pantalla
+ * nunca es la que decide—, pero acá ni siquiera se puede intentar.
+ */
+export function Apuesta({ apuesta, setApuesta, bloqueado, error, onJugar, texto }) {
   return (
     <div className="apuesta-caja">
       <div className="apuesta-fichas">
-        {[50, 100, 500, 1000].map((v) => (
+        {FICHAS.map((v) => (
           <button
             key={v}
             type="button"
@@ -71,15 +79,9 @@ export function Apuesta({ apuesta, setApuesta, minimo, bloqueado, error, onJugar
             {fichas(v)}
           </button>
         ))}
-        <input
-          type="number"
-          className="apuesta-otro"
-          min={minimo}
-          value={apuesta}
-          disabled={bloqueado}
-          onChange={(e) => setApuesta(Math.max(0, Number(e.target.value) || 0))}
-          aria-label="Otra cantidad"
-        />
+        <output className="apuesta-otro" aria-label="Cantidad apostada">
+          {fichas(apuesta)}
+        </output>
       </div>
 
       {error && <p className="apuesta-error">{error}</p>}

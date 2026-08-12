@@ -1,7 +1,13 @@
 import { NextResponse } from 'next/server';
 import { sesionActual } from '../../../../lib/servidor';
 import { esCasino } from '../../../../lib/usuarios';
-import { resolver, saldoDe, APUESTA_MAXIMA, APUESTA_MINIMA } from '../../../../lib/fichas';
+import {
+  resolver,
+  saldoDe,
+  esPilaDeFichas,
+  APUESTA_MAXIMA,
+  APUESTA_MINIMA,
+} from '../../../../lib/fichas';
 import { apuestaPorId, color, girar, resolverApuesta } from '../../../../lib/ruleta';
 
 export const runtime = 'nodejs';
@@ -52,11 +58,13 @@ export async function POST(peticion) {
       vistos.add(def.id);
 
       const monto = Math.round(Number(cruda.monto));
-      if (!Number.isFinite(monto) || monto < APUESTA_MINIMA) {
-        return no(`Cada ficha tiene que ser de al menos ${APUESTA_MINIMA}.`);
+      // Tiene que ser una pila de fichas de verdad. En pantalla no se puede poner otra cosa,
+      // pero eso es la pantalla: sin esto, cualquiera manda 501 por la API.
+      if (!esPilaDeFichas(monto)) {
+        return no(`En cada sitio van fichas: ${APUESTA_MINIMA}, 100, 500, 1.000 o 5.000.`);
       }
       if (monto > APUESTA_MAXIMA) {
-        return no(`Cada ficha puede ser de ${APUESTA_MAXIMA} como mucho.`);
+        return no(`Cada sitio puede llevar ${APUESTA_MAXIMA} como mucho.`);
       }
       limpias.push({ id: def.id, monto });
     }

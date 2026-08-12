@@ -3,9 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Sala, { fichas } from '../sala';
 import { RETORNO, SURFISTAS, cuotaDe, probabilidadDe, surfista } from '../../../lib/surf';
-import { APUESTA_MINIMA } from '../../../lib/fichas-limites';
+import { APUESTA_MINIMA, FICHAS } from '../../../lib/fichas-limites';
 
-const VALORES = [50, 100, 500, 1000];
 const DURACION = 4200;
 
 /** Una calle del mar, con su surfista corriendo hacia la orilla. */
@@ -226,7 +225,7 @@ export default function Carrera({ usuario, admin, accesos, saldoInicial }) {
             </div>
 
             <div className="apuesta-fichas">
-              {VALORES.map((v) => (
+              {FICHAS.map((v) => (
                 <button
                   key={v}
                   type="button"
@@ -237,15 +236,10 @@ export default function Carrera({ usuario, admin, accesos, saldoInicial }) {
                   {fichas(v)}
                 </button>
               ))}
-              <input
-                type="number"
-                className="apuesta-otro"
-                min={APUESTA_MINIMA}
-                value={ficha}
-                disabled={corriendo}
-                onChange={(e) => setFicha(Math.max(0, Number(e.target.value) || 0))}
-                aria-label="Otra cantidad por apuesta"
-              />
+              {/* La cifra se mira, no se escribe: cambia solo al tocar una ficha. */}
+              <output className="apuesta-otro" aria-label="Valor de la ficha">
+                {fichas(ficha)}
+              </output>
             </div>
 
             <div className="pano-mandos">

@@ -146,7 +146,6 @@ export default function Carton({ usuario, admin, accesos, saldoInicial }) {
           <Apuesta
             apuesta={apuesta}
             setApuesta={setApuesta}
-            minimo={APUESTA_MINIMA}
             bloqueado={comprando || apuesta < APUESTA_MINIMA || apuesta > saldo}
             error={error}
             onJugar={comprar}

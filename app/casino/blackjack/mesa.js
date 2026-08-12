@@ -220,7 +220,6 @@ export default function Mesa({ usuario, admin, accesos, saldoInicial, partida })
             <Apuesta
               apuesta={apuesta}
               setApuesta={setApuesta}
-              minimo={APUESTA_MINIMA}
               bloqueado={ocupado || apuesta < APUESTA_MINIMA || apuesta > saldo}
               error={error}
               onJugar={() => pedir('repartir', { apuesta })}

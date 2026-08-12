@@ -226,9 +226,9 @@ veces: si no, dos fichas al mismo lugar contarían distinto según cómo se suma
 | [lib/tragamonedas.js](lib/tragamonedas.js) | 3 rodillos, 1 línea | 94,27% | 5,73% |
 | [lib/poker.js](lib/poker.js) | Vídeo póker, Jacks or Better 9/6 | hasta 99,5% | 0,5% con juego perfecto |
 | [lib/blackjack.js](lib/blackjack.js) | Blackjack, 6 mazos S17 | ~99,4% | ~0,5% con estrategia básica |
-| [lib/aviator.js](lib/aviator.js) | Aviator (crash) | 97,00% | 3,00% a cualquier multiplicador |
 | [lib/plinko.js](lib/plinko.js) | Plinko, 12 filas | ~97,0% | ~3,0% en los tres riesgos |
 | [lib/surf.js](lib/surf.js) | Carrera de surf | 95,00% | 5,00% en los seis surfistas |
+| [lib/duelo.js](lib/duelo.js) | Duelo de cartas (Dragon Tiger) | 96,3% / 88,8% | 3,70% al bando · 11,25% al empate |
 
 Los números salen de tablas de pago reales, no inventadas. Antes de tocar cualquiera,
 compruébalo por muestreo: medio millón de tiradas basta para ver si la ventaja se movió.
@@ -253,7 +253,7 @@ El premio de «dos cerezas» existe para subir la frecuencia de premio del 5,5% 
 máquina se siente muerta aunque el retorno sea el mismo. `retornoTeorico()` calcula el RTP desde
 la tabla, así que si tocas un peso o un pago, la pantalla muestra el número nuevo sola.
 
-### Las tres tablas que se calculan solas
+### Las tablas que se calculan solas
 
 Tres mesas nuevas siguen el mismo principio que la ruleta — **el pago sale de una fórmula, no
 de una tabla escrita a mano** — y por eso ninguna puede quedar descuadrada:
@@ -266,19 +266,46 @@ de una tabla escrita a mano** — y por eso ninguna puede quedar descuadrada:
   sobrerredondeo de una casa de apuestas: los seis surfistas dejan el mismo 5%, así que apostar
   al favorito o al que nadie mira da igual a la larga. El sorteo usa los pesos tal cual — nunca
   se toca para "corregir" un pago.
-- **Aviator** ([lib/aviator.js](lib/aviator.js)): el choque se sortea como `RETORNO / u` con `u`
-  uniforme, que da exactamente `P(llegar a x) = RETORNO/x`. De ahí sale la propiedad que define
-  el juego: **retirarse en 1,10 o en 50 devuelve el mismo 97%**. Comprobado por muestreo en
-  nueve multiplicadores distintos. El 3% son los vuelos que se caen antes de 1,01.
+- **Duelo de cartas** ([lib/duelo.js](lib/duelo.js)): es el Dragon Tiger de siempre. La ventaja
+  sale de **perder la mitad cuando hay empate**, no de un pago recortado: sin esa regla, apostar
+  a un bando sería una apuesta justa y la casa no ganaría nada. Empate 7,40%, bando 3,70% de
+  ventaja, empate a 11:1 el 11,25%. `repartir()` **no baraja**: saca dos posiciones del zapato
+  de 312 y corre la segunda si choca con la primera. Barajar 312 cartas para usar dos es el
+  mismo resultado y trescientas veces más trabajo — con el barajado, medio millón de manos de
+  prueba no terminaban.
 
-**El Aviator lleva el reloj del servidor.** El multiplicador es `exp(t/TAU)` sobre el tiempo
-transcurrido, y `cerrarEn()` lo calcula con `Date.now()` del servidor. Si viniera del navegador,
-bastaría con atrasar el reloj para retirarse siempre justo antes del choque.
+### Se apuesta con fichas, no escribiendo una cifra
 
-El navegador **no sabe dónde se cae el avión** — ese es el juego entero — así que pregunta cada
-350 ms si sigue arriba. Y como el vuelo se paga con el reloj, **un vuelo abandonado se resuelve
-al leerlo**, igual que los turnos vencidos: la apuesta ya está cobrada y dejarlo abierto sería
-quedarse con las fichas sin dar el resultado.
+`FICHAS` en [lib/fichas-limites.js](lib/fichas-limites.js) es la única lista: 50, 100, 500,
+1.000 y 5.000. La cifra en pantalla **se mira, no se escribe** — es un `<output>`, no un
+`<input>`. Antes era un campo libre y se podía apostar 501, que es una cantidad que en una mesa
+no existe porque no hay combinación de fichas que la forme.
+
+Eso es la pantalla, y la pantalla nunca decide: el servidor lo comprueba igual.
+
+- `validarApuesta()` exige **una ficha exacta**. Lo usan las mesas de apuesta simple.
+- `esPilaDeFichas()` acepta cualquier suma armable con esas fichas —o sea, múltiplos de 50— y lo
+  usan la ruleta, el surf y el duelo, donde se apilan fichas en varios sitios y el total de un
+  sitio no tiene por qué ser el valor de una ficha suelta.
+
+Si agregas una ficha nueva que no sea múltiplo de 50, `esPilaDeFichas()` deja de describir lo
+que se puede armar y hay que cambiarla.
+
+### Lo que hacía lento al blackjack
+
+Cada acción encadenaba **cinco viajes al almacén**: leer la partida, leer el saldo, leer otra vez
+las partidas para guardar, escribir, y al cerrar otro tanto. Contra Supabase cada uno es una ida
+y vuelta por la red. Dos cambios:
+
+- `lib/blackjack-partida.js` expone el mapa entero (`leerPartidas`/`escribirPartidas`) y el route
+  handler lo lee **una vez por petición** y lo escribe una vez. `guardarPartida()` con un `leer`
+  por dentro parecía cómodo y era un viaje de más en cada carta pedida.
+- `moverSaldo()` en [lib/fichas.js](lib/fichas.js) suma al saldo con una lectura y una escritura.
+  Antes `saldoDe()` + `ponerSaldo()` eran dos lecturas y una escritura, y una mano encadena
+  varias (cobrar, doblar, separar, pagar).
+
+Medido en local: repartir 278 ms y cada acción 145 ms. Si vuelve a sentirse lento, cuenta los
+`leer`/`guardar` por petición antes de tocar la animación — casi siempre es eso.
 
 ### Las mesas de dos pasos guardan el mazo en el servidor
 

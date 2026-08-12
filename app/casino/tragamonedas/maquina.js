@@ -11,25 +11,48 @@ const RETORNO = (retornoTeorico() * 100).toFixed(1);
 /**
  * Un rodillo. Mientras gira muestra símbolos al azar solo por efecto visual; cuando para,
  * muestra el que mandó el servidor. Lo que se ve girando no decide nada.
+ *
+ * **Cada rodillo sigue girando hasta su propio turno de parar.** Antes se congelaban los tres
+ * de golpe cuando llegaba la respuesta —cada uno en el símbolo al azar que le tocó— y después
+ * saltaban al bueno de a uno. Se veía como un tirón, no como una máquina.
  */
 function Rodillo({ simbolo, girando, retraso }) {
   const [visible, setVisible] = useState(simbolo);
-  const intervalo = useRef(null);
+  const [quieto, setQuieto] = useState(true);
+  // Al abrir la página los rodillos están parados: sin esto darían una vuelta sola.
+  const arrancoAlgunaVez = useRef(false);
 
   useEffect(() => {
-    if (girando) {
-      intervalo.current = setInterval(() => {
-        setVisible(SIMBOLOS[Math.floor(Math.random() * SIMBOLOS.length)]);
-      }, 70);
-      return () => clearInterval(intervalo.current);
+    if (!girando && !arrancoAlgunaVez.current) {
+      setVisible(simbolo);
+      return undefined;
     }
-    // Los rodillos paran escalonados, como una máquina de verdad.
-    const t = setTimeout(() => setVisible(simbolo), retraso);
-    return () => clearTimeout(t);
+
+    const rodar = setInterval(() => {
+      setVisible(SIMBOLOS[Math.floor(Math.random() * SIMBOLOS.length)]);
+    }, 60);
+
+    if (girando) {
+      arrancoAlgunaVez.current = true;
+      setQuieto(false);
+      return () => clearInterval(rodar);
+    }
+
+    // Ya llegó el resultado: este rodillo gira lo suyo y recién ahí se planta.
+    const alto = setTimeout(() => {
+      clearInterval(rodar);
+      setVisible(simbolo);
+      setQuieto(true);
+    }, retraso);
+
+    return () => {
+      clearInterval(rodar);
+      clearTimeout(alto);
+    };
   }, [girando, simbolo, retraso]);
 
   return (
-    <div className={`rodillo ${girando ? 'girando' : ''}`}>
+    <div className={`rodillo ${quieto ? '' : 'girando'}`}>
       <span className="rodillo-simbolo">{visible}</span>
     </div>
   );
@@ -65,11 +88,12 @@ export default function Maquina({ usuario, admin, accesos, saldoInicial }) {
       setSimbolos(cuerpo.simbolos);
       setGirando(false);
 
-      // El resultado se anuncia cuando ya paró el último rodillo.
+      // El resultado se anuncia justo después de que se planta el último rodillo, ni antes
+      // ni mucho después: el hueco entre una cosa y la otra es lo que se sentía raro.
       setTimeout(() => {
         setUltima(cuerpo);
         setSaldo(cuerpo.saldo);
-      }, 900);
+      }, 2 * 220 + 160);
     } catch {
       setError('Sin conexión con el servidor.');
       setGirando(false);
@@ -93,7 +117,7 @@ export default function Maquina({ usuario, admin, accesos, saldoInicial }) {
           <div className={`maquina ${ultima?.gano ? 'gano' : ''}`}>
             <div className="maquina-ventana">
               {simbolos.map((s, i) => (
-                <Rodillo key={i} simbolo={s} girando={girando} retraso={i * 260} />
+                <Rodillo key={i} simbolo={s} girando={girando} retraso={i * 220} />
               ))}
             </div>
             <span className="maquina-linea" aria-hidden="true" />
@@ -158,7 +182,6 @@ export default function Maquina({ usuario, admin, accesos, saldoInicial }) {
           <Apuesta
             apuesta={apuesta}
             setApuesta={setApuesta}
-            minimo={APUESTA_MINIMA}
             bloqueado={girando || apuesta < APUESTA_MINIMA || apuesta > saldo}
             error={error}
             onJugar={jugar}

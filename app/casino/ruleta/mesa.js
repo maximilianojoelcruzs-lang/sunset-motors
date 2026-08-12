@@ -4,9 +4,7 @@ import { useMemo, useRef, useState } from 'react';
 import Sala, { fichas } from '../sala';
 import Rueda, { anguloDe } from './rueda';
 import Pano, { corto } from './pano';
-import { APUESTA_MINIMA } from '../../../lib/fichas-limites';
-
-const VALORES = [50, 100, 500, 1000, 5000];
+import { APUESTA_MINIMA, FICHAS } from '../../../lib/fichas-limites';
 
 export default function Mesa({ usuario, admin, accesos, saldoInicial }) {
   const [saldo, setSaldo] = useState(saldoInicial);
@@ -206,7 +204,7 @@ export default function Mesa({ usuario, admin, accesos, saldoInicial }) {
             </div>
 
             <div className="apuesta-fichas">
-              {VALORES.map((v) => (
+              {FICHAS.map((v) => (
                 <button
                   key={v}
                   type="button"
@@ -217,15 +215,10 @@ export default function Mesa({ usuario, admin, accesos, saldoInicial }) {
                   {corto(v)}
                 </button>
               ))}
-              <input
-                type="number"
-                className="apuesta-otro"
-                min={APUESTA_MINIMA}
-                value={ficha}
-                disabled={girando}
-                onChange={(e) => setFicha(Math.max(0, Number(e.target.value) || 0))}
-                aria-label="Otra cantidad por ficha"
-              />
+              {/* La cifra se mira, no se escribe: cambia solo al tocar una ficha. */}
+              <output className="apuesta-otro" aria-label="Valor de la ficha">
+                {fichas(ficha)}
+              </output>
             </div>
 
             <div className="pano-mandos">

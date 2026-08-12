@@ -2103,8 +2103,10 @@ button {
 }
 
 .ficha {
-  width: 58px;
-  height: 58px;
+  /* 52 y no 58: con cinco fichas más el rótulo de la cifra, a 58 se partía la fila en
+     tres líneas dentro de la columna de 320 px. */
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   background: radial-gradient(circle at 35% 30%, #2a3057, #151830);
   border: 2px dashed rgba(255, 255, 255, 0.22);
@@ -2125,15 +2127,22 @@ button {
   box-shadow: 0 0 18px rgba(255, 207, 92, 0.3);
 }
 
+/* La cifra apostada. Ya no es un campo que se escriba —cambia solo al tocar una ficha—, así
+   que se muestra como un rótulo del alto de las fichas y no como una caja de texto vacía. */
 .apuesta-otro {
-  width: 96px;
-  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+  min-width: 78px;
+  height: 40px;
+  padding: 0 14px;
+  justify-content: center;
   background: rgba(0, 0, 0, 0.3);
   border: 1px solid var(--linea);
-  border-radius: 6px;
-  color: #e6ebff;
+  border-radius: 999px;
+  color: var(--oro);
   font-family: var(--font-data), monospace;
-  font-size: 0.82rem;
+  font-size: 0.86rem;
 }
 
 .apuesta-error {
@@ -2480,8 +2489,8 @@ button {
   opacity: 0;
   /* Cada tramo dura lo mismo que el paso del temporizador: la bolita nunca "salta". */
   transition:
-    left 0.09s linear,
-    top 0.09s linear;
+    left 0.085s linear,
+    top 0.085s linear;
 }
 
 .bolita-plinko.viva {
@@ -2496,6 +2505,7 @@ button {
 }
 
 .casilla-plinko {
+  position: relative;
   margin: 0 1px;
   padding: 6px 1px;
   border-radius: 4px;
@@ -2525,6 +2535,56 @@ button {
   display: grid;
   gap: 6px;
   margin-top: 12px;
+}
+
+.plinko-titulo {
+  margin-top: 16px;
+}
+
+.plinko-punados {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.plinko-punado {
+  padding: 9px 4px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--linea);
+  border-radius: 7px;
+  color: #d5daf5;
+  font-family: var(--font-data), monospace;
+  font-size: 0.82rem;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.plinko-punado:hover:not(:disabled) {
+  border-color: var(--oro);
+}
+
+.plinko-punado.activo {
+  border-color: var(--oro);
+  background: rgba(255, 207, 92, 0.12);
+  color: var(--oro);
+}
+
+/* Cuántas bolitas cayeron en la misma casilla, cuando se sueltan varias. */
+.casilla-cuantas {
+  position: absolute;
+  top: -7px;
+  right: -3px;
+  display: grid;
+  place-items: center;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 2px;
+  border-radius: 999px;
+  background: #0c0d16;
+  border: 1px solid var(--oro);
+  color: var(--oro);
+  font-style: normal;
+  font-size: 0.48rem;
 }
 
 .plinko-riesgo {
@@ -2564,112 +2624,144 @@ button {
   color: var(--oro);
 }
 
-/* ---------- Aviator ---------- */
+/* ---------- Duelo de cartas ---------- */
 
-.aviator {
-  position: relative;
-  aspect-ratio: 16 / 10;
-  padding: 14px;
-  background:
-    radial-gradient(120% 90% at 10% 100%, rgba(34, 230, 208, 0.12), transparent 60%),
-    linear-gradient(180deg, #10132c, #05060f);
+.duelo-mesa {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 14px;
+  padding: 22px 16px;
+  background: linear-gradient(180deg, #14172f, #090b18);
   border: 1px solid var(--linea);
   border-radius: 14px;
-  overflow: hidden;
 }
 
-.aviator.volando {
-  border-color: rgba(34, 230, 208, 0.5);
+.duelo-mesa.gano {
+  border-color: var(--oro);
+  box-shadow: 0 0 40px rgba(255, 207, 92, 0.2);
 }
 
-.aviator.cayo {
-  border-color: rgba(192, 35, 52, 0.6);
-  animation: sacudir 0.35s ease-in-out;
-}
-
-@keyframes sacudir {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  75% { transform: translateX(5px); }
-}
-
-.aviator-cielo {
-  position: absolute;
-  inset: 14px;
-  width: calc(100% - 28px);
-  height: calc(100% - 28px);
-}
-
-.aviator-estela {
-  fill: none;
-  stroke: var(--neon);
-  stroke-width: 1.6;
-  vector-effect: non-scaling-stroke;
-  filter: drop-shadow(0 0 6px rgba(34, 230, 208, 0.7));
-}
-
-.aviator.cayo .aviator-estela {
-  stroke: #c02334;
-  filter: none;
-}
-
-.aviator-avion {
-  position: absolute;
-  z-index: 2;
-  font-size: 1.5rem;
-  line-height: 1;
-  /* El avión se coloca con las mismas coordenadas que la punta de la estela; el margen lo
-     centra sobre ella. Sin transición: el número se actualiza cada fotograma. */
-  transform: translate(-40%, 45%);
-  margin: 14px;
-}
-
-.aviator-cifra {
-  position: absolute;
-  z-index: 3;
-  inset: 0;
+.duelo-bando {
   display: grid;
-  place-items: center;
+  justify-items: center;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.duelo-bando .carta {
+  width: 92px;
+  cursor: default;
+}
+
+.duelo-bando.rojo.gana {
+  border-color: #c02334;
+  background: rgba(192, 35, 52, 0.14);
+}
+
+.duelo-bando.azul.gana {
+  border-color: #2f6bd8;
+  background: rgba(47, 107, 216, 0.16);
+}
+
+.duelo-rotulo {
   font-family: var(--font-data), monospace;
-  font-size: clamp(2rem, 9vw, 3.4rem);
-  color: #fff;
-  text-shadow: 0 0 30px rgba(34, 230, 208, 0.55);
-  pointer-events: none;
-}
-
-.aviator-cifra.roto {
-  color: #e0576a;
-  text-shadow: 0 0 30px rgba(192, 35, 52, 0.6);
-}
-
-.aviator-listo {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 16px;
-  text-align: center;
-  font-size: 0.7rem;
-  letter-spacing: 0.16em;
+  font-size: 0.62rem;
+  letter-spacing: 0.24em;
   text-transform: uppercase;
+}
+
+.duelo-bando.rojo .duelo-rotulo { color: #e0576a; }
+.duelo-bando.azul .duelo-rotulo { color: #7ba4ff; }
+
+.duelo-rango {
+  font-family: var(--font-data), monospace;
+  font-size: 1.1rem;
+  color: #d5daf5;
+}
+
+.duelo-contra {
+  font-family: var(--font-data), monospace;
+  font-size: 0.9rem;
   color: #6d76a3;
 }
 
-.aviator-auto {
-  margin-bottom: 10px;
+.duelo-sitios {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin-top: 14px;
 }
 
-.aviator-auto input {
-  max-width: 130px;
+/* Los tres sitios donde va la ficha. Llevan su ventaja escrita: en una mesa de verdad la
+   apuesta vistosa es la mala, y esconderlo sería menos honesto que mostrarlo. */
+.duelo-sitio {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  padding: 12px 8px;
+  border: 1px solid var(--linea);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.28);
+  color: #e6ebff;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
-.apuesta-girar.retirar {
-  background: linear-gradient(180deg, #2ee6b0, #12a077);
-  color: #04120d;
+.duelo-sitio.rojo { border-left: 3px solid #c02334; }
+.duelo-sitio.azul { border-left: 3px solid #2f6bd8; }
+.duelo-sitio.empate { border-left: 3px solid var(--oro); }
+
+.duelo-sitio:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.06);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .aviator.cayo {
-    animation: none;
+.duelo-sitio.con-ficha {
+  border-color: var(--oro);
+}
+
+.duelo-sitio.gana {
+  background: rgba(255, 207, 92, 0.16);
+  box-shadow: 0 0 22px rgba(255, 207, 92, 0.35);
+}
+
+.duelo-sitio strong {
+  font-size: 0.86rem;
+}
+
+.duelo-paga {
+  font-family: var(--font-data), monospace;
+  font-size: 0.7rem;
+  color: var(--oro);
+}
+
+.duelo-ventaja {
+  font-style: normal;
+  font-size: 0.58rem;
+  color: #6d76a3;
+}
+
+.duelo-sitio .ficha-puesta {
+  top: 12px;
+  left: auto;
+  right: 8px;
+  transform: none;
+}
+
+.bolita.duelo-rojo { background: #c02334; }
+.bolita.duelo-azul { background: #2f6bd8; }
+.bolita.duelo-empate { background: var(--oro); color: #0c0d16; }
+
+@media (max-width: 520px) {
+  .duelo-bando .carta {
+    width: 70px;
+  }
+
+  .duelo-mesa {
+    padding: 16px 8px;
+    gap: 6px;
   }
 }
 
