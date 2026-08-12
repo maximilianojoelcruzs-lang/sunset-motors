@@ -84,7 +84,7 @@ function Contador({ valor, onCambio, etiqueta }) {
   );
 }
 
-export default function Boleta({ nombre, admin, turnoAbierto, secciones }) {
+export default function Boleta({ nombre, admin, accesos, turnoAbierto, secciones }) {
   // El turno vive acá porque lo muestran dos hijos: la barra de marcaje y el menú de
   // perfil dentro de <Barra>. Una sola fuente, para que no se contradigan.
   const [turno, setTurno] = useState(turnoAbierto);
@@ -190,6 +190,7 @@ export default function Boleta({ nombre, admin, turnoAbierto, secciones }) {
       <Barra
         usuario={nombre}
         admin={admin}
+        accesos={accesos}
         seccion="calculadora"
         turno={turno}
         onTurnoCambio={setTurno}

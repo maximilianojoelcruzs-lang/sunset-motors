@@ -1,5 +1,4 @@
-import { sesionDeTaller } from '../lib/servidor';
-import { esAdmin } from '../lib/usuarios';
+import { accesosDe, sesionDeTaller } from '../lib/servidor';
 import { turnoAbierto } from '../lib/turnos';
 import { obtener } from '../lib/precios';
 import Boleta from './boleta';
@@ -16,17 +15,23 @@ export default async function Pagina() {
 
   // Lo demás es secundario: si la base falla, la calculadora igual tiene que abrir.
   let abierto = null;
-  let admin = false;
+  let accesos = { admin: false, casino: false, taller: true };
   try {
     if (usuario) {
       abierto = await turnoAbierto(usuario);
-      admin = await esAdmin(usuario);
+      accesos = await accesosDe(usuario);
     }
   } catch {
     abierto = null;
   }
 
   return (
-    <Boleta nombre={usuario} admin={admin} turnoAbierto={abierto} secciones={secciones} />
+    <Boleta
+      nombre={usuario}
+      admin={accesos.admin}
+      accesos={accesos}
+      turnoAbierto={abierto}
+      secciones={secciones}
+    />
   );
 }

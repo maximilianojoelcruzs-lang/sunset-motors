@@ -183,6 +183,7 @@ function Tarjeta({ s, mia, admin, onAccion, ocupado }) {
 export default function Licencias({
   usuario,
   admin,
+  accesos,
   miasIniciales,
   todasIniciales,
   turnoPropio,
@@ -277,6 +278,7 @@ export default function Licencias({
       <Barra
         usuario={usuario}
         admin={admin}
+        accesos={accesos}
         seccion="licencias"
         turno={turno}
         onTurnoCambio={setTurno}

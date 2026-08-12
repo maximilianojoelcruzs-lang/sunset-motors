@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
-import { sesionDeTaller } from '../../lib/servidor';
-import { esAdmin, listarUsuarios } from '../../lib/usuarios';
+import { accesosDe, sesionDeTaller } from '../../lib/servidor';
+import { listarUsuarios } from '../../lib/usuarios';
 import { dondeGuarda } from '../../lib/almacen';
 import { listar, turnoAbierto } from '../../lib/turnos';
 import { publica } from '../../lib/config';
@@ -11,7 +11,8 @@ export const dynamic = 'force-dynamic';
 // El rol se comprueba acá, no en el middleware: Edge no puede leer la base de datos.
 export default async function PaginaAdmin() {
   const sesion = await sesionDeTaller();
-  if (!(await esAdmin(sesion.usuario))) redirect('/');
+  const accesos = await accesosDe(sesion.usuario);
+  if (!accesos.admin) redirect('/');
 
   let turnos = [];
   let usuarios = [];
@@ -19,7 +20,14 @@ export default async function PaginaAdmin() {
   let fallo = '';
   try {
     turnos = await listar();
-    usuarios = (await listarUsuarios()).map(({ usuario, admin }) => ({ usuario, admin }));
+    // Nunca la sal ni el hash: solo lo que el panel necesita enseñar.
+    usuarios = (await listarUsuarios()).map(({ usuario, admin, casino, taller, discord }) => ({
+      usuario,
+      admin: Boolean(admin),
+      casino: Boolean(casino),
+      taller: !casino || Boolean(taller),
+      discord: discord ?? null,
+    }));
     // El menú de perfil de la barra también deja marcar desde acá.
     abierto = await turnoAbierto(sesion.usuario);
   } catch (e) {
@@ -35,6 +43,7 @@ export default async function PaginaAdmin() {
       almacen={dondeGuarda()}
       fallo={fallo}
       quienSoy={sesion.usuario}
+      accesos={accesos}
     />
   );
 }

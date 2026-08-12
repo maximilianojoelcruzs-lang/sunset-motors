@@ -9,6 +9,8 @@ export default function Mecanicos({ iniciales, quienSoy }) {
   const [usuario, setUsuario] = useState('');
   const [clave, setClave] = useState('');
   const [admin, setAdmin] = useState(false);
+  const [casino, setCasino] = useState(false);
+  const [taller, setTaller] = useState(true);
   const [error, setError] = useState('');
   const [aviso, setAviso] = useState('');
   const [ocupado, setOcupado] = useState(false);
@@ -48,7 +50,7 @@ export default function Mecanicos({ iniciales, quienSoy }) {
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ usuario, clave, admin }),
+        body: JSON.stringify({ usuario, clave, admin, casino, taller }),
       },
       `Cuenta "${usuario.trim().toLowerCase()}" creada. Pásale la clave a esa persona.`
     );
@@ -56,6 +58,8 @@ export default function Mecanicos({ iniciales, quienSoy }) {
       setUsuario('');
       setClave('');
       setAdmin(false);
+      setCasino(false);
+      setTaller(true);
     }
   };
 
@@ -75,6 +79,34 @@ export default function Mecanicos({ iniciales, quienSoy }) {
         body: JSON.stringify({ admin: !u.admin }),
       },
       u.admin ? `"${u.usuario}" ya no es administrador.` : `"${u.usuario}" ahora es administrador.`
+    );
+
+  // Dar casino no saca a nadie del taller: de eso se encarga `cambiarCasino()`. Para dejar
+  // a alguien solo de casino hay que quitarle el taller a propósito.
+  const alternarCasino = (u) =>
+    pedir(
+      `/api/usuarios/${u.usuario}`,
+      {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ casino: !u.casino }),
+      },
+      u.casino
+        ? `"${u.usuario}" ya no entra al casino.`
+        : `"${u.usuario}" ahora entra al casino, y sigue en el taller.`
+    );
+
+  const alternarTaller = (u) =>
+    pedir(
+      `/api/usuarios/${u.usuario}`,
+      {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ taller: !u.taller }),
+      },
+      u.taller
+        ? `"${u.usuario}" queda solo de casino.`
+        : `"${u.usuario}" ahora también entra al taller.`
     );
 
   const nuevaClave = (nombre) => {
@@ -115,6 +147,11 @@ export default function Mecanicos({ iniciales, quienSoy }) {
                 <span className="mecanicos-nombre">
                   {u.usuario}
                   {u.admin && <span className="etiqueta-admin">admin</span>}
+                  {!u.admin && u.casino && (
+                    <span className="etiqueta-casino">
+                      {u.taller ? 'taller + casino' : 'solo casino'}
+                    </span>
+                  )}
                   {u.usuario === quienSoy && <span className="etiqueta-yo">tú</span>}
                   {u.discord && <span className="etiqueta-yo">discord</span>}
                 </span>
@@ -152,6 +189,27 @@ export default function Mecanicos({ iniciales, quienSoy }) {
                   >
                     Cambiar clave
                   </button>
+                  {/* Un administrador entra a todo: ofrecerle «dar casino» solo confunde. */}
+                  {!u.admin && (
+                    <button
+                      type="button"
+                      className="accion"
+                      disabled={ocupado}
+                      onClick={() => alternarCasino(u)}
+                    >
+                      {u.casino ? 'Quitar casino' : 'Dar casino'}
+                    </button>
+                  )}
+                  {u.casino && !u.admin && (
+                    <button
+                      type="button"
+                      className="accion"
+                      disabled={ocupado || u.usuario === quienSoy}
+                      onClick={() => alternarTaller(u)}
+                    >
+                      {u.taller ? 'Quitar taller' : 'Dar taller'}
+                    </button>
+                  )}
                   <button
                     type="button"
                     className="accion"
@@ -199,6 +257,24 @@ export default function Mecanicos({ iniciales, quienSoy }) {
               <input type="checkbox" checked={admin} onChange={(e) => setAdmin(e.target.checked)} />
               <span>Administrador</span>
             </label>
+            <label className="campo-casilla">
+              <input
+                type="checkbox"
+                checked={casino}
+                onChange={(e) => setCasino(e.target.checked)}
+              />
+              <span>Entra al casino</span>
+            </label>
+            {casino && (
+              <label className="campo-casilla">
+                <input
+                  type="checkbox"
+                  checked={taller}
+                  onChange={(e) => setTaller(e.target.checked)}
+                />
+                <span>Y también al taller</span>
+              </label>
+            )}
             <button type="submit" className="accion" disabled={ocupado}>
               Crear cuenta
             </button>

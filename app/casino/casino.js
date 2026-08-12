@@ -120,7 +120,7 @@ function Mesa({ mesa }) {
   );
 }
 
-export default function Casino({ usuario, admin, saldo }) {
+export default function Casino({ usuario, admin, accesos, saldo }) {
   const [turno, setTurno] = useState(null);
 
   return (
@@ -128,6 +128,7 @@ export default function Casino({ usuario, admin, saldo }) {
       <Barra
         usuario={usuario}
         admin={admin}
+        accesos={accesos}
         seccion="casino"
         variante="casino"
         turno={turno}

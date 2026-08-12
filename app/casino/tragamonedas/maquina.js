@@ -35,7 +35,7 @@ function Rodillo({ simbolo, girando, retraso }) {
   );
 }
 
-export default function Maquina({ usuario, admin, saldoInicial }) {
+export default function Maquina({ usuario, admin, accesos, saldoInicial }) {
   const [saldo, setSaldo] = useState(saldoInicial);
   const [apuesta, setApuesta] = useState(100);
   const [simbolos, setSimbolos] = useState(['🍒', '🍋', '🔔']);
@@ -80,6 +80,7 @@ export default function Maquina({ usuario, admin, saldoInicial }) {
     <Sala
       usuario={usuario}
       admin={admin}
+      accesos={accesos}
       titulo="Tragamonedas"
       sub={`Tres rodillos, una línea · retorno al jugador ${RETORNO}%`}
       saldo={saldo}

@@ -22,7 +22,7 @@ const aId = (titulo) =>
     .replace(/^-|-$/g, '')
     .slice(0, 30) || `seccion-${idNuevo().slice(0, 4)}`;
 
-export default function Editor({ usuario, catalogo, sinEditar, turnoPropio }) {
+export default function Editor({ usuario, catalogo, accesos, sinEditar, turnoPropio }) {
   const [secciones, setSecciones] = useState(catalogo.secciones);
   const [turno, setTurno] = useState(turnoPropio);
   const [error, setError] = useState('');
@@ -173,6 +173,7 @@ export default function Editor({ usuario, catalogo, sinEditar, turnoPropio }) {
       <Barra
         usuario={usuario}
         admin
+        accesos={accesos}
         seccion="precios"
         turno={turno}
         onTurnoCambio={setTurno}

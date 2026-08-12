@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation';
-import { sesionDeTaller } from '../../lib/servidor';
-import { esAdmin } from '../../lib/usuarios';
+import { accesosDe, sesionDeTaller } from '../../lib/servidor';
 import { listar, listarEnviadas } from '../../lib/licencias';
 import { turnoAbierto } from '../../lib/turnos';
 import Licencias from './licencias';
@@ -10,7 +9,8 @@ export const dynamic = 'force-dynamic';
 export default async function PaginaLicencias() {
   const sesion = await sesionDeTaller();
 
-  const admin = await esAdmin(sesion.usuario);
+  const accesos = await accesosDe(sesion.usuario);
+  const { admin } = accesos;
 
   let mias = [];
   let pendientes = [];
@@ -29,6 +29,7 @@ export default async function PaginaLicencias() {
     <Licencias
       usuario={sesion.usuario}
       admin={admin}
+      accesos={accesos}
       miasIniciales={mias}
       todasIniciales={pendientes}
       turnoPropio={abierto}

@@ -11,7 +11,7 @@ export const fichas = (n) => fmt.format(n);
  * Lo que rodea a cualquier mesa: barra, fondo, cabecera con el saldo y el aviso legal.
  * Cada juego pone dentro solo lo suyo.
  */
-export default function Sala({ usuario, admin, titulo, sub, saldo, aviso, children }) {
+export default function Sala({ usuario, admin, accesos, titulo, sub, saldo, aviso, children }) {
   const [turno, setTurno] = useState(null);
 
   return (
@@ -19,6 +19,7 @@ export default function Sala({ usuario, admin, titulo, sub, saldo, aviso, childr
       <Barra
         usuario={usuario}
         admin={admin}
+        accesos={accesos}
         seccion="casino"
         variante="casino"
         turno={turno}

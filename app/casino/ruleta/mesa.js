@@ -8,7 +8,7 @@ import { APUESTA_MINIMA } from '../../../lib/fichas-limites';
 
 const VALORES = [50, 100, 500, 1000, 5000];
 
-export default function Mesa({ usuario, admin, saldoInicial }) {
+export default function Mesa({ usuario, admin, accesos, saldoInicial }) {
   const [saldo, setSaldo] = useState(saldoInicial);
   const [ficha, setFicha] = useState(100);
   // Dónde está puesta cada ficha: { [sitio]: cuánto }. Es todo el estado de la apuesta.
@@ -136,6 +136,7 @@ export default function Mesa({ usuario, admin, saldoInicial }) {
     <Sala
       usuario={usuario}
       admin={admin}
+      accesos={accesos}
       titulo="Ruleta"
       sub="Europea, un solo cero · ventaja de la casa 2,70% en todas las apuestas"
       saldo={saldo}

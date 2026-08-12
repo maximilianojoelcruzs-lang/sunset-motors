@@ -271,11 +271,33 @@ de cada 100. Comprobado casilla por casilla y con medio millón de tiradas.
 **El número lo sortea el servidor**, no el navegador, y el saldo se descuenta ahí mismo. La
 rueda que gira en pantalla se limita a mostrar el resultado que ya salió.
 
-Entran quienes tengan la categoría **casino**, y los administradores. Quien solo tenga casino
-no ve las pantallas del taller: si intenta entrar, vuelve a la sala.
+### Quién entra al casino
+
+Hay cuatro tipos de cuenta:
+
+| Cuenta | Entra a |
+|---|---|
+| **Mecánico** | solo el taller |
+| **Invitado del casino** | solo el casino: no ve la calculadora ni nada del taller |
+| **Mecánico con casino** | a las dos, y cambia con un botón en la barra |
+| **Administrador** | a todo, más el panel |
+
+El **mecánico con casino** tiene en la barra un botón que dice *🎰 Casino* cuando está en el
+taller y *🔧 Taller* cuando está en el casino. Un clic y cambia de vista, sin recargar y sin
+volver a entrar. Los administradores lo tienen igual.
+
+Todo esto se reparte desde el **panel**, en *Mecánicos con cuenta*: cada persona tiene los
+botones *Dar casino* y *Quitar taller*, y al crear una cuenta están las casillas. Dar el casino a
+un mecánico **no lo saca del taller** — para dejar a alguien solo de casino hay que quitarle el
+taller a propósito.
+
+También desde la terminal:
 
 ```bash
-npm run usuarios crear nombre clave -- --casino
+npm run usuarios crear nombre clave -- --casino             # solo casino
+npm run usuarios crear nombre clave -- --casino --taller    # mecánico con casino
+npm run usuarios casino nombre si                           # dárselo a alguien que ya existe
+npm run usuarios taller nombre no                           # dejarlo solo de casino
 ```
 
 ## Licencias y ausencias

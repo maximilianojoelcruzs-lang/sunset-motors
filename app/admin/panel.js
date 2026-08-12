@@ -132,6 +132,7 @@ export default function Panel({
   almacen,
   fallo,
   quienSoy,
+  accesos,
 }) {
   const [turnos, setTurnos] = useState(turnosIniciales);
   const [miTurno, setMiTurno] = useState(turnoPropio);
@@ -229,6 +230,7 @@ export default function Panel({
       <Barra
         usuario={quienSoy}
         admin
+        accesos={accesos}
         seccion="registro"
         turno={miTurno}
         onTurnoCambio={(t) => {

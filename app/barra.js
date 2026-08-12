@@ -29,6 +29,9 @@ const iniciales = (usuario) =>
 /**
  * @param variante  'taller' (por defecto) o 'casino'. Cambia la marca, los enlaces y oculta
  *                  el marcaje de turno: quien entra al casino no ficha horas de taller.
+ * @param accesos   `{ casino, taller }` — a qué vistas puede entrar. Solo con las dos
+ *                  aparece el botón de cambiar de vista. Por omisión se comporta como antes:
+ *                  el taller para todos y el casino para los administradores.
  */
 export default function Barra({
   usuario,
@@ -37,8 +40,13 @@ export default function Barra({
   turno,
   onTurnoCambio,
   variante = 'taller',
+  accesos,
 }) {
-  const esCasino = variante === 'casino';
+  // `enCasino` es en qué vista estamos; `puede` es a cuáles se puede entrar. Son cosas
+  // distintas y confundirlas es lo que dejaba a un mecánico con casino sin puerta de vuelta.
+  const enCasino = variante === 'casino';
+  const puede = { casino: admin, taller: true, ...accesos };
+  const puedeCambiar = puede.casino && puede.taller;
   const [abierto, setAbierto] = useState(false);
   const [saliendo, setSaliendo] = useState(false);
   const [marcando, setMarcando] = useState(false);
@@ -105,12 +113,12 @@ export default function Barra({
 
   return (
     <>
-      <header className={`barra ${esCasino ? 'barra-casino' : ''}`}>
+      <header className={`barra ${enCasino ? 'barra-casino' : ''}`}>
         <div className="franja" />
 
         <div className="barra-cuerpo">
-          <Link className="barra-marca" href={esCasino ? '/casino' : '/'}>
-            {esCasino ? (
+          <Link className="barra-marca" href={enCasino ? '/casino' : '/'}>
+            {enCasino ? (
               <>
                 SUNSET <em>ROYALE</em>
               </>
@@ -122,7 +130,7 @@ export default function Barra({
           </Link>
 
           <nav className="barra-nav" aria-label="Secciones">
-            {!esCasino && (
+            {!enCasino && (
               <>
                 <Link
                   className={`barra-enlace ${seccion === 'calculadora' ? 'activo' : ''}`}
@@ -180,16 +188,21 @@ export default function Barra({
               </>
             )}
 
-            {(esCasino || admin) && (
-              <Link
-                className={`barra-enlace ${seccion === 'casino' ? 'activo' : ''}`}
-                href="/casino"
-                aria-current={seccion === 'casino' ? 'page' : undefined}
-              >
-                Casino
-              </Link>
-            )}
           </nav>
+
+          {/* Cambiar de vista. Solo aparece con acceso a las dos: un invitado del casino no
+              tiene taller al que ir, y un mecánico sin casino no tiene casino. */}
+          {puedeCambiar && (
+            <Link
+              className="barra-cambiar"
+              href={enCasino ? '/' : '/casino'}
+              prefetch
+              title={enCasino ? 'Volver al taller' : 'Ir al casino'}
+            >
+              <span aria-hidden="true">{enCasino ? '🔧' : '🎰'}</span>
+              <span className="cambiar-texto">{enCasino ? 'Taller' : 'Casino'}</span>
+            </Link>
+          )}
 
           <Campana />
 
@@ -221,12 +234,18 @@ export default function Barra({
                   <span className="perfil-datos">
                     <strong>{usuario}</strong>
                     <span>
-                      {admin ? 'Administrador' : esCasino ? 'Invitado del casino' : 'Mecánico'}
+                      {admin
+                        ? 'Administrador'
+                        : puedeCambiar
+                          ? 'Mecánico · con casino'
+                          : enCasino
+                            ? 'Invitado del casino'
+                            : 'Mecánico'}
                     </span>
                   </span>
                 </div>
 
-                {!esCasino && (
+                {!enCasino && (
                   <div className="perfil-turno">
                     <span className="perfil-turno-estado">
                       {turno ? (
@@ -257,7 +276,7 @@ export default function Barra({
                 {error && <p className="perfil-error">{error}</p>}
                 {aviso && <p className="perfil-aviso">{aviso}</p>}
 
-                {!esCasino && (
+                {!enCasino && (
                   <button
                     type="button"
                     role="menuitem"

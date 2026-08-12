@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation';
-import { sesionDeTaller } from '../../lib/servidor';
-import { esAdmin } from '../../lib/usuarios';
+import { accesosDe, sesionDeTaller } from '../../lib/servidor';
 import { listar } from '../../lib/documentos';
 import { hayStorage } from '../../lib/imagenes';
 import { turnoAbierto } from '../../lib/turnos';
@@ -10,6 +9,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function PaginaDocumentos() {
   const sesion = await sesionDeTaller();
+  const accesos = await accesosDe(sesion.usuario);
 
   let documentos = [];
   let abierto = null;
@@ -24,7 +24,8 @@ export default async function PaginaDocumentos() {
   return (
     <Documentos
       usuario={sesion.usuario}
-      admin={await esAdmin(sesion.usuario)}
+      admin={accesos.admin}
+      accesos={accesos}
       iniciales={documentos}
       turnoPropio={abierto}
       conStorage={hayStorage()}

@@ -38,7 +38,7 @@ function Mano({ mano, activa, sola }) {
   );
 }
 
-export default function Mesa({ usuario, admin, saldoInicial, partida }) {
+export default function Mesa({ usuario, admin, accesos, saldoInicial, partida }) {
   const [saldo, setSaldo] = useState(partida?.saldo ?? saldoInicial);
   const [apuesta, setApuesta] = useState(partida?.apuestaTotal ?? 100);
   const [juego, setJuego] = useState(partida);
@@ -78,6 +78,7 @@ export default function Mesa({ usuario, admin, saldoInicial, partida }) {
     <Sala
       usuario={usuario}
       admin={admin}
+      accesos={accesos}
       titulo="Blackjack"
       sub="6 mazos · el crupier se planta en 17 · el blackjack paga 3 a 2"
       saldo={saldo}

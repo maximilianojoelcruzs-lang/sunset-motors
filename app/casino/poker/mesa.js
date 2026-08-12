@@ -33,7 +33,7 @@ function Carta({ carta, marcada, nueva, paga, onClick, activa }) {
   );
 }
 
-export default function Mesa({ usuario, admin, saldoInicial, pendiente }) {
+export default function Mesa({ usuario, admin, accesos, saldoInicial, pendiente }) {
   const [saldo, setSaldo] = useState(saldoInicial);
   const [apuesta, setApuesta] = useState(pendiente?.apuesta ?? 100);
   const [mano, setMano] = useState(pendiente?.mano ?? [null, null, null, null, null]);
@@ -107,6 +107,7 @@ export default function Mesa({ usuario, admin, saldoInicial, pendiente }) {
     <Sala
       usuario={usuario}
       admin={admin}
+      accesos={accesos}
       titulo="Vídeo póker"
       sub="Jacks or Better · tabla 9/6 · hasta 99,5% de retorno con juego perfecto"
       saldo={saldo}

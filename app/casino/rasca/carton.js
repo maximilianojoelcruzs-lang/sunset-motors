@@ -11,7 +11,7 @@ const TABLA = PREMIOS.filter((p) => p.multiplicador > 0)
   .reverse()
   .map((p) => ({ ...p, probabilidad: (p.peso / 10000) * 100 }));
 
-export default function Carton({ usuario, admin, saldoInicial }) {
+export default function Carton({ usuario, admin, accesos, saldoInicial }) {
   const [saldo, setSaldo] = useState(saldoInicial);
   const [apuesta, setApuesta] = useState(100);
   const [carton, setCarton] = useState(null);
@@ -62,6 +62,7 @@ export default function Carton({ usuario, admin, saldoInicial }) {
     <Sala
       usuario={usuario}
       admin={admin}
+      accesos={accesos}
       titulo="Rasca y gana"
       sub="Tres símbolos iguales · retorno al jugador 92%"
       saldo={saldo}

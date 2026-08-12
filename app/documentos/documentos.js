@@ -68,6 +68,7 @@ function Ficha({ d, admin, onVer, onEditar, onBorrar, ocupado }) {
 export default function Documentos({
   usuario,
   admin,
+  accesos,
   iniciales,
   turnoPropio,
   conStorage,
@@ -180,6 +181,7 @@ export default function Documentos({
       <Barra
         usuario={usuario}
         admin={admin}
+        accesos={accesos}
         seccion="documentos"
         turno={turno}
         onTurnoCambio={setTurno}

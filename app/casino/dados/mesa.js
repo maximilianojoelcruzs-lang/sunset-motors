@@ -28,7 +28,7 @@ function Dado({ cara, rodando }) {
 
 const SENCILLAS = ['pequeno', 'grande', 'par', 'impar'];
 
-export default function Mesa({ usuario, admin, saldoInicial }) {
+export default function Mesa({ usuario, admin, accesos, saldoInicial }) {
   const [saldo, setSaldo] = useState(saldoInicial);
   const [apuesta, setApuesta] = useState(100);
   const [eleccion, setEleccion] = useState({ tipo: 'pequeno', valor: null });
@@ -84,6 +84,7 @@ export default function Mesa({ usuario, admin, saldoInicial }) {
     <Sala
       usuario={usuario}
       admin={admin}
+      accesos={accesos}
       titulo="Dados"
       sub="Sic Bo, tres dados · las apuestas sencillas pagan 1:1 con 2,78% de ventaja"
       saldo={saldo}

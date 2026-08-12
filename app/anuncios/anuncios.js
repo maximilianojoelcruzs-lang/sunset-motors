@@ -60,6 +60,7 @@ function Mensaje({ m, admin, onBorrar, onEditar, ocupado }) {
 export default function Anuncios({
   usuario,
   admin,
+  accesos,
   flyersIniciales,
   mensajesIniciales,
   turnoPropio,
@@ -151,6 +152,7 @@ export default function Anuncios({
       <Barra
         usuario={usuario}
         admin={admin}
+        accesos={accesos}
         seccion="anuncios"
         turno={turno}
         onTurnoCambio={setTurno}

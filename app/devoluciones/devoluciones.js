@@ -192,6 +192,7 @@ function Tarjeta({ d, mia, admin, onAccion, ocupado, onVerImagen }) {
 export default function Devoluciones({
   usuario,
   admin,
+  accesos,
   miasIniciales,
   todasIniciales,
   turnoPropio,
@@ -277,6 +278,7 @@ export default function Devoluciones({
       <Barra
         usuario={usuario}
         admin={admin}
+        accesos={accesos}
         seccion="devoluciones"
         turno={turno}
         onTurnoCambio={setTurno}

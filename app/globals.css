@@ -152,6 +152,58 @@ button {
   background: rgba(255, 157, 46, 0.1);
 }
 
+/* ---------- Cambiar de vista: taller ↔ casino ---------- */
+
+/* No va dentro de `.barra-nav` a propósito: esa barra hace scroll cuando hay muchas
+   secciones, y el botón que te saca de la vista tiene que estar siempre a la vista. */
+.barra-cambiar {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border: 1px solid var(--bay-line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #cfc6b6;
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.barra-cambiar:hover {
+  border-color: var(--amber);
+  color: var(--ticket);
+  background: rgba(255, 157, 46, 0.1);
+}
+
+.casino .barra-cambiar {
+  border-color: var(--linea);
+  color: #b9c0e8;
+}
+
+.casino .barra-cambiar:hover {
+  border-color: var(--neon);
+  color: #fff;
+  background: rgba(34, 230, 208, 0.12);
+}
+
+/* En el teléfono queda solo el icono: el nombre de usuario ya aprieta bastante. */
+@media (max-width: 640px) {
+  .cambiar-texto {
+    display: none;
+  }
+
+  .barra-cambiar {
+    padding: 7px 9px;
+  }
+}
+
 /* ---------- Campanita de avisos ---------- */
 
 .campana {
@@ -3438,6 +3490,7 @@ a.accion {
 }
 
 .etiqueta-admin,
+.etiqueta-casino,
 .etiqueta-yo {
   margin-left: 7px;
   padding: 1px 6px;
@@ -3450,6 +3503,11 @@ a.accion {
 .etiqueta-admin {
   background: rgba(255, 190, 61, 0.16);
   color: var(--sun-5);
+}
+
+.etiqueta-casino {
+  background: rgba(139, 92, 246, 0.16);
+  color: #b98cff;
 }
 
 .etiqueta-yo {

@@ -1,9 +1,11 @@
 // Administra los usuarios directamente en la base de datos.
 //
 //   node scripts/usuarios.mjs listar
-//   node scripts/usuarios.mjs crear <usuario> <clave> [--admin] [--casino]
+//   node scripts/usuarios.mjs crear <usuario> <clave> [--admin] [--casino] [--taller]
 //   node scripts/usuarios.mjs clave <usuario> <clave-nueva>
 //   node scripts/usuarios.mjs admin <usuario> si|no
+//   node scripts/usuarios.mjs casino <usuario> si|no
+//   node scripts/usuarios.mjs taller <usuario> si|no
 //   node scripts/usuarios.mjs borrar <usuario>
 //
 // Sin variables de entorno trabaja sobre .datos/usuarios.json (tu computador). Con
@@ -31,8 +33,15 @@ try {
 }
 
 const { dondeGuarda } = await import('../lib/almacen.js');
-const { listarUsuarios, crearUsuario, borrarUsuario, cambiarRol, cambiarClave } =
-  await import('../lib/usuarios.js');
+const {
+  listarUsuarios,
+  crearUsuario,
+  borrarUsuario,
+  cambiarRol,
+  cambiarCasino,
+  cambiarTaller,
+  cambiarClave,
+} = await import('../lib/usuarios.js');
 
 const [accion, ...resto] = process.argv.slice(2);
 const banderas = resto.filter((a) => a.startsWith('--'));
@@ -53,10 +62,15 @@ const salir = (mensaje, codigo = 1) => {
 
 const ayuda = `Uso:
   node scripts/usuarios.mjs listar
-  node scripts/usuarios.mjs crear <usuario> <clave> [--admin] [--casino]
+  node scripts/usuarios.mjs crear <usuario> <clave> [--admin] [--casino] [--taller]
   node scripts/usuarios.mjs clave <usuario> <clave-nueva>
   node scripts/usuarios.mjs admin <usuario> si|no
-  node scripts/usuarios.mjs borrar <usuario>`;
+  node scripts/usuarios.mjs casino <usuario> si|no
+  node scripts/usuarios.mjs taller <usuario> si|no
+  node scripts/usuarios.mjs borrar <usuario>
+
+  --casino solo       invitado del casino, no ve el taller
+  --casino --taller   mecánico que además entra al casino`;
 
 switch (accion) {
   case 'listar': {
@@ -67,7 +81,10 @@ switch (accion) {
       break;
     }
     for (const u of lista) {
-      const etiquetas = [u.admin && 'administrador', u.casino && 'casino']
+      const etiquetas = [
+        u.admin && 'administrador',
+        u.casino && (u.taller ? 'taller + casino' : 'solo casino'),
+      ]
         .filter(Boolean)
         .map((e) => `  [${e}]`)
         .join('');
@@ -87,13 +104,24 @@ switch (accion) {
     const primero = (await listarUsuarios()).length === 0;
     const admin = banderas.includes('--admin') || primero;
     const casino = banderas.includes('--casino');
+    // `--taller` solo dice algo junto a `--casino`: sin casino, ya está en el taller.
+    const taller = banderas.includes('--taller');
 
-    const { error, usuario: creado } = await crearUsuario(usuario, clave, admin, casino);
+    const { error, usuario: creado } = await crearUsuario(
+      usuario,
+      clave,
+      admin,
+      casino,
+      taller
+    );
     if (error) salir(`No se pudo crear: ${error}`);
 
-    const etiquetas = [creado.admin && 'administrador', creado.casino && 'casino']
+    const etiquetas = [
+      creado.admin && 'administrador',
+      creado.casino && (creado.taller ? 'taller y casino' : 'solo casino'),
+    ]
       .filter(Boolean)
-      .join(' y ');
+      .join(', ');
 
     console.log(
       `Creado "${creado.usuario}"${etiquetas ? ` como ${etiquetas}` : ''} en ${rotulo}.`
@@ -119,6 +147,24 @@ switch (accion) {
     const { error } = await cambiarRol(usuario, valor !== 'no');
     if (error) salir(`No se pudo cambiar: ${error}`);
     console.log(`"${usuario}" ${valor === 'no' ? 'ya no es' : 'ahora es'} administrador.`);
+    break;
+  }
+
+  case 'casino': {
+    const [usuario, valor] = args;
+    if (!usuario || !['si', 'sí', 'no'].includes(valor)) salir(ayuda);
+    const { error } = await cambiarCasino(usuario, valor !== 'no');
+    if (error) salir(`No se pudo cambiar: ${error}`);
+    console.log(`"${usuario}" ${valor === 'no' ? 'ya no entra' : 'ahora entra'} al casino.`);
+    break;
+  }
+
+  case 'taller': {
+    const [usuario, valor] = args;
+    if (!usuario || !['si', 'sí', 'no'].includes(valor)) salir(ayuda);
+    const { error } = await cambiarTaller(usuario, valor !== 'no');
+    if (error) salir(`No se pudo cambiar: ${error}`);
+    console.log(`"${usuario}" ${valor === 'no' ? 'queda solo de casino' : 'ahora entra al taller'}.`);
     break;
   }
 

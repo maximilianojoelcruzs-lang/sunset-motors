@@ -98,7 +98,12 @@ Detalles que parecen accidentes pero no lo son:
 - `borrarUsuario()` y `cambiarRol()` se niegan a dejar el sistema sin ningún administrador.
 - La API de usuarios nunca devuelve `sal` ni `hash`: los filtra con `publico()`.
 - Un admin no puede borrarse ni quitarse el rol a sí mismo — se quedaría fuera del panel a mitad
-  de sesión, sin aviso.
+  de sesión, sin aviso. Tampoco puede sacarse del taller.
+- **`cambiarClave()` reemplaza la sal y el hash, no la ficha entera.** Escribir encima con
+  `fichaNueva()` borraba `casino`, `taller` y `discord`, porque esa función solo devuelve
+  `{ usuario, sal, hash, admin }`. Un invitado del casino que cambiaba su clave aparecía en la
+  calculadora del taller y no podía volver al casino. Pasó en producción. Cualquier campo nuevo
+  de la ficha se conserva solo mientras se siga escribiendo `{ ...copia[i], sal, hash }`.
 
 ### El rol NO se comprueba en el middleware
 
@@ -115,13 +120,29 @@ hacerlo: quitarle el rol a alguien dejaría de surtir efecto hasta que caduque s
 dinero real. **Por ahora es solo la vista**: no hay ningún juego, y las fichas que muestra son
 una constante escrita a mano en `casino.js`.
 
-### Tres categorías, no dos niveles
+### Cuatro categorías, no una escala
 
-`admin` y `casino` son banderas **independientes**, no una escala. Hay gente que solo entra al
-casino y nunca al taller:
+`admin`, `casino` y `taller` son banderas **independientes**. De ahí salen cuatro cuentas:
+
+| | `admin` | `casino` | `taller` | Entra a |
+|---|---|---|---|---|
+| Mecánico | | | | solo el taller |
+| Invitado del casino | | ✔ | | solo el casino |
+| Mecánico con casino | | ✔ | ✔ | a las dos, con botón para cambiar |
+| Administrador | ✔ | | | a todo, más el panel |
+
+**`taller` solo significa algo junto a `casino`.** Un mecánico común no la trae y no le hace
+falta: sin `casino`, ya está en el taller. Va como bandera aparte y no cambiando el sentido de
+`casino` porque **las cuentas que ya existen no la traen**: sin `taller`, un invitado del casino
+sigue siendo solo del casino, exactamente como antes. Nadie gana ni pierde acceso por desplegar.
 
 - `esCasino()` — puede ver el casino (los admin también).
-- `soloCasino()` — casino sin admin: no tiene nada que hacer en el taller.
+- `soloCasino()` — casino sin admin y sin taller: no tiene nada que hacer en el taller.
+- `accesosDe()` — las tres puertas de una sola lectura del almacén. Es lo que usan las páginas.
+
+**`cambiarCasino(u, true)` deja también el taller** a quien lo tenía. Si no, dar el casino a un
+mecánico lo echaría de la calculadora sin que nadie lo pidiera. Para dejar a alguien solo de
+casino está `cambiarTaller(u, false)`, que es explícito.
 
 `POST /api/login` devuelve un `destino` según la categoría, y el login redirige ahí.
 
@@ -131,6 +152,22 @@ página del taller y usas `sesionActual()` en su lugar, un invitado del casino l
 
 El chequeo va ahí y no en el middleware por lo de siempre: el rol se consulta contra la base y el
 middleware corre en Edge.
+
+### El botón de cambiar de vista, y por qué los accesos bajan por props
+
+`<Barra accesos={{ casino, taller }}>` enseña el botón solo cuando se puede entrar a las dos
+vistas. La barra **no lo consulta sola**: cada página llama a `accesosDe()` y lo pasa hacia
+abajo, igual que `admin`. Podría pedirlo por `fetch` al montarse, pero entonces el botón
+aparecería un instante después de la página; y no puede ir en la cookie, por lo de siempre —
+quitarle un acceso a alguien no surtiría efecto hasta que caduque su sesión.
+
+`variante` es **en qué vista estamos**; `accesos` es **a cuáles se puede entrar**. Confundir las
+dos es lo que dejaba a un mecánico con casino sin puerta de vuelta: la barra del casino escondía
+todos los enlaces del taller porque asumía que quien está en el casino solo tiene casino.
+
+Si añades una página con barra, pásale `accesos`. Sin la prop, el valor por omisión reproduce lo
+de antes (taller para todos, casino para los admin), así que el fallo no se ve hasta que un
+mecánico con casino abre justo esa página.
 
 ### Reglas del casino que no se negocian
 

@@ -2,9 +2,11 @@ import { NextResponse } from 'next/server';
 import { sesionActual } from '../../../../lib/servidor';
 import {
   borrarUsuario,
+  cambiarCasino,
   cambiarClave,
   cambiarDiscord,
   cambiarRol,
+  cambiarTaller,
   esAdmin,
 } from '../../../../lib/usuarios';
 
@@ -20,7 +22,7 @@ async function exigirAdmin() {
   return { sesion };
 }
 
-/** PATCH body: { admin } o { clave } */
+/** PATCH body: { admin } · { casino } · { taller } · { clave } · { discord } */
 export async function PATCH(peticion, { params }) {
   const { sesion, corte } = await exigirAdmin();
   if (corte) return corte;
@@ -50,6 +52,26 @@ export async function PATCH(peticion, { params }) {
         );
       }
       const { error } = await cambiarRol(usuario, cambios.admin);
+      if (error) return NextResponse.json({ error }, { status: 400 });
+      return NextResponse.json({ ok: true });
+    }
+
+    if (typeof cambios.casino === 'boolean') {
+      const { error } = await cambiarCasino(usuario, cambios.casino);
+      if (error) return NextResponse.json({ error }, { status: 400 });
+      return NextResponse.json({ ok: true });
+    }
+
+    // Quitarse a uno mismo la vista del taller sería salir volando al casino en el siguiente
+    // clic, igual que quitarse el rol de admin.
+    if (typeof cambios.taller === 'boolean') {
+      if (!cambios.taller && usuario.toLowerCase() === sesion.usuario.toLowerCase()) {
+        return NextResponse.json(
+          { error: 'No puedes sacarte a ti mismo del taller.' },
+          { status: 400 }
+        );
+      }
+      const { error } = await cambiarTaller(usuario, cambios.taller);
       if (error) return NextResponse.json({ error }, { status: 400 });
       return NextResponse.json({ ok: true });
     }

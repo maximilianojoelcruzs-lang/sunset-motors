@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation';
-import { sesionActual } from '../../lib/servidor';
-import { esAdmin, esCasino } from '../../lib/usuarios';
+import { accesosDe, sesionActual } from '../../lib/servidor';
 import { saldoDe } from '../../lib/fichas';
 import Casino from './casino';
 
@@ -10,13 +9,16 @@ export default async function PaginaCasino() {
   const sesion = await sesionActual();
   if (!sesion) redirect('/login');
 
-  // Entran los invitados del casino y los administradores. Un mecánico común, no.
-  if (!(await esCasino(sesion.usuario))) redirect('/');
+  // Entran los invitados del casino, los mecánicos con casino y los administradores.
+  // Un mecánico común, no.
+  const accesos = await accesosDe(sesion.usuario);
+  if (!accesos.casino) redirect('/');
 
   return (
     <Casino
       usuario={sesion.usuario}
-      admin={await esAdmin(sesion.usuario)}
+      admin={accesos.admin}
+      accesos={accesos}
       saldo={await saldoDe(sesion.usuario)}
     />
   );
