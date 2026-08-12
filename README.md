@@ -144,9 +144,117 @@ cambian sin explicación a la vista.
 Pestaña **Casino**: una sala aparte, con su propia identidad. Es entretención de rol para el
 servidor — **no se juega con dinero real ni se puede convertir en dinero real**.
 
-Por ahora es **solo la fachada**: se ven las mesas (Ruleta, Blackjack, Tragamonedas, Dados,
-Póker, Rasca y gana) marcadas como *Próximamente*, y unas fichas de muestra. Ningún juego
-funciona todavía.
+**Las seis mesas están abiertas.**
+
+| Mesa | Retorno al jugador | Se queda la casa |
+|---|---|---|
+| Vídeo póker (Jacks or Better 9/6) | hasta 99,5% | 0,5% jugando perfecto |
+| Blackjack | ~99,4% | ~0,5% con estrategia básica |
+| Ruleta europea | 97,30% | 2,70% |
+| Dados (apuestas sencillas) | 97,22% | 2,78% |
+| Dados (triples) | 83,8% – 86,1% | 13,9% – 16,2% |
+| Tragamonedas | 94,27% | 5,73% |
+| Rasca y gana | 92,00% | 8,00% |
+
+En el póker y el blackjack el retorno depende de **cómo se juegue**: son los dos únicos donde las
+decisiones cambian el resultado, así que esas cifras son el techo, no una promesa.
+
+Son las tablas de pago de un casino real, comprobadas con cientos de miles de tiradas. En los
+dados, cada apuesta muestra su ventaja en pantalla: las sencillas son las buenas y las de
+triple pagan mucho pero valen poco, igual que en una mesa de verdad.
+
+### Fichas
+
+Cada persona parte con 5.000 fichas. El administrador reparte o quita desde el **panel**,
+sección *Fichas del casino*: escribe el nombre, la cantidad (negativa para quitar) y el motivo.
+Ahí mismo se ven las últimas veinte jugadas de todo el mundo, con quién jugó, a qué, cuánto
+apostó y cuánto ganó o perdió.
+
+Las fichas **no se compran, no valen dinero y no se convierten en dinero**. Son de rol.
+
+### Las tragamonedas
+
+Tres rodillos y una línea. Los rodillos llevan **pesos**, como una máquina real: hay treinta
+cerezas por cada dos sietes en la cinta, y por eso el trío de 7 sale una vez cada 111.111
+giros. El programa no corrige nada al final — sortea cada rodillo y paga lo que salga.
+
+| Línea | Paga |
+|---|---|
+| 7️⃣ 7️⃣ 7️⃣ | x500 |
+| 💎 💎 💎 | x100 |
+| ⭐ ⭐ ⭐ | x40 |
+| 🔔 🔔 🔔 | x20 |
+| 🍋 🍋 🍋 | x12 |
+| 🍒 🍒 🍒 | x8 |
+| 🍒 🍒 (dos exactas) | x1 |
+
+Algo se gana en **1 de cada 4 giros**, casi siempre las dos cerezas. Ese premio de consuelo es
+el que hace que la máquina se sienta viva: sin él solo pagaría el 5,5% de los giros.
+
+### El vídeo póker
+
+Se reparten cinco cartas, tocas las que te quedas y el resto se cambia. Es el juego con mejor
+retorno de la sala.
+
+| Mano | Paga |
+|---|---|
+| Escalera real | x800 |
+| Escalera de color | x50 |
+| Póker | x25 |
+| Full | x9 |
+| Color | x6 |
+| Escalera | x4 |
+| Trío | x3 |
+| Doble pareja | x2 |
+| Pareja de J o mejor | x1 |
+
+La pareja de jotas paga x1, o sea que te devuelve la apuesta: ni ganas ni pierdes. El x9 del full
+y el x6 del color son los pagos completos — las máquinas de verdad los recortan a 8/5 o 7/5, y ahí
+es donde se les cae el retorno.
+
+El mazo se baraja entero **en el servidor** antes de que elijas, así que las cartas que vienen ya
+estaban decididas. Al terminar se marcan las cartas que pagaron y se apagan las demás.
+
+Si cierras la pestaña entre el reparto y el cambio, al volver te encuentras la misma mano: la
+apuesta ya estaba cobrada y dejarla botada sería quedarse con tus fichas.
+
+### El blackjack
+
+| Regla | |
+|---|---|
+| Mazos | 6, barajados en cada mano |
+| El crupier | se planta en 17, también en el 17 blando |
+| Blackjack | paga 3 a 2 |
+| Doblar | con dos cartas cualesquiera, también tras separar |
+| Separar | hasta 4 manos · los ases reciben una carta |
+| Seguro | no hay |
+
+**No hay seguro a propósito**: es la peor apuesta de una mesa de blackjack, con casi un 7% para
+la casa. Y el blackjack paga 3 a 2 y no 6 a 5, que es el recorte con el que los casinos reales
+más que duplican su ventaja sin cambiar nada más.
+
+Jugando bien, a la casa le queda alrededor del **0,5%**. Comprobado con 200.000 manos jugadas con
+estrategia básica.
+
+La carta tapada del crupier se queda en el servidor hasta que terminas tu mano: no viaja al
+navegador ni siquiera escondida. Una partida a medias también se retoma al recargar.
+
+### La ruleta
+
+Europea, un solo cero, 37 casillas. Los pagos son los de una ruleta real:
+
+| Apuesta | Paga | Probabilidad |
+|---|---|---|
+| Pleno (un número) | 35:1 | 1 en 37 |
+| Rojo, negro, par, impar, 1-18, 19-36 | 1:1 | 18 en 37 |
+| Docena o columna | 2:1 | 12 en 37 |
+
+Eso da una **ventaja de la casa del 2,70%** en todas las apuestas por igual: a la larga el
+jugador recupera 97,30 de cada 100 que apuesta. Es la matemática real de una ruleta europea,
+no un número inventado — está comprobada con un millón de tiradas.
+
+**El número lo sortea el servidor**, no el navegador, y el saldo se descuenta ahí mismo. La
+rueda que gira en pantalla se limita a mostrar el resultado que ya salió.
 
 Entran quienes tengan la categoría **casino**, y los administradores. Quien solo tenga casino
 no ve las pantallas del taller: si intenta entrar, vuelve a la sala.

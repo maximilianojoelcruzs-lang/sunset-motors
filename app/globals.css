@@ -1457,6 +1457,25 @@ button {
   color: #6d76a3;
 }
 
+/* Saldo en el panel de administración (fuera del casino, con la paleta del taller). */
+.fichas-saldo {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--font-data), monospace;
+  font-size: 0.7rem;
+  color: var(--sun-5);
+}
+
+.neto-mas {
+  font-family: var(--font-data), monospace;
+  color: #2f7d4f;
+}
+
+.neto-menos {
+  font-family: var(--font-data), monospace;
+  color: #9a3340;
+}
+
 /* ---------- Mesas ---------- */
 
 .casino-titulo-fila {
@@ -1573,6 +1592,1089 @@ button {
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--oro);
+}
+
+.mesa.lista {
+  text-decoration: none;
+  display: block;
+}
+
+.mesa-pronto.abierta {
+  border-color: var(--neon);
+  color: var(--neon);
+  background: rgba(34, 230, 208, 0.1);
+}
+
+/* ---------- Mesa de ruleta ---------- */
+
+.mesa-cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 30px;
+}
+
+.mesa-volver {
+  font-size: 0.76rem;
+  color: #8b93bd;
+  text-decoration: none;
+}
+
+.mesa-volver:hover {
+  color: var(--neon);
+}
+
+.mesa-titulo {
+  margin: 8px 0 0;
+  font-family: var(--font-stencil), var(--font-ui), sans-serif;
+  font-size: clamp(1.8rem, 7vw, 2.8rem);
+  letter-spacing: 0.03em;
+  color: #fff;
+}
+
+.mesa-sub {
+  margin: 4px 0 0;
+  font-size: 0.76rem;
+  color: #6d76a3;
+}
+
+.ruleta-mesa {
+  display: grid;
+  gap: 26px;
+}
+
+@media (min-width: 900px) {
+  .ruleta-mesa {
+    grid-template-columns: 340px 1fr;
+    align-items: start;
+  }
+}
+
+.ruleta-lado {
+  min-width: 0;
+}
+
+/* ---------- La rueda ---------- */
+
+.rueda-caja {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto;
+  aspect-ratio: 1;
+}
+
+.rueda {
+  width: 100%;
+  height: 100%;
+  /* Curva larga que desacelera al final, como una rueda de verdad. */
+  transition: transform 4s cubic-bezier(0.18, 0.85, 0.16, 1);
+  filter: drop-shadow(0 14px 34px rgba(0, 0, 0, 0.55));
+}
+
+.rueda-borde {
+  fill: none;
+  stroke: var(--oro);
+  stroke-width: 3;
+  opacity: 0.65;
+}
+
+.casilla {
+  stroke: rgba(0, 0, 0, 0.5);
+  stroke-width: 0.6;
+}
+
+.casilla-rojo { fill: #c02334; }
+.casilla-negro { fill: #14161f; }
+.casilla-verde { fill: #128a5a; }
+
+.casilla-numero {
+  fill: #fff;
+  font-family: var(--font-data), monospace;
+  font-size: 9px;
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+.rueda-centro {
+  fill: #0d1020;
+  stroke: var(--oro);
+  stroke-width: 2;
+  opacity: 0.9;
+}
+
+.rueda-eje {
+  fill: var(--oro);
+}
+
+/* La aguja no gira: marca el número ganador desde arriba. */
+.rueda-aguja {
+  position: absolute;
+  top: -2px;
+  left: 50%;
+  z-index: 2;
+  width: 0;
+  height: 0;
+  transform: translateX(-50%);
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+  border-top: 18px solid var(--oro);
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6));
+}
+
+/* ---------- Resultado ---------- */
+
+.resultado {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-height: 92px;
+  margin-top: 18px;
+  padding: 14px;
+  border: 1px solid var(--linea);
+  border-radius: 10px;
+  background: rgba(15, 18, 38, 0.6);
+  text-align: center;
+}
+
+.resultado.gano {
+  border-color: rgba(34, 230, 208, 0.6);
+  box-shadow: 0 0 30px rgba(34, 230, 208, 0.16);
+}
+
+.resultado.perdio {
+  border-color: rgba(192, 35, 52, 0.5);
+}
+
+.resultado-numero {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  font-family: var(--font-data), monospace;
+  font-size: 1.3rem;
+  color: #fff;
+}
+
+.resultado-numero.rojo { background: #c02334; }
+.resultado-numero.negro { background: #14161f; border: 1px solid #333a55; }
+.resultado-numero.verde { background: #128a5a; }
+
+.resultado-texto {
+  font-size: 0.88rem;
+  color: #d5daf5;
+}
+
+.resultado-neto {
+  font-family: var(--font-data), monospace;
+  font-size: 0.76rem;
+  color: var(--oro);
+}
+
+.resultado-girando {
+  font-size: 0.88rem;
+  color: var(--neon);
+  letter-spacing: 0.12em;
+}
+
+.ruleta-historial {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  justify-content: center;
+  margin-top: 14px;
+}
+
+.bolita {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-family: var(--font-data), monospace;
+  font-size: 0.62rem;
+  color: #fff;
+}
+
+.bolita.rojo { background: #c02334; }
+.bolita.negro { background: #23273a; }
+.bolita.verde { background: #128a5a; }
+
+/* ---------- El paño ---------- */
+
+.pano {
+  display: flex;
+  gap: 4px;
+  padding: 12px;
+  background: linear-gradient(180deg, #0d3a2c, #0a2a20);
+  border: 1px solid #1c5c47;
+  border-radius: 10px;
+  overflow-x: auto;
+}
+
+.pano-cero {
+  flex-shrink: 0;
+  width: 34px;
+  background: #128a5a;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 4px;
+  color: #fff;
+  font-family: var(--font-data), monospace;
+  font-size: 0.9rem;
+}
+
+.pano-numeros {
+  display: flex;
+  gap: 3px;
+}
+
+.pano-columna {
+  display: grid;
+  gap: 3px;
+}
+
+.pano-numero {
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 4px;
+  color: #fff;
+  font-family: var(--font-data), monospace;
+  font-size: 0.76rem;
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+
+.pano-numero.rojo { background: #c02334; }
+.pano-numero.negro { background: #191c28; }
+
+.pano-numero:hover,
+.pano-cero:hover {
+  transform: translateY(-2px);
+}
+
+.pano-numero.activa,
+.pano-cero.activa {
+  box-shadow: 0 0 0 2px var(--oro);
+}
+
+.pano-fuera {
+  display: grid;
+  gap: 4px;
+  margin-top: 10px;
+}
+
+.pano-fila {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.pano-opcion {
+  flex: 1;
+  min-width: 78px;
+  padding: 9px 8px;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 5px;
+  color: #e6ebff;
+  font-size: 0.72rem;
+  line-height: 1.3;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.pano-opcion:hover {
+  border-color: var(--oro);
+}
+
+.pano-opcion.activa {
+  border-color: var(--oro);
+  background: rgba(255, 207, 92, 0.14);
+}
+
+.pano-opcion.rojo { background: rgba(192, 35, 52, 0.5); }
+.pano-opcion.negro { background: rgba(10, 12, 20, 0.6); }
+
+.pano-paga {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--font-data), monospace;
+  font-size: 0.6rem;
+  color: var(--oro);
+}
+
+/* ---------- Apuesta ---------- */
+
+.apuesta-caja {
+  margin-top: 16px;
+  padding: 16px;
+  background: rgba(15, 18, 38, 0.7);
+  border: 1px solid var(--linea);
+  border-radius: 10px;
+}
+
+.apuesta-elegida {
+  font-size: 0.82rem;
+  color: #8b93bd;
+  margin-bottom: 12px;
+}
+
+.apuesta-elegida strong {
+  color: var(--oro);
+  font-weight: 500;
+}
+
+.apuesta-fichas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 12px;
+}
+
+.ficha {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #2a3057, #151830);
+  border: 2px dashed rgba(255, 255, 255, 0.22);
+  color: #e6ebff;
+  font-family: var(--font-data), monospace;
+  font-size: 0.72rem;
+  transition: transform 0.15s, border-color 0.15s;
+}
+
+.ficha:hover {
+  transform: translateY(-3px);
+}
+
+.ficha.activa {
+  border-color: var(--oro);
+  border-style: solid;
+  color: var(--oro);
+  box-shadow: 0 0 18px rgba(255, 207, 92, 0.3);
+}
+
+.apuesta-otro {
+  width: 96px;
+  padding: 0 10px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--linea);
+  border-radius: 6px;
+  color: #e6ebff;
+  font-family: var(--font-data), monospace;
+  font-size: 0.82rem;
+}
+
+.apuesta-error {
+  margin: 0 0 10px;
+  font-size: 0.78rem;
+  color: #ff8a9b;
+}
+
+.apuesta-girar {
+  width: 100%;
+  padding: 15px;
+  border: 0;
+  border-radius: 8px;
+  background: linear-gradient(100deg, var(--oro), #ff9f43);
+  color: #1a1206;
+  font-weight: 700;
+  font-size: 0.88rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: filter 0.15s;
+}
+
+.apuesta-girar:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.apuesta-girar:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ---------- Dados ---------- */
+
+.dados-caja {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  padding: 20px 0;
+}
+
+.dado {
+  width: 78px;
+  height: 78px;
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.5));
+}
+
+.dado-cuerpo {
+  fill: #f4f1ea;
+  stroke: #c9c2b4;
+  stroke-width: 2;
+}
+
+.dado-punto {
+  fill: #1a1c26;
+}
+
+.dado.rodando {
+  animation: rodar 0.35s linear infinite;
+}
+
+@keyframes rodar {
+  0% { transform: rotate(0) translateY(0); }
+  25% { transform: rotate(90deg) translateY(-8px); }
+  50% { transform: rotate(180deg) translateY(0); }
+  75% { transform: rotate(270deg) translateY(-8px); }
+  100% { transform: rotate(360deg) translateY(0); }
+}
+
+.dados-suma {
+  font-family: var(--font-data), monospace;
+  font-size: 1.8rem;
+  color: var(--oro);
+}
+
+.dados-pano {
+  display: block;
+}
+
+.dados-pano .pano-fila {
+  margin-bottom: 5px;
+}
+
+.dados-totales {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(52px, 1fr));
+  gap: 4px;
+  margin-top: 5px;
+}
+
+.pano-opcion.estrecha {
+  min-width: 0;
+  padding: 7px 4px;
+  font-size: 0.68rem;
+  text-align: center;
+}
+
+.dados-elegida {
+  margin: 14px 0 0;
+  text-align: center;
+}
+
+/* ---------- Tragamonedas ---------- */
+
+.maquina {
+  position: relative;
+  max-width: 360px;
+  margin: 0 auto;
+  padding: 22px;
+  background: linear-gradient(165deg, #34204f, #1a1030);
+  border: 2px solid var(--linea);
+  border-radius: 18px;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.08), 0 18px 40px rgba(0, 0, 0, 0.5);
+}
+
+.maquina.gano {
+  border-color: var(--oro);
+  box-shadow: 0 0 48px rgba(255, 207, 92, 0.3);
+}
+
+.maquina-ventana {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 12px;
+  background: #05060d;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.rodillo {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 3 / 4;
+  background: linear-gradient(180deg, #12142a, #0a0b16 50%, #12142a);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.rodillo-simbolo {
+  font-size: 2.6rem;
+  line-height: 1;
+}
+
+.rodillo.girando .rodillo-simbolo {
+  animation: rodar-rodillo 0.14s linear infinite;
+  filter: blur(1px);
+}
+
+@keyframes rodar-rodillo {
+  0% { transform: translateY(-16%); opacity: 0.65; }
+  100% { transform: translateY(16%); opacity: 1; }
+}
+
+/* La línea de pago: se ve por dónde cuenta la máquina. */
+.maquina-linea {
+  position: absolute;
+  left: 30px;
+  right: 30px;
+  top: 50%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--oro), transparent);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* ---------- Rasca y gana ---------- */
+
+.rasca-mesa {
+  display: grid;
+  gap: 26px;
+}
+
+@media (min-width: 900px) {
+  .rasca-mesa {
+    grid-template-columns: 1fr 320px;
+    align-items: start;
+  }
+}
+
+.rasca-carton {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  max-width: 340px;
+  margin: 0 auto;
+  padding: 14px;
+  background: linear-gradient(150deg, #2a1f4d, #16112b);
+  border: 1px solid var(--linea);
+  border-radius: 14px;
+}
+
+.rasca-carton.gano {
+  border-color: var(--oro);
+  box-shadow: 0 0 40px rgba(255, 207, 92, 0.24);
+}
+
+.rasca-casilla {
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  /* Cerrada parece papel metalizado; al abrirse se ve el símbolo. */
+  background: linear-gradient(135deg, #8e8ba6, #5b5875 45%, #9d9ab5);
+  font-size: 1.6rem;
+  transition: background 0.25s, transform 0.15s;
+}
+
+.rasca-casilla:disabled {
+  cursor: default;
+}
+
+.rasca-casilla:not(.abierta):not(:disabled):hover {
+  transform: scale(1.04);
+}
+
+.rasca-casilla.abierta {
+  background: rgba(10, 12, 26, 0.85);
+}
+
+.rasca-simbolo {
+  line-height: 1;
+}
+
+.rasca-casilla:not(.abierta) .rasca-simbolo {
+  color: rgba(0, 0, 0, 0.35);
+  font-size: 1.1rem;
+}
+
+.rasca-todo {
+  display: block;
+  margin: 12px auto 0;
+  padding: 8px 16px;
+  background: transparent;
+  border: 1px solid var(--linea);
+  border-radius: 999px;
+  color: #8b93bd;
+  font-size: 0.74rem;
+}
+
+.rasca-todo:hover {
+  border-color: var(--neon);
+  color: var(--neon);
+}
+
+.rasca-multi {
+  font-family: var(--font-data), monospace;
+  font-size: 2rem;
+  color: var(--oro);
+  text-shadow: 0 0 24px rgba(255, 207, 92, 0.5);
+}
+
+.rasca-tabla {
+  padding: 16px;
+  background: rgba(15, 18, 38, 0.7);
+  border: 1px solid var(--linea);
+  border-radius: 10px;
+}
+
+.rasca-tabla ul {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+}
+
+.rasca-tabla li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.rasca-tres {
+  flex: 1;
+  font-size: 0.95rem;
+  letter-spacing: 2px;
+}
+
+.rasca-paga {
+  font-family: var(--font-data), monospace;
+  font-size: 0.86rem;
+  color: var(--oro);
+}
+
+.rasca-prob {
+  width: 56px;
+  text-align: right;
+  font-family: var(--font-data), monospace;
+  font-size: 0.68rem;
+  color: #6d76a3;
+}
+
+.rasca-nota {
+  margin: 12px 0 0;
+  font-size: 0.7rem;
+  line-height: 1.6;
+  color: #6d76a3;
+}
+
+/* ---------- Vídeo póker ---------- */
+
+.poker-mesa {
+  display: grid;
+  gap: 26px;
+}
+
+@media (min-width: 900px) {
+  .poker-mesa {
+    grid-template-columns: 1fr 320px;
+    align-items: start;
+  }
+}
+
+.cartas {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  max-width: 540px;
+  margin: 0 auto;
+}
+
+.carta {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 5 / 7;
+  padding: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  border-radius: 9px;
+  background: linear-gradient(160deg, #fdfdff, #dfe3f4);
+  color: #14161f;
+  cursor: pointer;
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.45);
+}
+
+.carta:disabled {
+  cursor: default;
+}
+
+.carta.roja {
+  color: #c02334;
+}
+
+.carta:not(:disabled):hover {
+  transform: translateY(-4px);
+}
+
+/* Quedarse una carta la levanta y la deja anillada: tiene que verse de una mirada
+   cuáles se van, porque es la única decisión del juego. */
+.carta.marcada {
+  transform: translateY(-10px);
+  border-color: var(--oro);
+  box-shadow:
+    0 0 0 2px var(--oro),
+    0 16px 30px rgba(0, 0, 0, 0.5);
+}
+
+.carta.nueva {
+  animation: entra-carta 0.32s ease-out both;
+  box-shadow:
+    0 0 0 2px rgba(34, 230, 208, 0.7),
+    0 12px 26px rgba(0, 0, 0, 0.45);
+}
+
+@keyframes entra-carta {
+  from {
+    transform: rotateY(90deg) translateY(-8px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+/* Una carta recién cambiada que además paga: la animación termina donde la deja `.paga`.
+   Con el keyframe normal el `transform: none` del final le ganaría al levantado. */
+.carta.nueva.paga {
+  animation-name: entra-carta-premiada;
+}
+
+@keyframes entra-carta-premiada {
+  from {
+    transform: rotateY(90deg) translateY(-8px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(-8px);
+    opacity: 1;
+  }
+}
+
+/* Solo las cartas que arman la mano premiada, como en una máquina de verdad. Las que no
+   pagan se apagan, si no la marca no se ve. Se apagan con `filter` y no con `opacity` a
+   propósito: la animación de entrada fija `opacity: 1` con `fill-mode: both` y le ganaría
+   a la regla. */
+.cartas.gano .carta:not(.paga) {
+  filter: brightness(0.42) saturate(0.5);
+  box-shadow: none;
+}
+
+.carta.paga {
+  transform: translateY(-8px);
+  border-color: var(--oro);
+  box-shadow:
+    0 0 0 2px var(--oro),
+    0 0 34px rgba(255, 207, 92, 0.35);
+}
+
+.carta.paga .carta-sello {
+  color: #7a5a00;
+  letter-spacing: 0.18em;
+}
+
+.carta.dorso {
+  background:
+    repeating-linear-gradient(45deg, #2a1a4a 0 6px, #1d1236 6px 12px);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.06);
+}
+
+.carta.dorso span {
+  position: absolute;
+  inset: 8px;
+  border: 1px solid rgba(160, 120, 255, 0.35);
+  border-radius: 5px;
+}
+
+.carta-esquina {
+  position: absolute;
+  top: 6px;
+  left: 7px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+  font-family: var(--font-data), monospace;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.carta-esquina em {
+  font-style: normal;
+  font-size: 0.7rem;
+}
+
+.carta-esquina.abajo {
+  top: auto;
+  left: auto;
+  right: 7px;
+  bottom: 6px;
+  transform: rotate(180deg);
+}
+
+.carta-palo {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 1.9rem;
+  opacity: 0.9;
+}
+
+.carta-sello {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 22%;
+  font-family: var(--font-data), monospace;
+  font-size: 0.5rem;
+  letter-spacing: 0.08em;
+  color: #7a5a00;
+  text-align: center;
+}
+
+.poker-apostado {
+  margin: 0 0 12px;
+  font-size: 0.8rem;
+  color: #9aa2cd;
+  text-align: center;
+}
+
+.poker-apostado strong {
+  font-family: var(--font-data), monospace;
+  color: var(--oro);
+}
+
+/* La fila de la mano que se está armando, y la que terminó pagando. */
+.rasca-tabla li.apuntada {
+  background: rgba(34, 230, 208, 0.08);
+}
+
+.rasca-tabla li.premiada {
+  background: rgba(255, 207, 92, 0.14);
+  box-shadow: inset 2px 0 0 var(--oro);
+}
+
+@media (max-width: 520px) {
+  .carta-palo {
+    font-size: 1.3rem;
+  }
+
+  .carta-sello {
+    display: none;
+  }
+}
+
+/* ---------- Blackjack ---------- */
+
+.bj-mesa {
+  display: grid;
+  gap: 26px;
+}
+
+@media (min-width: 900px) {
+  .bj-mesa {
+    grid-template-columns: 1fr 320px;
+    align-items: start;
+  }
+}
+
+.bj-lado {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 12px;
+  border-radius: 12px;
+}
+
+.bj-lado.tuyo {
+  margin-top: 10px;
+  background: radial-gradient(120% 100% at 50% 0%, rgba(34, 230, 208, 0.07), transparent 70%);
+}
+
+.bj-rotulo {
+  font-family: var(--font-data), monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #6d76a3;
+}
+
+/* Las cartas se montan una encima de otra, como en la mesa: con cinco pedidas una mano
+   ocupando cinco anchos completos rompía la fila. */
+.bj-cartas {
+  display: flex;
+  justify-content: center;
+  padding-left: 26px;
+}
+
+.bj-cartas .carta {
+  width: 74px;
+  margin-left: -26px;
+  cursor: default;
+}
+
+.bj-manos {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+}
+
+.bj-mano {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  transition: border-color 0.2s ease;
+}
+
+/* Con varias manos hay que saber cuál se está jugando, o se pide sobre la equivocada. */
+.bj-mano.activa {
+  border-color: rgba(34, 230, 208, 0.55);
+  background: rgba(34, 230, 208, 0.06);
+}
+
+.bj-mano.cerrada .carta {
+  filter: none;
+}
+
+.bj-pie {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.bj-total {
+  font-family: var(--font-data), monospace;
+  font-size: 0.9rem;
+  color: #d5daf5;
+}
+
+.bj-total.pasado {
+  color: #e0576a;
+}
+
+.bj-apuesta {
+  font-family: var(--font-data), monospace;
+  font-size: 0.66rem;
+  color: var(--oro);
+}
+
+.bj-veredicto {
+  font-size: 0.72rem;
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--linea);
+}
+
+.bj-veredicto.bien {
+  color: #0c0d16;
+  background: var(--oro);
+  border-color: var(--oro);
+}
+
+.bj-veredicto.igual {
+  color: #d5daf5;
+}
+
+.bj-veredicto.mal {
+  color: #e0576a;
+  border-color: rgba(192, 35, 52, 0.5);
+}
+
+.bj-reglas {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+}
+
+.bj-reglas li {
+  padding: 6px 0 6px 16px;
+  position: relative;
+  font-size: 0.76rem;
+  color: #9aa2cd;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.bj-reglas li::before {
+  content: '·';
+  position: absolute;
+  left: 4px;
+  color: var(--oro);
+}
+
+.bj-acciones {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.bj-acciones .apuesta-girar {
+  margin: 0;
+  font-size: 0.78rem;
+  padding: 12px 8px;
+}
+
+/* Pedir es la acción principal y va en dorado; las otras tres, apagadas. */
+.apuesta-girar.suave {
+  background: rgba(255, 255, 255, 0.06);
+  color: #d5daf5;
+  border: 1px solid var(--linea);
+}
+
+.apuesta-girar.suave:disabled {
+  color: #4d5478;
+}
+
+/* En una columna, la tabla de pagos queda entre la mesa y los botones, y hay que bajar
+   scrolleando para jugar. Se invierte el orden: primero se apuesta, después se lee. */
+@media (max-width: 899px) {
+  .rasca-mesa > section:last-child,
+  .poker-mesa > section:last-child,
+  .bj-mesa > section:last-child {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 18px;
+  }
+}
+
+@media (max-width: 520px) {
+  .bj-cartas .carta {
+    width: 58px;
+    margin-left: -20px;
+  }
+
+  .bj-cartas {
+    padding-left: 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rueda,
+  .dado.rodando,
+  .rasca-casilla,
+  .carta,
+  .carta.nueva {
+    transition: none;
+    animation: none;
+  }
 }
 
 .casino-aviso {

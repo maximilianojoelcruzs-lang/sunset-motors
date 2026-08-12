@@ -1,0 +1,21 @@
+import { redirect } from 'next/navigation';
+import { sesionActual } from '../../../lib/servidor';
+import { esAdmin, esCasino } from '../../../lib/usuarios';
+import { saldoDe } from '../../../lib/fichas';
+import Maquina from './maquina';
+
+export const dynamic = 'force-dynamic';
+
+export default async function Pagina() {
+  const sesion = await sesionActual();
+  if (!sesion) redirect('/login');
+  if (!(await esCasino(sesion.usuario))) redirect('/');
+
+  return (
+    <Maquina
+      usuario={sesion.usuario}
+      admin={await esAdmin(sesion.usuario)}
+      saldoInicial={await saldoDe(sesion.usuario)}
+    />
+  );
+}

@@ -4,18 +4,15 @@ import { useState } from 'react';
 import Barra from '../barra';
 
 /**
- * Fachada del casino. Por ahora es solo eso: la vista, sin ningún juego detrás.
- *
- * Las fichas que se muestran son de adorno y están escritas acá a mano — no hay saldo real
- * ni nada que se pueda ganar o perder. Cuando existan los juegos, esto sale de la base.
+ * La sala. Cada mesa con `ruta` ya funciona; las demás siguen siendo tarjetas.
+ * El saldo llega del servidor: acá no se calcula ni se guarda nada.
  */
-const FICHAS_DEMO = 12500;
-
 const MESAS = [
   {
     id: 'ruleta',
     nombre: 'Ruleta',
     lema: 'Rojo, negro y la suerte de siempre',
+    ruta: '/casino/ruleta',
     icono: (
       <>
         <circle cx="24" cy="24" r="17" />
@@ -28,6 +25,7 @@ const MESAS = [
     id: 'blackjack',
     nombre: 'Blackjack',
     lema: 'Llega a 21 sin pasarte',
+    ruta: '/casino/blackjack',
     icono: (
       <>
         <rect x="9" y="11" width="20" height="27" rx="3" />
@@ -40,6 +38,7 @@ const MESAS = [
     id: 'tragamonedas',
     nombre: 'Tragamonedas',
     lema: 'Tres iguales y se prende todo',
+    ruta: '/casino/tragamonedas',
     icono: (
       <>
         <rect x="7" y="12" width="34" height="24" rx="3" />
@@ -51,7 +50,8 @@ const MESAS = [
   {
     id: 'dados',
     nombre: 'Dados',
-    lema: 'Sopla y tira',
+    lema: 'Sic Bo · tres dados',
+    ruta: '/casino/dados',
     icono: (
       <>
         <rect x="8" y="8" width="22" height="22" rx="4" />
@@ -62,8 +62,9 @@ const MESAS = [
   },
   {
     id: 'poker',
-    nombre: 'Póker',
-    lema: 'La cara de piedra es gratis',
+    nombre: 'Vídeo póker',
+    lema: 'Jacks or Better · el mejor retorno de la sala',
+    ruta: '/casino/poker',
     icono: (
       <>
         <path d="M24 8l9 11-9 11-9-11z" />
@@ -76,6 +77,7 @@ const MESAS = [
     id: 'rasca',
     nombre: 'Rasca y gana',
     lema: 'Un raspón y a ver qué sale',
+    ruta: '/casino/rasca',
     icono: (
       <>
         <rect x="8" y="13" width="32" height="22" rx="3" />
@@ -86,8 +88,11 @@ const MESAS = [
 ];
 
 function Mesa({ mesa }) {
+  // Las mesas que ya funcionan son un enlace; las que no, una tarjeta muerta.
+  const Envoltura = mesa.ruta ? 'a' : 'article';
+
   return (
-    <article className="mesa">
+    <Envoltura className={`mesa ${mesa.ruta ? 'lista' : ''}`} href={mesa.ruta}>
       <div className="mesa-marco">
         <svg className="mesa-icono" viewBox="0 0 48 48" aria-hidden="true">
           <g
@@ -104,12 +109,14 @@ function Mesa({ mesa }) {
       </div>
       <h3 className="mesa-nombre">{mesa.nombre}</h3>
       <p className="mesa-lema">{mesa.lema}</p>
-      <span className="mesa-pronto">Próximamente</span>
-    </article>
+      <span className={`mesa-pronto ${mesa.ruta ? 'abierta' : ''}`}>
+        {mesa.ruta ? 'Jugar' : 'Próximamente'}
+      </span>
+    </Envoltura>
   );
 }
 
-export default function Casino({ usuario, admin }) {
+export default function Casino({ usuario, admin, saldo }) {
   const [turno, setTurno] = useState(null);
 
   return (
@@ -138,15 +145,15 @@ export default function Casino({ usuario, admin }) {
             SUNSET <span>ROYALE</span>
           </h1>
           <p className="casino-bajada">
-            Bienvenido de vuelta, <strong>{usuario}</strong>. Las mesas se están puliendo.
+            Bienvenido de vuelta, <strong>{usuario}</strong>. Ya hay {MESAS.filter((m) => m.ruta).length}{' '}
+            mesas abiertas.
           </p>
 
           <div className="casino-fichas">
             <span className="fichas-rotulo">Tus fichas</span>
             <span className="fichas-cifra">
-              {new Intl.NumberFormat('es-CL').format(FICHAS_DEMO)}
+              {new Intl.NumberFormat('es-CL').format(saldo)}
             </span>
-            <span className="fichas-nota">de muestra</span>
           </div>
         </header>
 
@@ -165,9 +172,9 @@ export default function Casino({ usuario, admin }) {
         </section>
 
         <p className="casino-aviso">
-          Esto es una fachada de prueba: no hay ningún juego funcionando todavía, las fichas
-          son de adorno y no se gana ni se pierde nada. Es entretención de rol para el
-          servidor — no se juega con dinero real ni se puede convertir en dinero real.
+          Los resultados los sortea el servidor y las mesas usan las probabilidades de un
+          casino real, con su ventaja de la casa: a la larga se pierde, como en cualquier
+          casino. Las fichas son de rol — no valen dinero ni se pueden convertir en dinero.
         </p>
       </main>
     </div>

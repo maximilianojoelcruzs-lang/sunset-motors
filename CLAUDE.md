@@ -132,6 +132,113 @@ página del taller y usas `sesionActual()` en su lugar, un invitado del casino l
 El chequeo va ahí y no en el middleware por lo de siempre: el rol se consulta contra la base y el
 middleware corre en Edge.
 
+### Reglas del casino que no se negocian
+
+**El resultado lo saca el servidor. Siempre.** Si un juego se resolviera en el navegador,
+cualquiera con las herramientas de desarrollo se declara ganador. El cliente manda *qué y cuánto
+apuesta*; recibe el resultado ya sorteado y lo anima. La rueda de la ruleta gira **hacia** el
+número que ya vino, no al revés.
+
+**El saldo también.** `lib/fichas.js` descuenta y paga en una sola operación (`resolver()`), y
+nunca acepta un saldo que venga del cliente. Si el descuento se hiciera allá, bastaría con no
+llamar a la API para jugar gratis.
+
+**`girar()` descarta el sobrante en vez de repartirlo.** Un `% 37` sobre un byte tendría sesgo
+—256 no es múltiplo de 37— y los números bajos saldrían un pelo más seguido. Verificado con un
+millón de tiradas: chi-cuadrado 32,7 con 36 grados de libertad (crítico 51,0).
+
+### La ventaja de la casa está en los pagos, no en trampas
+
+Ruleta europea: 37 casillas, pero los pagos se calculan como si hubiera 36. De ahí sale el
+**2,70% en todas las apuestas por igual** — pleno, rojo o docena dan el mismo 97,30% de retorno.
+Medido con un millón de tiradas por tipo de apuesta y coincide con lo teórico.
+
+Nadie "ajusta" nada ni hay que hacerlo. Si algún día alguien quiere subir la ventaja, se cambia
+el pago, no el sorteo. Con doble cero (americana) sería 5,26%; no se usa porque es peor para
+quien juega y no aporta nada.
+
+### Cada mesa y su retorno, todos verificados por muestreo
+
+| Mesa | Juego | Retorno | Ventaja de la casa |
+|---|---|---|---|
+| [lib/ruleta.js](lib/ruleta.js) | Ruleta europea | 97,30% | 2,70% en todas las apuestas |
+| [lib/dados.js](lib/dados.js) | Sic Bo, 3 dados | varía | 2,78% las sencillas · hasta 16,2% los triples |
+| [lib/rasca.js](lib/rasca.js) | Raspadito | 92,00% | 8,00% |
+| [lib/tragamonedas.js](lib/tragamonedas.js) | 3 rodillos, 1 línea | 94,27% | 5,73% |
+| [lib/poker.js](lib/poker.js) | Vídeo póker, Jacks or Better 9/6 | hasta 99,5% | 0,5% con juego perfecto |
+| [lib/blackjack.js](lib/blackjack.js) | Blackjack, 6 mazos S17 | ~99,4% | ~0,5% con estrategia básica |
+
+Los números salen de tablas de pago reales, no inventadas. Antes de tocar cualquiera,
+compruébalo por muestreo: medio millón de tiradas basta para ver si la ventaja se movió.
+
+En el póker y el blackjack el retorno **depende de cómo se juegue**, no solo de la tabla: son los
+únicos dos donde las decisiones de la persona mueven el margen. Por eso las cifras dicen «con
+juego perfecto» y no son una promesa.
+
+**Rasca:** el premio se sortea primero de la tabla de pesos y el cartón se arma después para
+contar esa historia — como un raspadito de papel, que viene impreso de fábrica. `armarCarton()`
+garantiza que un cartón sin premio no forme un trío por accidente, y que uno premiado forme
+exactamente uno. Cada premio lleva su propio `simbolo` en la tabla: deducirlo del índice hacía
+que los dos premios más altos compartieran símbolo y la tabla se contradijera.
+
+**Dados:** cada apuesta muestra su ventaja real en pantalla, y varían mucho (2,78% contra 16,2%).
+Eso es deliberado: en una mesa de verdad las apuestas vistosas son las malas, y esconderlo sería
+menos honesto que mostrarlo.
+
+**Tragamonedas:** los rodillos llevan **pesos**, que es como funcionan las máquinas reales — el 7
+es raro porque hay pocos sietes en la cinta, no porque el programa corrija el resultado al final.
+El premio de «dos cerezas» existe para subir la frecuencia de premio del 5,5% al 24%: sin él la
+máquina se siente muerta aunque el retorno sea el mismo. `retornoTeorico()` calcula el RTP desde
+la tabla, así que si tocas un peso o un pago, la pantalla muestra el número nuevo sola.
+
+### Las mesas de dos pasos guardan el mazo en el servidor
+
+El póker y el blackjack no se resuelven en una sola llamada: reparten, esperan una decisión y
+recién ahí pagan. Entre medio, **el resto del mazo y la carta tapada del crupier se quedan en el
+servidor**, en [lib/poker-mano.js](lib/poker-mano.js) y
+[lib/blackjack-partida.js](lib/blackjack-partida.js). Si viajaran al navegador, quien mire la
+respuesta vería lo que viene antes de decidir, que es justamente lo que el juego no puede
+permitir. La `vista()` del blackjack existe para eso: es lo único que sale.
+
+Tres consecuencias que no hay que deshacer:
+
+- **La partida a medias se retoma.** La apuesta ya está cobrada, así que si alguien cierra la
+  pestaña entre el reparto y la decisión, al volver encuentra su mano donde la dejó. Repartir con
+  una partida abierta la devuelve en vez de cobrar otra apuesta — idempotente, como
+  `marcarEntrada()`.
+- El cobro va en dos tiempos: `cobrar()` al repartir (y en cada doblar o separar) y `pagar()` al
+  cerrar, que es lo único que anota la jugada. Una mano deja **una** fila en el registro, con
+  todo lo apostado sumado.
+- Los módulos de reglas ([lib/poker.js](lib/poker.js), [lib/blackjack.js](lib/blackjack.js)) son
+  **puros** y no tocan el almacén: la mesa los importa desde el navegador para pintar la tabla de
+  pagos y calcular lo que se ve. El estado va aparte, en los `-mano`/`-partida`. Juntarlos
+  arrastraría `node:fs` al bundle del cliente y rompería el build.
+
+**Póker:** la tabla es la 9/6, y el 9 y el 6 son los pagos del full y el color. Son justamente los
+que las máquinas de verdad recortan (8/5, 7/5…) para bajar el retorno sin que se note; acá están
+completos. El evaluador está comprobado enumerando **las 2.598.960 manos posibles**: las nueve
+frecuencias coinciden al entero con las conocidas. Si tocas `evaluar()`, vuelve a correr esa
+enumeración — es rápida y no deja dudas.
+
+**Blackjack:** las reglas están elegidas una por una y están escritas en `REGLAS`, que es lo que
+se muestra en pantalla. Dos que importan: el blackjack paga **3 a 2** (las mesas que pagan 6 a 5
+más que duplican la ventaja de la casa con ese solo cambio), y **no hay seguro**. Que no haya
+seguro no es un olvido — es la peor apuesta de la mesa, con casi un 7% para la casa, y ponerla
+sería empeorar el juego a propósito. Medido con 200 000 manos jugadas con estrategia básica: la
+casa se queda con el 0,6%, dentro del ruido del 0,43% teórico.
+
+### El saldo lo reparte el admin, y queda registrado
+
+`ajustarSaldo()` anota cada recarga como una jugada de tipo `ajuste` con el nombre de quien la
+hizo. [app/admin/fichas.js](app/admin/fichas.js) es la pantalla; también lista las últimas
+jugadas de todo el mundo, que es lo que permite notar si algo se está comportando raro.
+
+### Redondear las coordenadas del SVG no es cosmética
+
+`rueda.js` redondea a 3 decimales con `r3()`. `Math.cos` puede dar el último bit distinto en Node
+y en el navegador, y entonces el HTML del servidor no coincide carácter por carácter con el del
+cliente: React lo detecta como desajuste de hidratación y descarta el árbol. Pasó de verdad.
+
 ### La paleta del casino está encerrada
 
 Todo el CSS del casino cuelga de `.casino`, con sus propias variables (`--neon`, `--oro`…). Es un

@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import Barra from '../barra';
 import Mecanicos from './mecanicos';
 import Discord from './discord';
+import Fichas from './fichas';
 import {
   diaCorto,
   diaISO,
@@ -369,6 +370,8 @@ export default function Panel({
         <Mecanicos iniciales={usuariosIniciales} quienSoy={quienSoy} />
 
         <Discord inicial={configInicial} />
+
+        <Fichas />
 
         <p className="pie">
           Las horas se muestran en hora de Chile. Un turno abierto suma hasta este momento,
