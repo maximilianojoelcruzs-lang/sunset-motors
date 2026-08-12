@@ -1307,45 +1307,52 @@ button {
   pointer-events: none;
 }
 
+/*
+ * Los resplandores son degradados radiales, **no círculos con `filter: blur()`**.
+ *
+ * Antes eran un `blur(90px)` sobre elementos de medio ancho de pantalla, animados con
+ * `scale`. Cada fotograma obligaba al navegador a volver a difuminar una capa enorme, y con
+ * tres de estos el casino entero se sentía pegado: costaba hasta hacer scroll. Un degradado
+ * se pinta de una vez y se compone gratis, y se ve igual. Si vuelves a poner un `blur` acá,
+ * vuelve el tirón.
+ */
 .casino-halo {
   position: absolute;
   border-radius: 50%;
-  filter: blur(90px);
-  opacity: 0.5;
+  will-change: transform;
 }
 
 .halo-1 {
-  width: 46vw;
-  height: 46vw;
-  top: -12vw;
-  left: -8vw;
-  background: var(--neon-2);
-  animation: flotar 18s ease-in-out infinite;
+  width: 70vw;
+  height: 70vw;
+  top: -26vw;
+  left: -20vw;
+  background: radial-gradient(circle, rgba(177, 76, 255, 0.42), transparent 62%);
+  animation: flotar 22s ease-in-out infinite;
 }
 
 .halo-2 {
-  width: 38vw;
-  height: 38vw;
-  top: 8vw;
-  right: -10vw;
-  background: var(--neon);
-  opacity: 0.32;
-  animation: flotar 22s ease-in-out infinite reverse;
+  width: 60vw;
+  height: 60vw;
+  top: 0;
+  right: -22vw;
+  background: radial-gradient(circle, rgba(34, 230, 208, 0.28), transparent 62%);
+  animation: flotar 26s ease-in-out infinite reverse;
 }
 
 .halo-3 {
-  width: 30vw;
-  height: 30vw;
-  bottom: -10vw;
-  left: 35vw;
-  background: var(--oro);
-  opacity: 0.18;
-  animation: flotar 26s ease-in-out infinite;
+  width: 50vw;
+  height: 50vw;
+  bottom: -24vw;
+  left: 30vw;
+  background: radial-gradient(circle, rgba(255, 207, 92, 0.18), transparent 62%);
+  animation: flotar 30s ease-in-out infinite;
 }
 
+/* Solo se traslada. `scale` sobre una capa de este tamaño la obliga a redibujarse. */
 @keyframes flotar {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-  50% { transform: translate3d(3vw, 4vw, 0) scale(1.12); }
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(4vw, 5vw, 0); }
 }
 
 /* Retícula en fuga: da la sensación de suelo sin usar una imagen. */
@@ -1669,9 +1676,11 @@ button {
 .rueda {
   width: 100%;
   height: 100%;
-  /* Curva larga que desacelera al final, como una rueda de verdad. */
-  transition: transform 4s cubic-bezier(0.18, 0.85, 0.16, 1);
-  filter: drop-shadow(0 14px 34px rgba(0, 0, 0, 0.55));
+  /* Curva que desacelera al final, como una rueda de verdad. Tres segundos: con cuatro se
+     hacía largo a la tercera tirada, que es cuando de verdad se juega. */
+  transition: transform 3s cubic-bezier(0.16, 0.86, 0.14, 1);
+  will-change: transform;
+  filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.5));
 }
 
 .rueda-borde {
@@ -1807,8 +1816,6 @@ button {
 /* ---------- El paño ---------- */
 
 .pano {
-  display: flex;
-  gap: 4px;
   padding: 12px;
   background: linear-gradient(180deg, #0d3a2c, #0a2a20);
   border: 1px solid #1c5c47;
@@ -1816,49 +1823,134 @@ button {
   overflow-x: auto;
 }
 
-.pano-cero {
-  flex-shrink: 0;
-  width: 34px;
-  background: #128a5a;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+/*
+ * La rejilla del paño: las casillas y **los bordes entre casillas** son pistas propias, y
+ * por eso se puede poner una ficha a caballo o al cuadro exactamente donde iría en una mesa
+ * de verdad. Las coordenadas de cada sitio salen de `lib/ruleta.js`.
+ *
+ *   columnas: el cero · su borde · (columna, borde) × 12
+ *   filas:    borde · (fila, borde) × 3 · la banda de calles y seisenas
+ */
+.pano-rejilla {
+  display: grid;
+  grid-template-columns: 38px 13px repeat(12, 38px 13px);
+  grid-template-rows: 7px repeat(3, 38px 13px) 8px;
+  width: max-content;
+  min-width: 100%;
+}
+
+.pano-numero,
+.pano-borde {
+  position: relative;
   border-radius: 4px;
   color: #fff;
   font-family: var(--font-data), monospace;
-  font-size: 0.9rem;
-}
-
-.pano-numeros {
-  display: flex;
-  gap: 3px;
-}
-
-.pano-columna {
-  display: grid;
-  gap: 3px;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease;
 }
 
 .pano-numero {
-  width: 34px;
-  height: 34px;
+  margin: 1px;
   border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 4px;
-  color: #fff;
-  font-family: var(--font-data), monospace;
   font-size: 0.76rem;
-  transition: transform 0.12s, box-shadow 0.12s;
 }
 
 .pano-numero.rojo { background: #c02334; }
 .pano-numero.negro { background: #191c28; }
+.pano-numero.cero { background: #128a5a; font-size: 0.9rem; }
 
-.pano-numero:hover,
-.pano-cero:hover {
-  transform: translateY(-2px);
+/* Los bordes no se ven hasta que se apunta a ellos: si estuvieran pintados, el paño
+   parecería un tablero de ajedrez y no se leerían los números. */
+.pano-borde {
+  background: transparent;
+  border: none;
+  border-radius: 3px;
 }
 
-.pano-numero.activa,
-.pano-cero.activa {
-  box-shadow: 0 0 0 2px var(--oro);
+.pano-borde:hover,
+.pano-borde:focus-visible {
+  background: rgba(255, 207, 92, 0.5);
+  box-shadow: 0 0 10px rgba(255, 207, 92, 0.5);
+}
+
+.pano-numero:hover,
+.pano-numero:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 0 0 1px var(--oro);
+}
+
+.pano-numero.gana,
+.pano-opcion.gana {
+  box-shadow: 0 0 0 2px var(--oro), 0 0 22px rgba(255, 207, 92, 0.55);
+}
+
+.pano-borde.gana {
+  background: rgba(255, 207, 92, 0.6);
+}
+
+/* La ficha puesta. Se apila sobre el sitio, y en los bordes queda entre las dos casillas
+   justamente para que se vea a qué está apostada. */
+.ficha-puesta {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 3;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  min-width: 25px;
+  height: 25px;
+  padding: 0 3px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffe9a8, var(--oro) 60%, #b8860b);
+  border: 2px dashed rgba(0, 0, 0, 0.35);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+  color: #3a2a00;
+  font-family: var(--font-data), monospace;
+  font-size: 0.56rem;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+/* En las apuestas de fuera la ficha se va al borde: centrada tapaba el nombre, que es
+   justo lo que hay que leer para saber a qué se está apostando. */
+.pano-opcion .ficha-puesta {
+  left: auto;
+  right: 6px;
+  transform: translateY(-50%);
+}
+
+.pano-mandos {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin: 10px 0 4px;
+}
+
+.pano-mandos button {
+  padding: 8px 4px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--linea);
+  border-radius: 6px;
+  color: #d5daf5;
+  font-size: 0.72rem;
+  transition: border-color 0.15s ease;
+}
+
+.pano-mandos button:hover:not(:disabled) {
+  border-color: var(--oro);
+}
+
+.pano-mandos button:disabled {
+  color: #4d5478;
+}
+
+.pano-ayuda {
+  margin: 10px 0 0;
+  font-size: 0.66rem;
+  line-height: 1.6;
+  color: #6d76a3;
 }
 
 .pano-fuera {
@@ -1874,6 +1966,7 @@ button {
 }
 
 .pano-opcion {
+  position: relative;
   flex: 1;
   min-width: 78px;
   padding: 9px 8px;

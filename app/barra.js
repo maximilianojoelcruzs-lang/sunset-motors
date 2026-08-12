@@ -1,6 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+// `Link` y no `<a>`: con un ancla normal cada clic recarga la página entera y se ve el
+// parpadeo. Con Link la navegación es del cliente y la ruta se va precargando sola.
+import Link from 'next/link';
 import { duracionMs, enHoras, soloHora } from '../lib/tiempo';
 import { marcarTurno } from './marcar';
 import { restanMinutos } from './marcaje';
@@ -106,7 +109,7 @@ export default function Barra({
         <div className="franja" />
 
         <div className="barra-cuerpo">
-          <a className="barra-marca" href={esCasino ? '/casino' : '/'}>
+          <Link className="barra-marca" href={esCasino ? '/casino' : '/'}>
             {esCasino ? (
               <>
                 SUNSET <em>ROYALE</em>
@@ -116,75 +119,75 @@ export default function Barra({
                 SUNSET <em>MOTORS</em>
               </>
             )}
-          </a>
+          </Link>
 
           <nav className="barra-nav" aria-label="Secciones">
             {!esCasino && (
               <>
-                <a
+                <Link
                   className={`barra-enlace ${seccion === 'calculadora' ? 'activo' : ''}`}
                   href="/"
                   aria-current={seccion === 'calculadora' ? 'page' : undefined}
                 >
                   Calculadora
-                </a>
-                <a
+                </Link>
+                <Link
                   className={`barra-enlace ${seccion === 'licencias' ? 'activo' : ''}`}
                   href="/licencias"
                   aria-current={seccion === 'licencias' ? 'page' : undefined}
                 >
                   Licencias
-                </a>
-                <a
+                </Link>
+                <Link
                   className={`barra-enlace ${seccion === 'devoluciones' ? 'activo' : ''}`}
                   href="/devoluciones"
                   aria-current={seccion === 'devoluciones' ? 'page' : undefined}
                 >
                   Devoluciones
-                </a>
-                <a
+                </Link>
+                <Link
                   className={`barra-enlace ${seccion === 'anuncios' ? 'activo' : ''}`}
                   href="/anuncios"
                   aria-current={seccion === 'anuncios' ? 'page' : undefined}
                 >
                   Anuncios
-                </a>
-                <a
+                </Link>
+                <Link
                   className={`barra-enlace ${seccion === 'documentos' ? 'activo' : ''}`}
                   href="/documentos"
                   aria-current={seccion === 'documentos' ? 'page' : undefined}
                 >
                   Documentos
-                </a>
+                </Link>
                 {admin && (
                   <>
-                    <a
+                    <Link
                       className={`barra-enlace ${seccion === 'precios' ? 'activo' : ''}`}
                       href="/precios"
                       aria-current={seccion === 'precios' ? 'page' : undefined}
                     >
                       Precios
-                    </a>
-                    <a
+                    </Link>
+                    <Link
                       className={`barra-enlace ${seccion === 'registro' ? 'activo' : ''}`}
                       href="/admin"
                       aria-current={seccion === 'registro' ? 'page' : undefined}
                     >
                       Registro
-                    </a>
+                    </Link>
                   </>
                 )}
               </>
             )}
 
             {(esCasino || admin) && (
-              <a
+              <Link
                 className={`barra-enlace ${seccion === 'casino' ? 'activo' : ''}`}
                 href="/casino"
                 aria-current={seccion === 'casino' ? 'page' : undefined}
               >
                 Casino
-              </a>
+              </Link>
             )}
           </nav>
 

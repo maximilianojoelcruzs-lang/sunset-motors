@@ -69,7 +69,7 @@ export default function Maquina({ usuario, admin, saldoInicial }) {
       setTimeout(() => {
         setUltima(cuerpo);
         setSaldo(cuerpo.saldo);
-      }, 1250);
+      }, 900);
     } catch {
       setError('Sin conexión con el servidor.');
       setGirando(false);
@@ -92,7 +92,7 @@ export default function Maquina({ usuario, admin, saldoInicial }) {
           <div className={`maquina ${ultima?.gano ? 'gano' : ''}`}>
             <div className="maquina-ventana">
               {simbolos.map((s, i) => (
-                <Rodillo key={i} simbolo={s} girando={girando} retraso={i * 380} />
+                <Rodillo key={i} simbolo={s} girando={girando} retraso={i * 260} />
               ))}
             </div>
             <span className="maquina-linea" aria-hidden="true" />

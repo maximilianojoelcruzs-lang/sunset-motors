@@ -241,17 +241,32 @@ navegador ni siquiera escondida. Una partida a medias también se retoma al reca
 
 ### La ruleta
 
-Europea, un solo cero, 37 casillas. Los pagos son los de una ruleta real:
+Europea, un solo cero, 37 casillas. **Se apuesta a varios sitios a la vez**, como en una mesa
+de verdad: eliges el valor de la ficha, tocas el paño, y cada toque apila otra ficha ahí.
+Manteniendo pulsada una ficha —o con el botón derecho— la quitas, y están *Deshacer*, *Limpiar*
+y *Repetir* para volver a poner la apuesta anterior tal cual.
 
-| Apuesta | Paga | Probabilidad |
+Las fichas también van **entre casillas**, y ahí es donde aparecen las apuestas que hacen a la
+ruleta lo que es:
+
+| Apuesta | Dónde va la ficha | Paga |
 |---|---|---|
-| Pleno (un número) | 35:1 | 1 en 37 |
-| Rojo, negro, par, impar, 1-18, 19-36 | 1:1 | 18 en 37 |
-| Docena o columna | 2:1 | 12 en 37 |
+| Pleno | sobre un número | 35:1 |
+| Caballo | entre dos números | 17:1 |
+| Calle | al borde de una fila de tres | 11:1 |
+| Trío (con el 0) | en la esquina del cero | 11:1 |
+| Cuadro | donde se tocan cuatro | 8:1 |
+| Los cuatro primeros | 0, 1, 2 y 3 | 8:1 |
+| Seisena | al borde, entre dos filas | 5:1 |
+| Docena o columna | fuera del paño | 2:1 |
+| Rojo, negro, par, impar, 1-18, 19-36 | fuera del paño | 1:1 |
 
-Eso da una **ventaja de la casa del 2,70%** en todas las apuestas por igual: a la larga el
-jugador recupera 97,30 de cada 100 que apuesta. Es la matemática real de una ruleta europea,
-no un número inventado — está comprobada con un millón de tiradas.
+Son **145 sitios distintos**, exactamente los de una mesa europea: ni falta ninguno ni hay
+ninguno inventado.
+
+Todas dan la misma **ventaja de la casa: 2,70%**. No es casualidad ni está ajustado a mano — el
+pago sale de una sola fórmula, así que un pleno, un caballo y un rojo devuelven los mismos 97,30
+de cada 100. Comprobado casilla por casilla y con medio millón de tiradas.
 
 **El número lo sortea el servidor**, no el navegador, y el saldo se descuenta ahí mismo. La
 rueda que gira en pantalla se limita a mostrar el resultado que ya salió.

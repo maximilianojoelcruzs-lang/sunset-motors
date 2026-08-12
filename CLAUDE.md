@@ -157,6 +157,28 @@ Nadie "ajusta" nada ni hay que hacerlo. Si algún día alguien quiere subir la v
 el pago, no el sorteo. Con doble cero (americana) sería 5,26%; no se usa porque es peor para
 quien juega y no aporta nada.
 
+### El pago de la ruleta sale de una fórmula, no de una tabla
+
+`pagaDe(cuantos) = 36 / cuantos − 1`. De ahí salen los 35:1 del pleno, los 17:1 del caballo y los
+2:1 de la docena, y por eso **ninguna apuesta puede quedar descuadrada respecto de las otras**:
+todas dan exactamente 2,7027%. Una tabla escrita a mano se desincroniza en cuanto alguien agrega
+una apuesta; la fórmula no.
+
+Las 145 apuestas interiores (37 plenos, 60 caballos, 12 calles, 22 cuadros, 11 seisenas, 2 tríos
+y los cuatro primeros) **se generan**, no están escritas a mano. A mano se olvida alguna y, peor,
+se cuela alguna que en una mesa real no existe. Cada una trae **dónde va la ficha en el paño**, y
+eso es parte del juego y no de la pantalla: en una mesa de verdad el sitio donde se pone la ficha
+*es* la apuesta. `app/casino/ruleta/pano.js` dibuja una rejilla donde las casillas **y los bordes
+entre casillas** son pistas propias, y coloca cada sitio en las coordenadas que trae el catálogo.
+
+**El navegador manda el sitio de cada ficha, nunca la lista de números.** Si mandara los números,
+se podría pedir un «caballo» entre el 1 y el 36 y cobrar 17:1 por dos números que no se tocan. El
+servidor busca el sitio por su identificador y de ahí saca a qué cubre y cuánto paga.
+
+Se apuesta a varios sitios en la misma tirada; el cuerpo es `{ apuestas: [{ id, monto }] }`. Se
+valida cada ficha por separado y **la suma contra el saldo**, y se rechaza el mismo sitio dos
+veces: si no, dos fichas al mismo lugar contarían distinto según cómo se sumaran.
+
 ### Cada mesa y su retorno, todos verificados por muestreo
 
 | Mesa | Juego | Retorno | Ventaja de la casa |
@@ -238,6 +260,19 @@ jugadas de todo el mundo, que es lo que permite notar si algo se está comportan
 `rueda.js` redondea a 3 decimales con `r3()`. `Math.cos` puede dar el último bit distinto en Node
 y en el navegador, y entonces el HTML del servidor no coincide carácter por carácter con el del
 cliente: React lo detecta como desajuste de hidratación y descarta el árbol. Pasó de verdad.
+
+### Lo que hacía que el casino se sintiera pegado
+
+Dos cosas, y las dos vuelven fácil si no se sabe:
+
+- **`filter: blur(90px)` en los resplandores del fondo**, sobre elementos de medio ancho de
+  pantalla y animados con `scale`. Cada fotograma obligaba al navegador a volver a difuminar una
+  capa enorme. Medido haciendo scroll en la sala: **15 fps con el blur, 60 sin él**, y todos los
+  fotogramas por debajo de 30 contra ninguno. Ahora son `radial-gradient`, que se ven igual y se
+  componen gratis. Si vuelves a poner un `blur` ahí, vuelve el tirón.
+- **`<a href>` en vez de `next/link`**, que recargaba el documento entero en cada clic. La barra
+  y las tarjetas de las mesas usan `Link`, así que la navegación es del cliente y la ruta se
+  precarga sola. Un `<a>` nuevo en la barra reintroduce el parpadeo sin que nadie lo note.
 
 ### La paleta del casino está encerrada
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import Barra from '../barra';
 
 /**
@@ -89,10 +90,13 @@ const MESAS = [
 
 function Mesa({ mesa }) {
   // Las mesas que ya funcionan son un enlace; las que no, una tarjeta muerta.
-  const Envoltura = mesa.ruta ? 'a' : 'article';
+  // `Link` precarga la mesa al pasar el ratón por encima, así abrirla es instantáneo.
+  const Envoltura = mesa.ruta ? Link : 'article';
+  // Un `<article>` no entiende `href` ni `prefetch`, así que solo van cuando hay enlace.
+  const enlace = mesa.ruta ? { href: mesa.ruta, prefetch: true } : {};
 
   return (
-    <Envoltura className={`mesa ${mesa.ruta ? 'lista' : ''}`} href={mesa.ruta}>
+    <Envoltura className={`mesa ${mesa.ruta ? 'lista' : ''}`} {...enlace}>
       <div className="mesa-marco">
         <svg className="mesa-icono" viewBox="0 0 48 48" aria-hidden="true">
           <g

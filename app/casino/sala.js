@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import Barra from '../barra';
 
 export const fmt = new Intl.NumberFormat('es-CL');
@@ -33,9 +34,9 @@ export default function Sala({ usuario, admin, titulo, sub, saldo, aviso, childr
       <main className="casino-cuerpo">
         <header className="mesa-cabeza">
           <div>
-            <a className="mesa-volver" href="/casino">
+            <Link className="mesa-volver" href="/casino" prefetch>
               ← Volver a las mesas
-            </a>
+            </Link>
             <h1 className="mesa-titulo">{titulo}</h1>
             <p className="mesa-sub">{sub}</p>
           </div>

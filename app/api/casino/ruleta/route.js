@@ -1,20 +1,27 @@
 import { NextResponse } from 'next/server';
 import { sesionActual } from '../../../../lib/servidor';
 import { esCasino } from '../../../../lib/usuarios';
-import { resolver, validarApuesta } from '../../../../lib/fichas';
-import { color, girar, resolverApuesta } from '../../../../lib/ruleta';
+import { resolver, saldoDe, APUESTA_MAXIMA, APUESTA_MINIMA } from '../../../../lib/fichas';
+import { apuestaPorId, color, girar, resolverApuesta } from '../../../../lib/ruleta';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+/** Cuántas fichas se pueden repartir en el paño de una sola tirada. */
+const MAX_APUESTAS = 40;
+
+const no = (mensaje) => NextResponse.json({ error: mensaje }, { status: 400 });
+
 /**
- * POST /api/casino/ruleta  body: { tipo, valor, apuesta }
+ * POST /api/casino/ruleta  body: { apuestas: [{ id, monto }] }
  *
- * **El número lo saca el servidor.** El navegador solo manda qué y cuánto apuesta; recibe
+ * **El número lo saca el servidor.** El navegador solo manda dónde puso cada ficha; recibe
  * el número ya sorteado y lo anima. Si la tirada ocurriera en el cliente, cualquiera con
  * las herramientas de desarrollo se declararía ganador de todo.
  *
- * El descuento del saldo también es de acá: el cliente no resta nada.
+ * Manda **el sitio** de cada ficha y no la lista de números que cubre: así no hay forma de
+ * pedir un caballo de dos números que en una mesa real no se tocan, ni de cobrar un pago que
+ * no corresponda. El descuento del saldo también es de acá: el cliente no resta nada.
  */
 export async function POST(peticion) {
   const sesion = await sesionActual();
@@ -23,37 +30,68 @@ export async function POST(peticion) {
     return NextResponse.json({ error: 'No autorizado.' }, { status: 403 });
   }
 
-  const { tipo, valor, apuesta } = await peticion.json().catch(() => ({}));
+  const { apuestas } = await peticion.json().catch(() => ({}));
 
   try {
-    const validada = await validarApuesta(sesion.usuario, apuesta);
-    if (validada.error) return NextResponse.json({ error: validada.error }, { status: 400 });
+    if (!Array.isArray(apuestas) || apuestas.length === 0) {
+      return no('Pon al menos una ficha en el paño.');
+    }
+    if (apuestas.length > MAX_APUESTAS) {
+      return no(`No puedes poner más de ${MAX_APUESTAS} fichas en una tirada.`);
+    }
+
+    // Cada ficha se valida por separado, y el total contra el saldo. Un id repetido se
+    // rechaza: si no, dos fichas al mismo sitio contarían distinto según cómo se sumaran.
+    const vistos = new Set();
+    const limpias = [];
+
+    for (const cruda of apuestas) {
+      const def = apuestaPorId(cruda?.id);
+      if (!def) return no('Esa apuesta no existe en la mesa.');
+      if (vistos.has(def.id)) return no('Hay dos fichas al mismo sitio.');
+      vistos.add(def.id);
+
+      const monto = Math.round(Number(cruda.monto));
+      if (!Number.isFinite(monto) || monto < APUESTA_MINIMA) {
+        return no(`Cada ficha tiene que ser de al menos ${APUESTA_MINIMA}.`);
+      }
+      if (monto > APUESTA_MAXIMA) {
+        return no(`Cada ficha puede ser de ${APUESTA_MAXIMA} como mucho.`);
+      }
+      limpias.push({ id: def.id, monto });
+    }
+
+    const total = limpias.reduce((s, a) => s + a.monto, 0);
+    if (total > (await saldoDe(sesion.usuario))) {
+      return no('No te alcanzan las fichas para todo lo que pusiste.');
+    }
 
     const numero = girar();
-    const jugada = resolverApuesta({
-      tipo,
-      valor,
-      apuesta: validada.apuesta,
-      numero,
-    });
-    if (jugada.error) return NextResponse.json({ error: jugada.error }, { status: 400 });
+    const resultados = limpias.map((a) => resolverApuesta({ ...a, numero }));
+    const premio = resultados.reduce((s, r) => s + r.premio, 0);
+    const ganadoras = resultados.filter((r) => r.gano);
 
     const { saldo, neto } = await resolver({
       usuario: sesion.usuario,
       juego: 'ruleta',
-      apuesta: validada.apuesta,
-      premio: jugada.premio,
-      detalle: `${jugada.etiqueta} · salió ${numero} ${color(numero)}`,
+      apuesta: total,
+      premio,
+      detalle:
+        `Salió ${numero} ${color(numero)} · ${limpias.length} ficha(s)` +
+        (ganadoras.length
+          ? `, acertó ${ganadoras.map((r) => r.etiqueta).join(' y ')}`
+          : ', ninguna acertó'),
     });
 
     return NextResponse.json({
       numero,
       color: color(numero),
-      gano: jugada.gano,
-      premio: jugada.premio,
+      resultados,
+      apuestaTotal: total,
+      premio,
       neto,
       saldo,
-      etiqueta: jugada.etiqueta,
+      gano: premio > 0,
     });
   } catch (e) {
     return NextResponse.json({ error: `No se pudo jugar: ${e.message}` }, { status: 500 });
