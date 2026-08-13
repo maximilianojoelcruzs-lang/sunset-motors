@@ -4,10 +4,20 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import Barra from '../barra';
 import useSondeo from '../sondeo';
 import useVoz, { comoSeDice } from './voz';
-import { CATEGORIAS, GRUPOS, categoria } from '../../lib/tunning-categorias';
+import { soloHora } from '../../lib/tiempo';
+import {
+  CATEGORIAS,
+  GRUPOS,
+  categoria,
+  interpretarLista,
+} from '../../lib/tunning-categorias';
 
 const nombreDe = (p) => categoria(p.categoria)?.nombre ?? p.etiqueta;
 const esTexto = (p) => Boolean(categoria(p.categoria)?.texto);
+
+// Un pedido ya no lleva patente: se distingue por cuándo se abrió. Los viejos que la tengan
+// guardada la siguen mostrando, para no dejar en blanco lo que hasta ayer tenía nombre.
+const rotulo = (p) => p?.patente || `Pedido · ${soloHora(p.creado)}`;
 
 /** Una fila de la lista de trabajo. Grande, porque se lee de reojo. */
 function Fila({ pieza, siguiente, onMarcar, onQuitar, bloqueado }) {
@@ -43,10 +53,12 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
   const [pedidos, setPedidos] = useState(iniciales);
   const [turno, setTurno] = useState(turnoPropio);
   const [abiertoId, setAbiertoId] = useState(iniciales.find((p) => !p.cerrado)?.id ?? null);
-  const [patente, setPatente] = useState('');
   const [cat, setCat] = useState('parachoques');
   const [valor, setValor] = useState('');
   const [otra, setOtra] = useState('');
+  // 'nuevo' abre un pedido con lo pegado; 'agregar' lo suma al que ya está abierto.
+  const [pegando, setPegando] = useState(null);
+  const [pegado, setPegado] = useState('');
   const [modoTrabajo, setModoTrabajo] = useState(false);
   const [error, setError] = useState(fallo);
   const [ocupado, setOcupado] = useState(false);
@@ -95,26 +107,43 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
       body: JSON.stringify(cambios),
     });
 
-  const crear = async (e) => {
-    e.preventDefault();
-    const r = await pedir('/api/tunning', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ patente }),
-    });
-    if (r?.pedido) {
-      setAbiertoId(r.pedido.id);
-      setPatente('');
-    }
+  // ---------- Pegar el pedido entero ----------
+  //
+  // Se interpreta en el navegador y se enseña **antes** de guardar. Un intérprete que adivina
+  // mal en silencio deja el pedido mintiendo, y eso no se nota hasta que el auto sale mal.
+  const leidas = useMemo(() => interpretarLista(pegado), [pegado]);
+  const buenas = leidas.filter((f) => f.valor);
+  const sinNumero = leidas.length - buenas.length;
+
+  const guardarPegado = async () => {
+    const entradas = buenas.map((f) => ({
+      categoria: f.categoria,
+      etiqueta: f.etiqueta,
+      valor: f.valor,
+    }));
+
+    const r =
+      pegando === 'nuevo'
+        ? await pedir('/api/tunning', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ piezas: entradas }),
+          })
+        : await patch({ agregar: entradas });
+
+    if (!r) return;
+    if (r.pedido) setAbiertoId(r.pedido.id);
+    setPegado('');
+    setPegando(null);
   };
 
   const agregar = async (e) => {
     e.preventDefault();
     const enviar = { categoria: cat === 'otra' ? null : cat, etiqueta: otra, valor };
 
-    // Se vacía **antes** de mandar, no al volver la respuesta. Cargando treinta piezas se
-    // escribe la siguiente mientras la anterior viaja, y limpiar al volver borraba lo recién
-    // tecleado: la pieza se perdía sin decir nada. Pasó en la primera prueba.
+    // Se vacía **antes** de mandar, no al volver la respuesta. Escribiendo una tras otra se
+    // teclea la siguiente mientras la anterior viaja, y limpiar al volver borraba lo recién
+    // escrito: la pieza se perdía sin decir nada. Pasó en la primera prueba.
     setValor('');
     setOtra('');
     // El foco vuelve al número: se carga el pedido entero sin tocar el mouse.
@@ -137,7 +166,7 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
     decir(
       queda
         ? comoSeDice(nombreDe(queda), queda.valor, esTexto(queda))
-        : `Listo. ${r.pedido.patente} terminado.`
+        : 'Listo. El pedido está terminado.'
     );
   };
 
@@ -180,36 +209,111 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
             <h1 className="titulo-texto">Tunning</h1>
             <p className="titulo-bajada">La lista de piezas, ordenada como el menú del juego</p>
           </div>
-          {disponible && (
+          <span className="fila-acciones">
             <button
               type="button"
-              className={`accion ${encendida ? 'destacada' : ''}`}
-              onClick={alternar}
-              title="Canta en voz alta la pieza que viene"
+              className="accion"
+              disabled={ocupado}
+              onClick={() => {
+                setPegando('nuevo');
+                setPegado('');
+              }}
             >
-              {encendida ? '🔊 Voz encendida' : '🔇 Voz apagada'}
+              Nuevo pedido
             </button>
-          )}
+            {disponible && (
+              <button
+                type="button"
+                className={`accion ${encendida ? 'destacada' : ''}`}
+                onClick={alternar}
+                title="Canta en voz alta la pieza que viene"
+              >
+                {encendida ? '🔊 Voz encendida' : '🔇 Voz apagada'}
+              </button>
+            )}
+          </span>
         </header>
 
         {error && <p className="panel-error">{error}</p>}
 
-        <form className="tun-nuevo" onSubmit={crear}>
-          <label className="campo-inline">
-            <span>Patente</span>
-            <input
-              value={patente}
-              onChange={(e) => setPatente(e.target.value.toUpperCase())}
-              placeholder="QB7075H6"
-              maxLength={8}
+        {/* ---------- Pegar la lista de una vez ---------- */}
+        {pegando && (
+          <section className="tun-pegar">
+            <h2 className="ref-titulo">
+              {pegando === 'nuevo' ? 'Pega el pedido' : 'Pega más piezas'}
+            </h2>
+            <p className="tun-ayuda">
+              Una pieza por línea, tal como la canta la tablet. Da igual el formato:{' '}
+              <code>Parachoques delantero: 4</code>, <code>Techo 4</code> o <code>- Llantas 12</code>.
+            </p>
+
+            <textarea
+              className="tun-textarea"
+              value={pegado}
+              onChange={(e) => setPegado(e.target.value)}
+              rows={10}
               spellCheck={false}
-              required
+              autoFocus
+              placeholder={'Color primario: METÁLICO - RGB(84,118,204)\nParachoques delantero: 4\nLlantas 12\nTinte de ventanas 3'}
             />
-          </label>
-          <button type="submit" className="accion destacada" disabled={ocupado}>
-            Abrir pedido
-          </button>
-        </form>
+
+            {leidas.length > 0 && (
+              <>
+                <p className="tun-resumen">
+                  {buenas.length} pieza{buenas.length === 1 ? '' : 's'} reconocida
+                  {buenas.length === 1 ? '' : 's'}
+                  {/* Decir «1 sin número» y no cuál obliga a ir a buscarla, y la lista de la
+                      vista previa lleva su propio scroll: puede estar fuera de la vista. */}
+                  {sinNumero > 0 && (
+                    <em>
+                      {' '}
+                      · {sinNumero} sin número, {sinNumero === 1 ? 'queda' : 'quedan'} fuera:{' '}
+                      {leidas
+                        .filter((f) => !f.valor)
+                        .slice(0, 4)
+                        .map((f) => categoria(f.categoria)?.nombre ?? f.etiqueta)
+                        .join(', ')}
+                      {sinNumero > 4 ? '…' : ''}
+                    </em>
+                  )}
+                </p>
+                <ul className="tun-vista">
+                  {leidas.map((f, i) => (
+                    <li key={i} className={f.valor ? '' : 'falta'}>
+                      <span className={f.categoria ? '' : 'propia'}>
+                        {categoria(f.categoria)?.nombre ?? f.etiqueta}
+                      </span>
+                      <span>{f.valor || 'sin número'}</span>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+
+            <div className="fila-acciones">
+              <button
+                type="button"
+                className="accion destacada"
+                disabled={ocupado || (pegando === 'agregar' && !buenas.length)}
+                onClick={guardarPegado}
+              >
+                {buenas.length
+                  ? `Guardar ${buenas.length} pieza${buenas.length === 1 ? '' : 's'}`
+                  : 'Abrir el pedido vacío'}
+              </button>
+              <button
+                type="button"
+                className="accion"
+                onClick={() => {
+                  setPegando(null);
+                  setPegado('');
+                }}
+              >
+                Cancelar
+              </button>
+            </div>
+          </section>
+        )}
 
         {abiertos.length > 1 && (
           <div className="tun-pestanas">
@@ -220,7 +324,7 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
                 className={`tun-pestana ${p.id === abiertoId ? 'activa' : ''}`}
                 onClick={() => setAbiertoId(p.id)}
               >
-                {p.patente}
+                {rotulo(p)}
                 <em>
                   {p.piezas.filter((x) => x.hecha).length}/{p.piezas.length}
                 </em>
@@ -230,17 +334,19 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
         )}
 
         {!pedido ? (
-          <p className="vacio">
-            {abiertos.length === 0
-              ? 'No hay pedidos abiertos. Escribe la patente y abre uno.'
-              : 'Elige un pedido.'}
-          </p>
+          !pegando && (
+            <p className="vacio">
+              {abiertos.length === 0
+                ? 'No hay pedidos abiertos. Pulsa «Nuevo pedido» y pega la lista.'
+                : 'Elige un pedido.'}
+            </p>
+          )
         ) : modoTrabajo ? (
           /* ---------- Modo trabajo: una sola pieza, enorme ---------- */
           <section className="tun-trabajo">
             <div className="tun-progreso">
               <span>
-                {pedido.patente} · {hechas} de {piezas.length}
+                {hechas} de {piezas.length}
               </span>
               <span className="tun-barra" aria-hidden="true">
                 <span style={{ width: `${piezas.length ? (hechas / piezas.length) * 100 : 0}%` }} />
@@ -288,7 +394,7 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
           <section className="tun-lista">
             <div className="tun-cabeza">
               <h2 className="ref-titulo">
-                {pedido.patente} <span className="doc-cuenta">{hechas}/{piezas.length}</span>
+                {rotulo(pedido)} <span className="doc-cuenta">{hechas}/{piezas.length}</span>
               </h2>
               <span className="fila-acciones">
                 {piezas.length > 0 && (
@@ -303,6 +409,16 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
                 <button
                   type="button"
                   className="accion"
+                  onClick={() => {
+                    setPegando('agregar');
+                    setPegado('');
+                  }}
+                >
+                  Pegar lista
+                </button>
+                <button
+                  type="button"
+                  className="accion"
                   disabled={ocupado}
                   onClick={() => patch({ cerrado: true })}
                 >
@@ -313,7 +429,7 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
                   className="accion peligro"
                   disabled={ocupado}
                   onClick={() => {
-                    if (!window.confirm(`¿Eliminar el pedido de ${pedido.patente}?`)) return;
+                    if (!window.confirm('¿Eliminar este pedido?')) return;
                     pedir(`/api/tunning/${pedido.id}`, { method: 'DELETE' }).then(() =>
                       setAbiertoId(null)
                     );
@@ -365,7 +481,8 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
 
             {piezas.length === 0 ? (
               <p className="vacio">
-                Añade las piezas del pedido: la categoría y el número que hay que elegir.
+                Pega la lista del pedido, o añade las piezas de a una con el formulario de
+                arriba.
               </p>
             ) : (
               porGrupo.map(([grupo, lista]) => (
@@ -395,7 +512,7 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
             <ul className="tun-cerrados">
               {cerrados.slice(0, 8).map((p) => (
                 <li key={p.id}>
-                  <strong>{p.patente}</strong>
+                  <strong>{rotulo(p)}</strong>
                   <em>{p.piezas.length} piezas · {p.creadoPor}</em>
                   <button
                     type="button"

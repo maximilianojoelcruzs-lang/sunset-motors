@@ -147,18 +147,18 @@ export default function Barra({
                   Licencias
                 </Link>
                 <Link
-                  className={`barra-enlace ${seccion === 'devoluciones' ? 'activo' : ''}`}
-                  href="/devoluciones"
-                  aria-current={seccion === 'devoluciones' ? 'page' : undefined}
-                >
-                  Devoluciones
-                </Link>
-                <Link
                   className={`barra-enlace ${seccion === 'tunning' ? 'activo' : ''}`}
                   href="/tunning"
                   aria-current={seccion === 'tunning' ? 'page' : undefined}
                 >
                   Tunning
+                </Link>
+                <Link
+                  className={`barra-enlace ${seccion === 'devoluciones' ? 'activo' : ''}`}
+                  href="/devoluciones"
+                  aria-current={seccion === 'devoluciones' ? 'page' : undefined}
+                >
+                  Devoluciones
                 </Link>
                 <Link
                   className={`barra-enlace ${seccion === 'anuncios' ? 'activo' : ''}`}

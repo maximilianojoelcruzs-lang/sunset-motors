@@ -459,10 +459,16 @@ para crear el bucket.
 
 Pestaña **Tunning**, para no tener que volver a mirar la tablet cada dos piezas.
 
-Se abre un pedido con la **patente** del auto y se carga la lista que canta la tablet. De cada
-pieza se anota **la categoría y el número**, que es lo único que se usa dentro del menú del
-juego: se elige «Parachoques» del desplegable, se escribe `4` y se pulsa **Añadir**. El nombre
-largo del pedido no hace falta, y por eso cargar treinta líneas toma un par de minutos.
+Se pulsa **Nuevo pedido** y se **pega la lista completa** tal como la canta la tablet, una pieza
+por línea. Da igual el formato: `Parachoques delantero: 4`, `Techo 4` o `- Llantas 12` entran
+igual, y también reconoce los nombres de todos los días —rines, spoiler, polarizado, bocina—.
+Antes de guardar se muestra lo que entendió, para revisarlo de un vistazo; las líneas a las que
+les falta el número se marcan en rojo, se dicen por su nombre y quedan fuera. Treinta piezas
+entran de una sola vez, en menos de un segundo.
+
+De cada pieza se anota **la categoría y el número**, que es lo único que se usa dentro del menú
+del juego. El nombre largo del pedido no hace falta. Si después llega una pieza más, se añade de
+a una con el desplegable, o se vuelve a pegar una lista con **Pegar lista**.
 
 **La lista se ordena sola como el menú del juego, no como llega el pedido.** El pedido viene
 revuelto —un color, un techo, otro color— y seguirlo así obliga a entrar y salir del mismo
@@ -477,7 +483,8 @@ Con la **voz encendida**, al marcar una pieza se canta la siguiente en voz alta 
 cuatro»— y no hace falta mirar la pantalla. Se apaga con el botón de arriba a la derecha.
 
 Al terminar el auto se **cierra** el pedido. Los cerrados quedan abajo un tiempo por si hay que
-consultarlos.
+consultarlos. Un pedido no lleva patente: se abre, se trabaja y se cierra mientras el auto está
+en el elevador, y se distingue por la hora en que se abrió.
 
 ## Anuncios
 

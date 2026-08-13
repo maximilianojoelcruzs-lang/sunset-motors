@@ -912,12 +912,95 @@ button {
 
 /* ---------- Tunning ---------- */
 
-.tun-nuevo {
+/* Pegar el pedido entero. La vista previa va antes del botón de guardar a propósito:
+   se mira lo que entendió y recién después se guarda. */
+.tun-pegar {
+  margin-bottom: 20px;
+  padding: 16px;
+  border: 1px solid var(--bay-line);
+  border-radius: 8px;
+  background: var(--bay-2);
+}
+
+.tun-ayuda {
+  margin: 4px 0 12px;
+  font-size: 0.78rem;
+  color: #9c9384;
+}
+
+.tun-ayuda code {
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.06);
+  font-family: var(--font-data), monospace;
+  font-size: 0.74rem;
+  color: #cfc6b6;
+}
+
+.tun-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--bay-line);
+  border-radius: 5px;
+  background: var(--bay);
+  color: var(--ticket);
+  font-family: var(--font-data), monospace;
+  font-size: 0.82rem;
+  line-height: 1.7;
+  resize: vertical;
+}
+
+.tun-resumen {
+  margin: 12px 0 6px;
+  font-size: 0.78rem;
+  color: var(--ticket);
+}
+
+.tun-resumen em {
+  font-style: normal;
+  color: #e0663c;
+}
+
+.tun-vista {
+  max-height: 260px;
+  overflow-y: auto;
+  margin-bottom: 14px;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--bay-line);
+  border-radius: 5px;
+}
+
+.tun-vista li {
   display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
+  justify-content: space-between;
   gap: 12px;
-  margin-bottom: 18px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.tun-vista li:last-child {
+  border-bottom: 0;
+}
+
+.tun-vista li span:last-child {
+  font-family: var(--font-data), monospace;
+  color: var(--amber);
+}
+
+/* Lo que no se reconoció como categoría entra igual, con el nombre tal cual se escribió. */
+.tun-vista li span.propia {
+  font-style: italic;
+  color: #9c9384;
+}
+
+.tun-vista li.falta {
+  background: rgba(224, 102, 60, 0.09);
+}
+
+.tun-vista li.falta span:last-child {
+  color: #e0663c;
 }
 
 .tun-pestanas {

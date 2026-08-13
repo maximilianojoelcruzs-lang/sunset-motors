@@ -471,18 +471,49 @@ sin que nadie pueda volver a verla.
 ## Pedidos de tunning
 
 **[app/tunning/](app/tunning/)** — la copia de trabajo del pedido que canta la tablet del juego.
-Un pedido es `{ id, patente, creadoPor, creado, cerrado, piezas: [{ id, categoria, etiqueta,
-valor, hecha }] }` en `sunset:tunning`.
+Un pedido es `{ id, creadoPor, creado, cerrado, piezas: [{ id, categoria, etiqueta, valor,
+hecha }] }` en `sunset:tunning`.
 
 El problema que resuelve: el pedido puede traer más de treinta líneas y hay que volver a mirarlo
 en la tablet cada dos piezas. Acá se marca cada una al instalarla.
+
+**Un pedido no lleva patente.** Se abre, se trabaja y se cierra en el rato que el auto está en el
+elevador; escribirla era un trámite antes de empezar que después no servía para nada. Se
+distinguen por la hora en que se abrieron (`rotulo()` en la pantalla). Los pedidos viejos que
+tengan `patente` guardada la siguen mostrando — el campo no se migra, se ignora.
 
 ### Se guarda la categoría y el número, no el nombre largo
 
 En el menú del juego se entra a «Parachoques» y se elige el 4. El nombre bonito del pedido
 («Parachoques delantero de fibra Mk2») **no se usa para nada mientras se instala**, y escribirlo
-entero treinta veces es lo que hace que nadie use la lista. Por eso cargar una pieza son dos
-gestos: elegir la categoría de un `<select>` y escribir el número.
+entero treinta veces es lo que hace que nadie use la lista.
+
+### El pedido entra pegado, de una vez
+
+Cargar treinta piezas de a una son treinta idas al servidor —y contra Supabase cada una lee y
+reescribe la colección entera— más treinta oportunidades de perder el hilo. Se pega la lista tal
+como la canta la tablet y **entra en una sola escritura**: `crear()` acepta las piezas en la
+misma llamada que la creación, y `agregar()` acepta un objeto o un arreglo. Medido: 30 líneas de
+punta a punta en 261 ms.
+
+`interpretarLinea()` vive en `tunning-categorias.js` porque la vista previa corre en el
+navegador. Reconoce «Parachoques delantero: 4», «Techo 4», «- Llantas 12» y «2. Escape = 2», y
+lleva una tabla de `ALIAS` porque la tablet y la gente no usan el mismo nombre (rines, spoiler,
+polarizado…). Dos reglas que no hay que aflojar:
+
+- **Los nombres se prueban del más largo al más corto.** Si «Parachoques» se probara antes que
+  «Parachoques delantero», todo delantero quedaría como parachoques a secas y el número
+  apuntaría a otro submenú.
+- **Lo que no reconoce no se tira**: vuelve con `categoria: null` y el texto tal cual, igual que
+  una categoría escrita a mano. Perder una línea en silencio es el peor de los dos errores.
+
+**Lo interpretado se enseña antes de guardar.** Un intérprete que adivina mal sin avisar deja el
+pedido mintiendo y eso no se nota hasta que el auto sale mal. Las líneas sin número quedan fuera
+y **se nombran** en el resumen: decir «1 sin número» y no cuál obliga a ir a buscarla, y la lista
+de la vista previa tiene su propio scroll.
+
+Cargar una pieza suelta sigue siendo dos gestos —categoría del `<select>` y número—, para lo que
+llega después de empezar.
 
 ### El orden de la lista es el del menú, no el de llegada
 

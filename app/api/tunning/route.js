@@ -33,15 +33,20 @@ export async function GET() {
   }
 }
 
-/** POST /api/tunning  body: { patente } */
+/**
+ * POST /api/tunning  body: { piezas: [{ categoria, etiqueta, valor }] }
+ *
+ * Las piezas van en la misma llamada que la creación a propósito: pegar un pedido de treinta
+ * líneas tiene que ser una escritura, no una más treinta.
+ */
 export async function POST(peticion) {
   const { sesion, corte } = await exigirTaller();
   if (corte) return corte;
 
-  const { patente } = await peticion.json().catch(() => ({}));
+  const { piezas } = await peticion.json().catch(() => ({}));
 
   try {
-    const { error, pedido } = await crear(sesion.usuario, patente);
+    const { error, pedido } = await crear(sesion.usuario, Array.isArray(piezas) ? piezas : []);
     if (error) return NextResponse.json({ error }, { status: 400 });
     return NextResponse.json({ pedido });
   } catch (e) {

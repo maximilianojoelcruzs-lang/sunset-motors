@@ -18,7 +18,7 @@ async function exigirTaller() {
 /**
  * PATCH /api/tunning/:id
  *
- *   { agregar: { categoria, etiqueta, valor } }   añade una pieza
+ *   { agregar: pieza | [piezas] }                 añade una pieza o el pedido entero
  *   { pieza, hecha }                              marca o desmarca
  *   { quitar }                                    saca una pieza
  *   { cerrado }                                   cierra o reabre el pedido
