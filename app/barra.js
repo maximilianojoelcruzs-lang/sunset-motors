@@ -154,6 +154,13 @@ export default function Barra({
                   Devoluciones
                 </Link>
                 <Link
+                  className={`barra-enlace ${seccion === 'tunning' ? 'activo' : ''}`}
+                  href="/tunning"
+                  aria-current={seccion === 'tunning' ? 'page' : undefined}
+                >
+                  Tunning
+                </Link>
+                <Link
                   className={`barra-enlace ${seccion === 'anuncios' ? 'activo' : ''}`}
                   href="/anuncios"
                   aria-current={seccion === 'anuncios' ? 'page' : undefined}

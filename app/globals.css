@@ -910,6 +910,284 @@ button {
   cursor: pointer;
 }
 
+/* ---------- Tunning ---------- */
+
+.tun-nuevo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.tun-pestanas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.tun-pestana {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid var(--bay-line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #cfc6b6;
+  font-family: var(--font-data), monospace;
+  font-size: 0.78rem;
+}
+
+.tun-pestana em {
+  font-style: normal;
+  font-size: 0.68rem;
+  color: #7d766a;
+}
+
+.tun-pestana.activa {
+  border-color: var(--amber);
+  background: rgba(255, 157, 46, 0.12);
+  color: var(--ticket);
+}
+
+.tun-cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.tun-agregar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.tun-agregar select,
+.tun-agregar input {
+  padding: 9px 12px;
+  background: var(--bay-2);
+  border: 1px solid var(--bay-line);
+  border-radius: 5px;
+  color: var(--ticket);
+  font-size: 0.82rem;
+}
+
+/* El número es lo que se teclea treinta veces: chico, y con el foco de vuelta encima. */
+.tun-numero {
+  width: 150px;
+  font-family: var(--font-data), monospace;
+}
+
+.tun-grupo-titulo {
+  margin: 16px 0 6px;
+  font-size: 0.66rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--amber);
+}
+
+.tun-filas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+
+/* Las filas son grandes a propósito: se leen de reojo, con el juego al lado. */
+.tun-fila {
+  display: grid;
+  grid-template-columns: 34px 1fr auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--bay-2);
+  border: 1px solid var(--bay-line);
+  border-left: 3px solid transparent;
+  border-radius: 6px;
+  transition: border-color 0.15s ease, opacity 0.15s ease;
+}
+
+.tun-fila.siguiente {
+  border-left-color: var(--amber);
+  background: rgba(255, 157, 46, 0.08);
+}
+
+.tun-fila.hecha {
+  opacity: 0.45;
+}
+
+.tun-fila.hecha .tun-categoria {
+  text-decoration: line-through;
+}
+
+.tun-marca {
+  width: 30px;
+  height: 30px;
+  border: 2px solid var(--bay-line);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--amber);
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.tun-fila.hecha .tun-marca {
+  border-color: var(--amber);
+}
+
+.tun-categoria {
+  font-size: 0.95rem;
+  color: var(--ticket);
+}
+
+.tun-valor {
+  font-family: var(--font-data), monospace;
+  font-size: 1.2rem;
+  color: var(--amber);
+}
+
+.tun-quitar {
+  width: 26px;
+  height: 26px;
+  border-radius: 5px;
+  background: none;
+  border: none;
+  color: #7d766a;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.tun-quitar:hover {
+  color: var(--rojo, #c02334);
+}
+
+/* ---------- Modo trabajo ---------- */
+
+.tun-trabajo {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 40px 20px 30px;
+  background: var(--bay-2);
+  border: 1px solid var(--bay-line);
+  border-radius: 10px;
+  text-align: center;
+}
+
+.tun-progreso {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  max-width: 420px;
+  font-family: var(--font-data), monospace;
+  font-size: 0.76rem;
+  color: #948c7d;
+}
+
+.tun-barra {
+  display: block;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.tun-barra span {
+  display: block;
+  height: 100%;
+  background: var(--strip, var(--amber));
+  transition: width 0.3s ease;
+}
+
+.tun-grande-rotulo {
+  margin: 18px 0 0;
+  font-size: 0.7rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #7d766a;
+}
+
+.tun-grande-categoria {
+  margin: 0;
+  font-family: var(--font-stencil), var(--font-ui), sans-serif;
+  font-size: clamp(2rem, 7vw, 3.4rem);
+  line-height: 1.05;
+  color: var(--ticket);
+}
+
+/* El número es lo único que se copia al menú del juego: va más grande que el nombre. */
+.tun-grande-valor {
+  margin: 0;
+  font-family: var(--font-data), monospace;
+  font-size: clamp(3.4rem, 16vw, 7rem);
+  line-height: 1;
+  color: var(--amber);
+  text-shadow: 0 0 40px rgba(255, 157, 46, 0.35);
+}
+
+.tun-grande-valor.texto {
+  font-size: clamp(1.1rem, 4vw, 1.8rem);
+  text-shadow: none;
+}
+
+.tun-hecha {
+  margin: 22px 0 6px;
+  padding: 18px 42px;
+  border: none;
+  border-radius: 999px;
+  background: var(--strip, var(--amber));
+  color: #14100a;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.tun-hecha:disabled {
+  opacity: 0.6;
+}
+
+.tun-cerrados {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.tun-cerrados li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.82rem;
+}
+
+.tun-cerrados em {
+  margin-left: auto;
+  font-style: normal;
+  font-size: 0.7rem;
+  color: #7d766a;
+}
+
+@media (max-width: 520px) {
+  .tun-fila {
+    grid-template-columns: 30px 1fr auto auto;
+    gap: 8px;
+  }
+
+  .tun-numero {
+    width: 100%;
+  }
+}
+
 /* ---------- Anuncios: bloques ---------- */
 
 .bloque {

@@ -455,6 +455,30 @@ la envía y cuando se resuelve.
 cualquier otro le responde «No autorizado», aunque tenga el enlace. Ver [PUBLICAR.md](PUBLICAR.md)
 para crear el bucket.
 
+## Tunning
+
+Pestaña **Tunning**, para no tener que volver a mirar la tablet cada dos piezas.
+
+Se abre un pedido con la **patente** del auto y se carga la lista que canta la tablet. De cada
+pieza se anota **la categoría y el número**, que es lo único que se usa dentro del menú del
+juego: se elige «Parachoques» del desplegable, se escribe `4` y se pulsa **Añadir**. El nombre
+largo del pedido no hace falta, y por eso cargar treinta líneas toma un par de minutos.
+
+**La lista se ordena sola como el menú del juego, no como llega el pedido.** El pedido viene
+revuelto —un color, un techo, otro color— y seguirlo así obliga a entrar y salir del mismo
+submenú todo el rato. Ordenada, se baja una vez por sección: primero todos los colores, después
+las ruedas, después la carrocería. Se marca cada pieza al instalarla y lo marcado queda guardado:
+si se cierra la pestaña o se cambia de computador, la lista sigue donde iba.
+
+**Modo trabajo** deja una sola pieza en pantalla, en grande, con un botón *Hecha · siguiente*.
+Es para mirar de reojo mientras se navega el menú del juego.
+
+Con la **voz encendida**, al marcar una pieza se canta la siguiente en voz alta — «Techo, número
+cuatro»— y no hace falta mirar la pantalla. Se apaga con el botón de arriba a la derecha.
+
+Al terminar el auto se **cierra** el pedido. Los cerrados quedan abajo un tiempo por si hay que
+consultarlos.
+
 ## Anuncios
 
 Pestaña **Anuncios**, con dos partes.
@@ -559,6 +583,8 @@ app/
   boleta.js     la calculadora completa
   marcaje.js    la barra de entrada/salida
   login/        formulario de entrada
+  tunning/      la lista de piezas por patente, en orden del menú del juego
+  casino/       las mesas
   admin/        registro de turnos (panel.js) y cuentas (mecanicos.js)
   api/          login, logout, turnos y usuarios
   globals.css   estilos
@@ -569,6 +595,7 @@ lib/
   servidor.js   lee la sesión desde páginas y route handlers
   hash.mjs      parámetros del hash de claves
   turnos.js     abrir, cerrar, corregir y borrar turnos
+  tunning.js    pedidos de tunning · tunning-categorias.js, el orden del menú
   almacen.js    dónde se guarda todo (Redis o archivo)
   tiempo.js     formato de horas, siempre en hora de Chile
 scripts/

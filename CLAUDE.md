@@ -468,6 +468,64 @@ tipo declarado y el real no calzan, se rechaza. SVG queda fuera a propósito —
 Al reemplazar la captura de una devolución se borra la anterior; si no, quedaría ocupando espacio
 sin que nadie pueda volver a verla.
 
+## Pedidos de tunning
+
+**[app/tunning/](app/tunning/)** — la copia de trabajo del pedido que canta la tablet del juego.
+Un pedido es `{ id, patente, creadoPor, creado, cerrado, piezas: [{ id, categoria, etiqueta,
+valor, hecha }] }` en `sunset:tunning`.
+
+El problema que resuelve: el pedido puede traer más de treinta líneas y hay que volver a mirarlo
+en la tablet cada dos piezas. Acá se marca cada una al instalarla.
+
+### Se guarda la categoría y el número, no el nombre largo
+
+En el menú del juego se entra a «Parachoques» y se elige el 4. El nombre bonito del pedido
+(«Parachoques delantero de fibra Mk2») **no se usa para nada mientras se instala**, y escribirlo
+entero treinta veces es lo que hace que nadie use la lista. Por eso cargar una pieza son dos
+gestos: elegir la categoría de un `<select>` y escribir el número.
+
+### El orden de la lista es el del menú, no el de llegada
+
+`ordenar()` en [lib/tunning.js](lib/tunning.js) usa `ordenDe()` de
+**[lib/tunning-categorias.js](lib/tunning-categorias.js)**, donde `orden` **no se escribe: es la
+posición en el arreglo**. Mover una categoría de sitio ahí cambia el orden de trabajo en toda la
+app. Ese orden es el punto entero de la pantalla: siguiendo el pedido tal como llega se entra y
+se sale del mismo submenú una y otra vez; ordenado como el menú se baja una sola vez por sección
+y no se vuelve atrás.
+
+Dentro de una categoría se ordena por número (`localeCompare` con `numeric`). **Las piezas hechas
+no se mueven de sitio** — reordenar la lista bajo los ojos de alguien que está trabajando es la
+forma más rápida de que instale la pieza equivocada.
+
+`tunning-categorias.js` va aparte de `tunning.js` por lo de siempre: la pantalla es cliente y
+`tunning.js` arrastra `lib/almacen.js` (`node:fs`). Mismo caso que `fichas-limites.js`.
+
+`texto: true` marca las categorías que no llevan número sino descripción — los colores, que
+vienen como «METÁLICO - RGB(84,118,204)». `ordenDe()` manda al final lo que no esté en el
+catálogo, en vez de perderlo: el almacén puede tener categorías que el código ya no.
+
+### Modo trabajo y voz
+
+*Modo trabajo* muestra **una sola pieza a pantalla completa** y un botón. Es para mirar de reojo
+desde el otro monitor mientras se navega el menú del juego, no para leer una tabla.
+
+La voz ([app/tunning/voz.js](app/tunning/voz.js)) canta la siguiente al marcar la anterior, con
+la Web Speech API del navegador — sin servicio externo. `comoSeDice()` dice «Techo, número
+cuatro» y no lee el identificador. Dos detalles que parecen de más y no lo son: las voces del
+sistema **llegan tarde** (hay que escuchar `voiceschanged`, si no la primera frase sale muda), y
+se `cancel()` antes de hablar, porque marcando rápido se encolan y la voz queda atrasada varias
+piezas.
+
+### El campo se vacía antes de mandar, no al volver la respuesta
+
+Cargando treinta piezas se escribe la siguiente mientras la anterior viaja. Limpiando al volver
+la respuesta se borraba lo recién tecleado y **la pieza se perdía sin decir nada**: se cargaban
+diez y entraban nueve. Si falla el envío se repone lo escrito, pero solo si el campo sigue vacío.
+
+`agregar` y `quitar` son del route handler; toda la API pasa por `exigirTaller()`, así que un
+invitado del casino no entra. Se guardan los últimos 20 pedidos cerrados: sirven para consultar,
+no para siempre.
+
 ## Anuncios: flyers y mensajes
 
 **[lib/anuncios.js](lib/anuncios.js)** — dos colecciones separadas, `sunset:flyers` (imágenes) y
