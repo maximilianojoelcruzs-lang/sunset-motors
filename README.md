@@ -473,18 +473,13 @@ a una con el desplegable, o se vuelve a pegar una lista con **Pegar lista**.
 **La lista se ordena sola como el menú del juego, no como llega el pedido.** El pedido viene
 revuelto —un color, un techo, otro color— y seguirlo así obliga a entrar y salir del mismo
 submenú todo el rato. Ordenada, se baja una vez por sección: primero todos los colores, después
-las ruedas, después la carrocería. Se marca cada pieza al instalarla y lo marcado queda guardado:
-si se cierra la pestaña o se cambia de computador, la lista sigue donde iba.
+las ruedas, después la carrocería. Se marca cada pieza al instalarla —volver a pulsar la
+desmarca, y la × de la derecha la saca del pedido— y lo marcado queda guardado: si se cierra la
+pestaña o se cambia de computador, la lista sigue donde iba.
 
-**Modo trabajo** deja una sola pieza en pantalla, en grande, con un botón *Hecha · siguiente*.
-Es para mirar de reojo mientras se navega el menú del juego.
-
-Con la **voz encendida**, al marcar una pieza se canta la siguiente en voz alta — «Techo, número
-cuatro»— y no hace falta mirar la pantalla. Se apaga con el botón de arriba a la derecha.
-
-Al terminar el auto se **cierra** el pedido. Los cerrados quedan abajo un tiempo por si hay que
-consultarlos. Un pedido no lleva patente: se abre, se trabaja y se cierra mientras el auto está
-en el elevador, y se distingue por la hora en que se abrió.
+Al terminar el auto se **elimina** el pedido con el botón de la derecha. Un pedido no lleva
+patente: se abre, se trabaja y se elimina mientras el auto está en el elevador, y se distingue
+por la hora en que se abrió.
 
 ## Anuncios
 

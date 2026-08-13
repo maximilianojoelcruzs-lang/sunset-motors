@@ -535,17 +535,15 @@ forma más rápida de que instale la pieza equivocada.
 vienen como «METÁLICO - RGB(84,118,204)». `ordenDe()` manda al final lo que no esté en el
 catálogo, en vez de perderlo: el almacén puede tener categorías que el código ya no.
 
-### Modo trabajo y voz
+### La pantalla es solo el checklist
 
-*Modo trabajo* muestra **una sola pieza a pantalla completa** y un botón. Es para mirar de reojo
-desde el otro monitor mientras se navega el menú del juego, no para leer una tabla.
+Hubo un *modo trabajo* —una pieza a pantalla completa— y una voz que cantaba la siguiente con la
+Web Speech API. Los dos se probaron y **se quitaron a pedido del usuario**: en la práctica se
+trabaja mirando la lista entera y marcando. No los vuelvas a agregar sin que los pida.
 
-La voz ([app/tunning/voz.js](app/tunning/voz.js)) canta la siguiente al marcar la anterior, con
-la Web Speech API del navegador — sin servicio externo. `comoSeDice()` dice «Techo, número
-cuatro» y no lee el identificador. Dos detalles que parecen de más y no lo son: las voces del
-sistema **llegan tarde** (hay que escuchar `voiceschanged`, si no la primera frase sale muda), y
-se `cancel()` antes de hablar, porque marcando rápido se encolan y la voz queda atrasada varias
-piezas.
+Un pedido tampoco se **cierra**: se trabaja y se elimina. El bloque *Cerrados* de la pantalla
+sigue ahí solo para los que quedaron cerrados con la versión anterior — sin él no habría forma de
+volver a verlos ni de sacarlos. `cerrar()` y `{ cerrado }` en la API se quedan por eso.
 
 ### El campo se vacía antes de mandar, no al volver la respuesta
 

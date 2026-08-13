@@ -1,9 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import Barra from '../barra';
 import useSondeo from '../sondeo';
-import useVoz, { comoSeDice } from './voz';
 import { soloHora } from '../../lib/tiempo';
 import {
   CATEGORIAS,
@@ -13,9 +12,8 @@ import {
 } from '../../lib/tunning-categorias';
 
 const nombreDe = (p) => categoria(p.categoria)?.nombre ?? p.etiqueta;
-const esTexto = (p) => Boolean(categoria(p.categoria)?.texto);
 
-// Un pedido ya no lleva patente: se distingue por cuándo se abrió. Los viejos que la tengan
+// Un pedido no lleva patente: se distingue por cuándo se abrió. Los viejos que la tengan
 // guardada la siguen mostrando, para no dejar en blanco lo que hasta ayer tenía nombre.
 const rotulo = (p) => p?.patente || `Pedido · ${soloHora(p.creado)}`;
 
@@ -59,12 +57,9 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
   // 'nuevo' abre un pedido con lo pegado; 'agregar' lo suma al que ya está abierto.
   const [pegando, setPegando] = useState(null);
   const [pegado, setPegado] = useState('');
-  const [modoTrabajo, setModoTrabajo] = useState(false);
   const [error, setError] = useState(fallo);
   const [ocupado, setOcupado] = useState(false);
   const campoValor = useRef(null);
-
-  const { encendida, disponible, alternar, decir } = useVoz();
 
   const recargar = async () => {
     const r = await fetch('/api/tunning', { cache: 'no-store' });
@@ -157,27 +152,7 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
     }
   };
 
-  /** Marca y canta la que viene. Lo que se oye es la lista ya ordenada, no la del pedido. */
-  const marcar = async (pieza, hecha) => {
-    const r = await patch({ pieza: pieza.id, hecha });
-    if (!r?.pedido || !hecha) return;
-
-    const queda = r.pedido.piezas.find((p) => !p.hecha);
-    decir(
-      queda
-        ? comoSeDice(nombreDe(queda), queda.valor, esTexto(queda))
-        : 'Listo. El pedido está terminado.'
-    );
-  };
-
-  // Al entrar en modo trabajo se canta la pieza en la que se quedó.
-  useEffect(() => {
-    if (modoTrabajo && siguiente) {
-      decir(comoSeDice(nombreDe(siguiente), siguiente.valor, esTexto(siguiente)));
-    }
-    // Solo al encender el modo, no en cada pieza: de eso ya se encarga `marcar`.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [modoTrabajo]);
+  const marcar = (pieza, hecha) => patch({ pieza: pieza.id, hecha });
 
   const porGrupo = useMemo(() => {
     const grupos = new Map();
@@ -190,6 +165,8 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
   }, [piezas]);
 
   const abiertos = pedidos.filter((p) => !p.cerrado);
+  // Un pedido ya no se cierra: se trabaja y se elimina. Esto queda solo para los que quedaron
+  // cerrados con la versión anterior — si no, no habría forma de volver a verlos ni de sacarlos.
   const cerrados = pedidos.filter((p) => p.cerrado);
 
   return (
@@ -209,29 +186,17 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
             <h1 className="titulo-texto">Tunning</h1>
             <p className="titulo-bajada">La lista de piezas, ordenada como el menú del juego</p>
           </div>
-          <span className="fila-acciones">
-            <button
-              type="button"
-              className="accion"
-              disabled={ocupado}
-              onClick={() => {
-                setPegando('nuevo');
-                setPegado('');
-              }}
-            >
-              Nuevo pedido
-            </button>
-            {disponible && (
-              <button
-                type="button"
-                className={`accion ${encendida ? 'destacada' : ''}`}
-                onClick={alternar}
-                title="Canta en voz alta la pieza que viene"
-              >
-                {encendida ? '🔊 Voz encendida' : '🔇 Voz apagada'}
-              </button>
-            )}
-          </span>
+          <button
+            type="button"
+            className="accion"
+            disabled={ocupado}
+            onClick={() => {
+              setPegando('nuevo');
+              setPegado('');
+            }}
+          >
+            Nuevo pedido
+          </button>
         </header>
 
         {error && <p className="panel-error">{error}</p>}
@@ -293,7 +258,7 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
             <div className="fila-acciones">
               <button
                 type="button"
-                className="accion destacada"
+                className="tun-boton-pegar"
                 disabled={ocupado || (pegando === 'agregar' && !buenas.length)}
                 onClick={guardarPegado}
               >
@@ -341,88 +306,23 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
                 : 'Elige un pedido.'}
             </p>
           )
-        ) : modoTrabajo ? (
-          /* ---------- Modo trabajo: una sola pieza, enorme ---------- */
-          <section className="tun-trabajo">
-            <div className="tun-progreso">
-              <span>
-                {hechas} de {piezas.length}
-              </span>
-              <span className="tun-barra" aria-hidden="true">
-                <span style={{ width: `${piezas.length ? (hechas / piezas.length) * 100 : 0}%` }} />
-              </span>
-            </div>
-
-            {siguiente ? (
-              <>
-                <p className="tun-grande-rotulo">{categoria(siguiente.categoria)?.grupo ?? 'Otras'}</p>
-                <h2 className="tun-grande-categoria">{nombreDe(siguiente)}</h2>
-                <p className={`tun-grande-valor ${esTexto(siguiente) ? 'texto' : ''}`}>
-                  {siguiente.valor}
-                </p>
-
-                <button
-                  type="button"
-                  className="tun-hecha"
-                  disabled={ocupado}
-                  onClick={() => marcar(siguiente, true)}
-                >
-                  Hecha · siguiente
-                </button>
-              </>
-            ) : (
-              <>
-                <h2 className="tun-grande-categoria">Terminado</h2>
-                <p className="tun-grande-rotulo">Las {piezas.length} piezas están instaladas</p>
-                <button
-                  type="button"
-                  className="tun-hecha"
-                  disabled={ocupado}
-                  onClick={() => patch({ cerrado: true })}
-                >
-                  Cerrar el pedido
-                </button>
-              </>
-            )}
-
-            <button type="button" className="accion" onClick={() => setModoTrabajo(false)}>
-              Ver la lista completa
-            </button>
-          </section>
         ) : (
-          /* ---------- Lista completa ---------- */
           <section className="tun-lista">
             <div className="tun-cabeza">
               <h2 className="ref-titulo">
                 {rotulo(pedido)} <span className="doc-cuenta">{hechas}/{piezas.length}</span>
               </h2>
               <span className="fila-acciones">
-                {piezas.length > 0 && (
-                  <button
-                    type="button"
-                    className="accion destacada"
-                    onClick={() => setModoTrabajo(true)}
-                  >
-                    Modo trabajo
-                  </button>
-                )}
                 <button
                   type="button"
-                  className="accion"
+                  className="tun-boton-pegar"
+                  disabled={ocupado}
                   onClick={() => {
                     setPegando('agregar');
                     setPegado('');
                   }}
                 >
-                  Pegar lista
-                </button>
-                <button
-                  type="button"
-                  className="accion"
-                  disabled={ocupado}
-                  onClick={() => patch({ cerrado: true })}
-                >
-                  Cerrar
+                  📋 Pegar lista
                 </button>
                 <button
                   type="button"
@@ -506,7 +406,7 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
           </section>
         )}
 
-        {cerrados.length > 0 && !modoTrabajo && (
+        {cerrados.length > 0 && (
           <section className="bloque">
             <h2 className="ref-titulo">Cerrados</h2>
             <ul className="tun-cerrados">
@@ -537,8 +437,8 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
 
         <p className="pie">
           La lista se ordena como el menú del juego, no como llega el pedido: se baja una vez
-          por sección y no hay que volver atrás. Con la voz encendida, al marcar una pieza se
-          canta la siguiente y no hace falta mirar la pantalla.
+          por sección y no hay que volver atrás. Se marca cada pieza al instalarla; volver a
+          pulsar la desmarca.
         </p>
       </main>
     </>

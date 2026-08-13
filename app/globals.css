@@ -1003,6 +1003,41 @@ button {
   color: #e0663c;
 }
 
+/* Pegar la lista es por donde empieza todo el trabajo: no puede parecerse a «Eliminar». */
+.tun-boton-pegar {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 999px;
+  background: var(--strip, var(--amber));
+  color: #14100a;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  box-shadow: 0 4px 18px rgba(255, 157, 46, 0.22);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.tun-boton-pegar:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 22px rgba(255, 157, 46, 0.34);
+}
+
+.tun-boton-pegar:disabled {
+  opacity: 0.5;
+  box-shadow: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tun-boton-pegar {
+    transition: none;
+  }
+
+  .tun-boton-pegar:hover:not(:disabled) {
+    transform: none;
+  }
+}
+
 .tun-pestanas {
   display: flex;
   flex-wrap: wrap;
@@ -1152,89 +1187,6 @@ button {
 }
 
 /* ---------- Modo trabajo ---------- */
-
-.tun-trabajo {
-  display: grid;
-  justify-items: center;
-  gap: 10px;
-  padding: 40px 20px 30px;
-  background: var(--bay-2);
-  border: 1px solid var(--bay-line);
-  border-radius: 10px;
-  text-align: center;
-}
-
-.tun-progreso {
-  display: grid;
-  gap: 8px;
-  width: 100%;
-  max-width: 420px;
-  font-family: var(--font-data), monospace;
-  font-size: 0.76rem;
-  color: #948c7d;
-}
-
-.tun-barra {
-  display: block;
-  height: 5px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
-  overflow: hidden;
-}
-
-.tun-barra span {
-  display: block;
-  height: 100%;
-  background: var(--strip, var(--amber));
-  transition: width 0.3s ease;
-}
-
-.tun-grande-rotulo {
-  margin: 18px 0 0;
-  font-size: 0.7rem;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  color: #7d766a;
-}
-
-.tun-grande-categoria {
-  margin: 0;
-  font-family: var(--font-stencil), var(--font-ui), sans-serif;
-  font-size: clamp(2rem, 7vw, 3.4rem);
-  line-height: 1.05;
-  color: var(--ticket);
-}
-
-/* El número es lo único que se copia al menú del juego: va más grande que el nombre. */
-.tun-grande-valor {
-  margin: 0;
-  font-family: var(--font-data), monospace;
-  font-size: clamp(3.4rem, 16vw, 7rem);
-  line-height: 1;
-  color: var(--amber);
-  text-shadow: 0 0 40px rgba(255, 157, 46, 0.35);
-}
-
-.tun-grande-valor.texto {
-  font-size: clamp(1.1rem, 4vw, 1.8rem);
-  text-shadow: none;
-}
-
-.tun-hecha {
-  margin: 22px 0 6px;
-  padding: 18px 42px;
-  border: none;
-  border-radius: 999px;
-  background: var(--strip, var(--amber));
-  color: #14100a;
-  font-size: 1.05rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-}
-
-.tun-hecha:disabled {
-  opacity: 0.6;
-}
 
 .tun-cerrados {
   list-style: none;
