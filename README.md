@@ -139,12 +139,22 @@ Cuando el encargado corrige un turno, **el motivo queda escrito bajo la fila**, 
 lo corrigió, y también le aparece a esa persona en *Mis turnos*. Las horas de alguien no
 cambian sin explicación a la vista.
 
+### Documentos para una persona en concreto
+
+Al subir un documento —o después, con el botón **Asignar**— el encargado elige a quién le
+llega. Sin nadie marcado es **de todo el taller**, como han sido siempre. Con gente marcada,
+**solo esa gente lo ve**: no le aparece a nadie más en la lista, y tampoco puede abrirlo con el
+enlace directo. El administrador ve todos.
+
+Sirve para lo que no es del taller entero: un contrato firmado, una sanción, un acuerdo
+personal. Se asigna, se desasigna y se elimina desde la misma pantalla.
+
 ## Casino
 
 Pestaña **Casino**: una sala aparte, con su propia identidad. Es entretención de rol para el
 servidor — **no se juega con dinero real ni se puede convertir en dinero real**.
 
-**Las nueve mesas están abiertas.**
+**Las doce mesas están abiertas.**
 
 | Mesa | Retorno al jugador | Se queda la casa |
 |---|---|---|
@@ -154,6 +164,9 @@ servidor — **no se juega con dinero real ni se puede convertir en dinero real*
 | Dados (apuestas sencillas) | 97,22% | 2,78% |
 | Dados (triples) | 83,8% – 86,1% | 13,9% – 16,2% |
 | Plinko | ~97,0% | ~3,0% |
+| Ruleta de la suerte | 97,50% | 2,50% |
+| Mines | 97,00% | 3,00% |
+| Bingo | 95,00% | 5% de comisión |
 | Duelo de cartas (bando) | 96,30% | 3,70% |
 | Carrera de surf | 95,00% | 5,00% |
 | Duelo de cartas (empate) | 88,75% | 11,25% |
@@ -180,6 +193,33 @@ Se apuesta **poniendo fichas**: 50, 100, 500, 1.000 y 5.000. La cifra que aparec
 escribe a mano, cambia al tocar una ficha — en una mesa de verdad no se puede apostar 501. En las
 mesas donde se apilan fichas en varios sitios (ruleta, surf, duelo) el total de un sitio sí puede
 ser cualquier suma armable con esas fichas, tocando varias veces.
+
+### Retirar fichas
+
+En el casino hay un botón **Retirar fichas**. La persona pide cuántas quiere retirar y **se le
+descuentan en el momento**; al administrador le llega el aviso —campanita y Discord— para
+entregarle el dinero dentro del juego.
+
+Se descuentan al pedir y no al entregar por una razón simple: si el saldo siguiera ahí, se
+podría pedir el retiro y seguir jugando esas mismas fichas, y el encargado terminaría pagando
+algo que ya no existe.
+
+En el panel, sección **Retiros del casino**, el encargado ve los que esperan con un contador
+al lado del título. Puede marcar *«ya se lo entregué»* o **rechazar**, que le devuelve las
+fichas a la persona y se lo avisa. Cada movimiento queda anotado en el registro de jugadas.
+
+Solo se puede tener **una solicitud abierta a la vez**: si no, el encargado no sabe cuáles ya
+pagó.
+
+### Todo se actualiza solo
+
+Ya no hace falta apretar F5. La campanita, las licencias, las devoluciones, los anuncios, los
+documentos, el registro y los retiros se ponen al día solos cada 20 o 30 segundos, y de
+inmediato al volver a la pestaña.
+
+Con la pestaña escondida se detiene: no tiene sentido consultar toda la noche una ventana que
+nadie mira. Medido: un retiro pedido desde otra sesión aparece en el panel del encargado en
+unos 16 segundos, sin que nadie recargue nada.
 
 ### Las tragamonedas
 
@@ -263,6 +303,49 @@ Seis surfistas, una ola, un ganador. Se puede apostar a varios en la misma carre
 Kala gana 3 de cada 10 olas; una cuota justa pagaría 3,33 y paga 3,17. Esa diferencia, **la
 misma en los seis**, es el 5% que se queda la casa — igual que en una casa de apuestas de
 verdad. Apostar al favorito o al que nadie mira da lo mismo a la larga.
+
+### El bingo
+
+Es **la única mesa donde no se juega contra la casa**. El bote son los cartones vendidos y se
+lo reparten quienes canten; la casa se queda un 5% de comisión y no pone cartones.
+
+La primera compra abre la ronda y arranca una cuenta atrás de 45 segundos para que se sume
+quien quiera. Después empiezan a salir bolas, una cada 0,8 segundos, hasta que alguien completa
+el cartón. La **línea** (una fila) se lleva el 30% del bote y el **bingo** (cartón entero) el
+70%. Si cantan varios a la vez, se reparte en partes iguales.
+
+Cada cartón vale 500 fichas y se pueden llevar hasta 4 por ronda. No se puede comprar con la
+ronda ya empezada: sería comprar sabiendo qué bolas salieron.
+
+Si ganas y cierras la página, el premio queda anotado y **te lo abonan la próxima vez que
+entres**. No se pierde.
+
+### Mines
+
+25 casillas y unas cuantas minas. Destapas de a una, cada casilla limpia sube el multiplicador
+y cobras cuando quieras. Una mina y se pierde todo.
+
+Puedes elegir 1, 3, 5, 10 o 24 minas. Con más minas cada casilla paga más, pero se vuela antes.
+
+Lo interesante: **da igual dónde te plantes**. Cobrar en la primera casilla o en la décima
+devuelve el mismo 97% a la larga — lo único que cambia es cada cuánto ganas. Y tampoco sirve
+de nada "elegir bien" una casilla: las minas se siembran antes de que destapes la primera y
+todas las tapadas son iguales.
+
+### La ruleta de la suerte
+
+Acá no se elige dónde apostar: se gira y se cobra lo que marque el gajo.
+
+| Gajo | Cuántos | Sale |
+|---|---|---|
+| x10 | 1 | 2,5% |
+| x3 | 3 | 7,5% |
+| x1,5 | 8 | 20% |
+| x0,8 | 10 | 25% |
+| Vacío | 18 | 45% |
+
+La ventaja de la casa son **los 18 gajos vacíos**, no un pago recortado: cada gajo paga
+exactamente lo que dice. Sale un 2,50%, contra el 11%–24% de una rueda de feria de verdad.
 
 ### El duelo de cartas
 

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Barra from '../barra';
+import useSondeo from '../sondeo';
 import { soloFecha } from '../../lib/tiempo';
 
 const ROTULO = {
@@ -209,6 +210,9 @@ export default function Licencias({
     if (a.solicitudes) setMias(a.solicitudes);
     if (b.solicitudes) setTodas(b.solicitudes);
   };
+
+  // La pantalla se pone al día sola: nadie tiene que apretar F5 para ver lo que llegó.
+  useSondeo(recargar, 20000);
 
   const pedir = async (url, opciones, exito) => {
     setOcupado(true);

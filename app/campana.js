@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import useSondeo from './sondeo';
 
 const cuando = (iso) => {
   const minutos = Math.round((Date.now() - Date.parse(iso)) / 60000);
@@ -32,12 +33,12 @@ export default function Campana() {
     }
   };
 
+  // Cada 20 segundos, y de inmediato al volver a la pestaña: un aviso que tarda dos minutos
+  // en aparecer obliga igual a recargar a mano, que es lo que se quería evitar.
   useEffect(() => {
     cargar();
-    // Se relee cada dos minutos para que una respuesta del encargado aparezca sin recargar.
-    const t = setInterval(cargar, 120000);
-    return () => clearInterval(t);
   }, []);
+  useSondeo(cargar, 20000);
 
   useEffect(() => {
     if (!abierta) return;

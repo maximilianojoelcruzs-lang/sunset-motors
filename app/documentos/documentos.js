@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Barra from '../barra';
+import useSondeo from '../sondeo';
 import Dialogo from '../dialogo';
 import { soloFecha } from '../../lib/tiempo';
 
@@ -22,7 +23,18 @@ const peso = (bytes) => {
 
 const esPdf = (d) => d.tipo === 'application/pdf';
 
-function Ficha({ d, admin, onVer, onEditar, onBorrar, ocupado }) {
+/** A quién le llega el documento, en una línea. */
+function ParaQuien({ para }) {
+  if (!para?.length) return <span className="doc-para todos">Todo el taller</span>;
+
+  return (
+    <span className="doc-para">
+      Solo para <strong>{para.join(', ')}</strong>
+    </span>
+  );
+}
+
+function Ficha({ d, admin, onVer, onEditar, onAsignar, onBorrar, ocupado }) {
   return (
     <article className="doc">
       <span className={`doc-icono ${esPdf(d) ? 'pdf' : 'img'}`} aria-hidden="true">
@@ -36,6 +48,9 @@ function Ficha({ d, admin, onVer, onEditar, onBorrar, ocupado }) {
           {d.creadoPor} · {soloFecha(d.creado)}
           {d.tamano ? ` · ${peso(d.tamano)}` : ''}
         </p>
+        {/* A quien no le toca, el documento ni le aparece; el rótulo es para el encargado
+            y para que quien lo recibe sepa que es suyo y no del taller entero. */}
+        {(admin || d.para?.length) && <ParaQuien para={d.para} />}
       </div>
 
       <div className="doc-acciones">
@@ -49,6 +64,9 @@ function Ficha({ d, admin, onVer, onEditar, onBorrar, ocupado }) {
           <>
             <button type="button" className="accion" disabled={ocupado} onClick={() => onEditar(d)}>
               Editar
+            </button>
+            <button type="button" className="accion" disabled={ocupado} onClick={() => onAsignar(d)}>
+              Asignar
             </button>
             <button
               type="button"
@@ -65,11 +83,40 @@ function Ficha({ d, admin, onVer, onEditar, onBorrar, ocupado }) {
   );
 }
 
+/**
+ * A quién va el documento. Sin nadie marcado es de todo el taller — que es como se han
+ * comportado siempre los documentos, y como siguen los que ya estaban.
+ */
+function Destinatarios({ mecanicos, para, onAlternar, onTodos }) {
+  return (
+    <div className="doc-asignar">
+      <button
+        type="button"
+        className={`doc-quien ${para.length === 0 ? 'activo' : ''}`}
+        onClick={onTodos}
+      >
+        Todo el taller
+      </button>
+      {mecanicos.map((m) => (
+        <button
+          key={m}
+          type="button"
+          className={`doc-quien ${para.includes(m) ? 'activo' : ''}`}
+          onClick={() => onAlternar(m)}
+        >
+          {m}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export default function Documentos({
   usuario,
   admin,
   accesos,
   iniciales,
+  mecanicos = [],
   turnoPropio,
   conStorage,
   fallo,
@@ -88,6 +135,8 @@ export default function Documentos({
   const [descripcion, setDescripcion] = useState('');
   const [categoria, setCategoria] = useState('');
   const [archivo, setArchivo] = useState(null);
+  const [para, setPara] = useState([]);
+  const [asignando, setAsignando] = useState(null); // el documento cuya asignación se edita
 
   const limpiarFormulario = () => {
     setSubiendo(false);
@@ -96,13 +145,20 @@ export default function Documentos({
     setDescripcion('');
     setCategoria('');
     setArchivo(null);
+    setPara([]);
   };
+
+  const alternarPara = (quien) =>
+    setPara((p) => (p.includes(quien) ? p.filter((x) => x !== quien) : [...p, quien]));
 
   const recargar = async () => {
     const r = await fetch('/api/documentos', { cache: 'no-store' });
     const cuerpo = await r.json().catch(() => ({}));
     if (r.ok) setDocumentos(cuerpo.documentos);
   };
+
+  // La pantalla se pone al día sola: nadie tiene que apretar F5 para ver lo que llegó.
+  useSondeo(recargar, 30000);
 
   const pedir = async (url, opciones, exito) => {
     setOcupado(true);
@@ -147,6 +203,7 @@ export default function Documentos({
     forma.set('titulo', titulo);
     forma.set('descripcion', descripcion);
     forma.set('categoria', categoria);
+    forma.set('para', JSON.stringify(para));
     if (archivo) forma.set('archivo', archivo);
     const ok = await pedir('/api/documentos', { method: 'POST', body: forma }, 'Documento publicado.');
     if (ok) limpiarFormulario();
@@ -252,6 +309,18 @@ export default function Documentos({
             </label>
 
             {!editando && (
+              <div className="campo">
+                <span>¿Para quién?</span>
+                <Destinatarios
+                  mecanicos={mecanicos}
+                  para={para}
+                  onAlternar={alternarPara}
+                  onTodos={() => setPara([])}
+                />
+              </div>
+            )}
+
+            {!editando && (
               <label className="campo">
                 <span>Archivo (PDF o imagen)</span>
                 <input
@@ -322,6 +391,10 @@ export default function Documentos({
                       setCategoria(x.categoria);
                       window.scrollTo({ top: 0, behavior: 'smooth' });
                     }}
+                    onAsignar={(x) => {
+                      setPara(x.para ?? []);
+                      setAsignando(x);
+                    }}
                     onBorrar={(x) => {
                       if (!window.confirm(`¿Eliminar «${x.titulo}»? También se borra el archivo.`)) {
                         return;
@@ -340,6 +413,50 @@ export default function Documentos({
           privado: hace falta tener sesión para abrirlos, aunque se tenga el enlace.
         </p>
       </main>
+
+      {asignando && (
+        <Dialogo titulo={`Asignar «${asignando.titulo}»`} onCerrar={() => setAsignando(null)}>
+          <p className="forma-pie">
+            Sin nadie marcado, el documento es de todo el taller. Con gente marcada, solo esa
+            gente lo ve — y tampoco puede abrirlo por el enlace directo.
+          </p>
+          <Destinatarios
+            mecanicos={mecanicos}
+            para={para}
+            onAlternar={alternarPara}
+            onTodos={() => setPara([])}
+          />
+          <div className="soli-botones">
+            <button
+              type="button"
+              className="accion destacada"
+              disabled={ocupado}
+              onClick={async () => {
+                const ok = await pedir(
+                  `/api/documentos/${asignando.id}`,
+                  {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ para }),
+                  },
+                  para.length
+                    ? `«${asignando.titulo}» queda para ${para.join(', ')}.`
+                    : `«${asignando.titulo}» vuelve a ser de todo el taller.`
+                );
+                if (ok) {
+                  setAsignando(null);
+                  setPara([]);
+                }
+              }}
+            >
+              {ocupado ? 'Guardando…' : 'Guardar'}
+            </button>
+            <button type="button" className="accion" onClick={() => setAsignando(null)}>
+              Cancelar
+            </button>
+          </div>
+        </Dialogo>
+      )}
 
       {viendo && (
         <Dialogo titulo={viendo.titulo} onCerrar={() => setViendo(null)}>

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Barra from '../barra';
+import useSondeo from '../sondeo';
 import Dialogo from '../dialogo';
 
 /** Copia al portapapeles, con respaldo para navegadores que lo bloquean. */
@@ -93,6 +94,9 @@ export default function Anuncios({
     if (f.flyers) setFlyers(f.flyers);
     if (m.mensajes) setMensajes(m.mensajes);
   };
+
+  // La pantalla se pone al día sola: nadie tiene que apretar F5 para ver lo que llegó.
+  useSondeo(recargar, 30000);
 
   const pedir = async (url, opciones, exito) => {
     setOcupado(true);

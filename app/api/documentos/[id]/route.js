@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { sesionActual } from '../../../../lib/servidor';
 import { esAdmin } from '../../../../lib/usuarios';
-import { borrar, editar } from '../../../../lib/documentos';
+import { asignar, borrar, editar } from '../../../../lib/documentos';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -15,7 +15,7 @@ async function exigirAdmin() {
   return { sesion };
 }
 
-/** PATCH /api/documentos/:id  body: { titulo, descripcion, categoria } */
+/** PATCH /api/documentos/:id  body: { titulo, descripcion, categoria } o { para } */
 export async function PATCH(peticion, { params }) {
   const { corte } = await exigirAdmin();
   if (corte) return corte;
@@ -24,6 +24,13 @@ export async function PATCH(peticion, { params }) {
   const datos = await peticion.json().catch(() => ({}));
 
   try {
+    // Asignar y desasignar son la misma llamada: manda la lista completa de destinatarios.
+    if (Array.isArray(datos.para)) {
+      const { error, documento } = await asignar(id, datos.para);
+      if (error) return NextResponse.json({ error }, { status: 400 });
+      return NextResponse.json({ documento });
+    }
+
     const { error, documento } = await editar(id, datos);
     if (error) return NextResponse.json({ error }, { status: 400 });
     return NextResponse.json({ documento });

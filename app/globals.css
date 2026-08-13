@@ -2443,6 +2443,319 @@ button {
   color: #6d76a3;
 }
 
+/* ---------- Bingo ---------- */
+
+.bingo-mesa {
+  display: grid;
+  gap: 26px;
+}
+
+@media (min-width: 900px) {
+  .bingo-mesa {
+    grid-template-columns: 1fr 340px;
+    align-items: start;
+  }
+}
+
+.bingo-bombo {
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  min-height: 150px;
+  padding: 20px;
+  background: linear-gradient(180deg, #1b1338, #0b0918);
+  border: 1px solid var(--linea);
+  border-radius: 14px;
+}
+
+.bingo-bombo.cantando {
+  border-color: rgba(34, 230, 208, 0.45);
+}
+
+.bola-grande {
+  display: grid;
+  place-items: center;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 28%, #fff, #ffcf5c 55%, #c99700);
+  color: #2a1e00;
+  font-family: var(--font-data), monospace;
+  font-size: 2rem;
+  box-shadow: 0 0 30px rgba(255, 207, 92, 0.5);
+  animation: sale-bola 0.4s ease-out;
+}
+
+.bola-grande em {
+  font-style: normal;
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  opacity: 0.7;
+}
+
+@keyframes sale-bola {
+  from { transform: scale(0.5); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.bingo-espera {
+  font-family: var(--font-data), monospace;
+  font-size: 3rem;
+  color: var(--neon);
+}
+
+.bingo-cuenta {
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  color: #6d76a3;
+  text-align: center;
+}
+
+.bingo-cantadas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+.bola-chica {
+  display: grid;
+  place-items: center;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 4px;
+  border-radius: 50%;
+  background: #23273a;
+  color: #9aa2cd;
+  font-family: var(--font-data), monospace;
+  font-size: 0.66rem;
+}
+
+.bola-chica.nueva {
+  background: var(--oro);
+  color: #0c0d16;
+}
+
+.cartones {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.carton {
+  padding: 10px;
+  background: rgba(15, 18, 38, 0.7);
+  border: 1px solid var(--linea);
+  border-radius: 10px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.carton.linea {
+  border-color: var(--neon);
+}
+
+.carton.bingo {
+  border-color: var(--oro);
+  box-shadow: 0 0 28px rgba(255, 207, 92, 0.35);
+}
+
+.carton-dueno {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  color: #6d76a3;
+}
+
+.carton.bingo .carton-dueno {
+  color: var(--oro);
+}
+
+.carton-rejilla {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 3px;
+}
+
+.carton-letra {
+  text-align: center;
+  font-family: var(--font-data), monospace;
+  font-size: 0.62rem;
+  color: var(--neon);
+}
+
+.carton-casilla {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  font-family: var(--font-data), monospace;
+  font-size: 0.66rem;
+  color: #d5daf5;
+}
+
+.carton-casilla.marcada {
+  background: var(--neon);
+  color: #04120d;
+}
+
+.carton-casilla.libre {
+  background: rgba(255, 207, 92, 0.25);
+  color: var(--oro);
+}
+
+/* ---------- Mines ---------- */
+
+.mina-campo {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 7px;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 14px;
+  background: linear-gradient(180deg, #151833, #090b18);
+  border: 1px solid var(--linea);
+  border-radius: 14px;
+}
+
+.mina-campo.gano {
+  border-color: var(--oro);
+  box-shadow: 0 0 40px rgba(255, 207, 92, 0.2);
+}
+
+.mina-campo.perdio {
+  border-color: rgba(192, 35, 52, 0.55);
+}
+
+.mina-casilla {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  background: linear-gradient(160deg, #2b3160, #1b1f3c);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  font-size: 1.3rem;
+  transition:
+    transform 0.12s ease,
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.mina-casilla:not(:disabled):hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0 0 1px var(--neon);
+}
+
+.mina-casilla.limpia {
+  background: linear-gradient(160deg, #14513f, #0c2f26);
+  border-color: rgba(34, 230, 208, 0.4);
+}
+
+.mina-casilla.mina {
+  background: linear-gradient(160deg, #3a1620, #240d13);
+  border-color: rgba(192, 35, 52, 0.4);
+  opacity: 0.75;
+}
+
+.mina-casilla.exploto {
+  background: linear-gradient(160deg, #8e1c2c, #4a0e17);
+  border-color: #e0576a;
+  box-shadow: 0 0 24px rgba(224, 87, 106, 0.6);
+}
+
+/* Las que quedaron sin destapar cuando terminó: no estorban la lectura del resultado. */
+.mina-casilla.apagada {
+  opacity: 0.35;
+}
+
+.mina-cuantas {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.mina-escalera {
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+/* ---------- Ruleta de la suerte ---------- */
+
+.fortuna-caja {
+  position: relative;
+  width: 100%;
+  max-width: 340px;
+  margin: 0 auto;
+  aspect-ratio: 1;
+}
+
+.fortuna-rueda {
+  width: 100%;
+  height: 100%;
+  transition: transform 3s cubic-bezier(0.16, 0.86, 0.14, 1);
+  will-change: transform;
+  filter: drop-shadow(0 12px 30px rgba(0, 0, 0, 0.55));
+}
+
+.fortuna-borde {
+  fill: none;
+  stroke: var(--oro);
+  stroke-width: 4;
+  opacity: 0.7;
+}
+
+.fortuna-numero {
+  fill: #0c0d16;
+  font-family: var(--font-data), monospace;
+  font-size: 9px;
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+.fortuna-centro {
+  fill: #0d1020;
+  stroke: var(--oro);
+  stroke-width: 2;
+}
+
+.fortuna-eje {
+  fill: var(--oro);
+}
+
+/* La aguja no gira: marca el gajo ganador desde arriba. */
+.fortuna-aguja {
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  z-index: 2;
+  width: 0;
+  height: 0;
+  transform: translateX(-50%);
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 22px solid var(--oro);
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6));
+}
+
+.fortuna-muestra {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 7px;
+  border-radius: 2px;
+  vertical-align: middle;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fortuna-rueda {
+    transition: none;
+  }
+}
+
 /* ---------- Plinko ---------- */
 
 .plinko {
@@ -2622,6 +2935,137 @@ button {
   font-family: var(--font-data), monospace;
   font-size: 0.62rem;
   color: var(--oro);
+}
+
+/* ---------- Retiros del casino ---------- */
+
+.retiro-boton {
+  margin-top: 14px;
+  padding: 10px 22px;
+  border: 1px solid var(--oro);
+  border-radius: 999px;
+  background: rgba(255, 207, 92, 0.12);
+  color: var(--oro);
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.retiro-boton:hover {
+  background: var(--oro);
+  color: #0c0d16;
+}
+
+.retiro-lista {
+  margin-top: 18px;
+}
+
+.retiro-lista ul {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+}
+
+.retiro-lista li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 0.78rem;
+}
+
+.retiro-lista em {
+  margin-left: auto;
+  font-style: normal;
+  font-size: 0.68rem;
+  color: #7d766a;
+}
+
+.retiro-estado {
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.6rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.retiro-estado.pendiente { background: rgba(255, 190, 61, 0.18); color: var(--amber); }
+.retiro-estado.entregado { background: rgba(34, 197, 94, 0.18); color: #4ade80; }
+.retiro-estado.rechazado { background: rgba(192, 35, 52, 0.2); color: #e0576a; }
+
+/* Cuántos retiros esperan, en la cabecera del bloque: es lo que hay que ver sin abrir. */
+.retiro-pendientes {
+  margin-left: auto;
+  display: grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--amber);
+  color: #14100a;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.retiro-fecha,
+.retiro-nota {
+  margin-left: 8px;
+  font-size: 0.66rem;
+  color: #7d766a;
+}
+
+.retiro-nota {
+  font-style: italic;
+}
+
+/* ---------- Documentos asignados ---------- */
+
+.doc-para {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: rgba(255, 157, 46, 0.14);
+  font-size: 0.66rem;
+  color: var(--amber);
+}
+
+.doc-para.todos {
+  background: rgba(255, 255, 255, 0.06);
+  color: #948c7d;
+}
+
+.doc-para strong {
+  font-weight: 600;
+}
+
+.doc-asignar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.doc-quien {
+  padding: 6px 12px;
+  border: 1px solid var(--bay-line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #cfc6b6;
+  font-size: 0.74rem;
+  transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+}
+
+.doc-quien:hover {
+  border-color: var(--amber);
+}
+
+.doc-quien.activo {
+  border-color: var(--amber);
+  background: rgba(255, 157, 46, 0.16);
+  color: var(--ticket);
 }
 
 /* ---------- Duelo de cartas ---------- */

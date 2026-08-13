@@ -2,9 +2,11 @@
 
 import { useMemo, useState } from 'react';
 import Barra from '../barra';
+import useSondeo from '../sondeo';
 import Mecanicos from './mecanicos';
 import Discord from './discord';
 import Fichas from './fichas';
+import Retiros from './retiros';
 import {
   diaCorto,
   diaISO,
@@ -153,6 +155,9 @@ export default function Panel({
     setTurnos(cuerpo.turnos);
     setError('');
   };
+
+  // La pantalla se pone al día sola: nadie tiene que apretar F5 para ver lo que llegó.
+  useSondeo(recargar, 20000);
 
   const guardar = async (id, cambios) => {
     setOcupado(true);
@@ -373,6 +378,7 @@ export default function Panel({
 
         <Discord inicial={configInicial} />
 
+        <Retiros />
         <Fichas />
 
         <p className="pie">

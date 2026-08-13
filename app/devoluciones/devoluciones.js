@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Barra from '../barra';
+import useSondeo from '../sondeo';
 import Dialogo from '../dialogo';
 
 const pesos = new Intl.NumberFormat('es-CL');
@@ -220,6 +221,9 @@ export default function Devoluciones({
     if (a.devoluciones) setMias(a.devoluciones);
     if (b.devoluciones) setTodas(b.devoluciones);
   };
+
+  // La pantalla se pone al día sola: nadie tiene que apretar F5 para ver lo que llegó.
+  useSondeo(recargar, 20000);
 
   const pedir = async (url, opciones, exito) => {
     setOcupado(true);

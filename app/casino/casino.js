@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Barra from '../barra';
+import Retiro from './retiro';
 
 /**
  * La sala. Cada mesa con `ruta` ya funciona; las demás siguen siendo tarjetas.
@@ -71,6 +72,43 @@ const MESAS = [
         <path d="M24 8l9 11-9 11-9-11z" />
         <circle cx="14" cy="34" r="6" />
         <circle cx="34" cy="34" r="6" />
+      </>
+    ),
+  },
+  {
+    id: 'bingo',
+    nombre: 'Bingo',
+    lema: 'La única mesa donde se juega entre todos',
+    ruta: '/casino/bingo',
+    icono: (
+      <>
+        <rect x="8" y="8" width="32" height="32" rx="4" />
+        <path d="M8 18h32M8 29h32M19 8v32M30 8v32" />
+      </>
+    ),
+  },
+  {
+    id: 'mines',
+    nombre: 'Mines',
+    lema: 'Destapa y cobra antes de la mina',
+    ruta: '/casino/mines',
+    icono: (
+      <>
+        <circle cx="24" cy="26" r="11" />
+        <path d="M24 15V9M31 12l3-3M17 12l-3-3M35 26h5M8 26h5" />
+      </>
+    ),
+  },
+  {
+    id: 'fortuna',
+    nombre: 'Ruleta de la suerte',
+    lema: 'Gira y cobra lo que marque el gajo',
+    ruta: '/casino/fortuna',
+    icono: (
+      <>
+        <circle cx="24" cy="26" r="15" />
+        <path d="M24 11v30M9 26h30M13.4 15.4l21.2 21.2M34.6 15.4L13.4 36.6" />
+        <path d="M24 4l4 6h-8z" />
       </>
     ),
   },
@@ -164,8 +202,9 @@ function Mesa({ mesa }) {
   );
 }
 
-export default function Casino({ usuario, admin, accesos, saldo }) {
+export default function Casino({ usuario, admin, accesos, saldo: saldoInicial }) {
   const [turno, setTurno] = useState(null);
+  const [saldo, setSaldo] = useState(saldoInicial);
 
   return (
     <div className="casino">
@@ -204,6 +243,8 @@ export default function Casino({ usuario, admin, accesos, saldo }) {
               {new Intl.NumberFormat('es-CL').format(saldo)}
             </span>
           </div>
+
+          <Retiro saldo={saldo} onSaldo={setSaldo} />
         </header>
 
         <section className="casino-mesas">
