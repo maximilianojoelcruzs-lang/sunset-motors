@@ -160,13 +160,6 @@ export default function Barra({
                 >
                   Anuncios
                 </Link>
-                <Link
-                  className={`barra-enlace ${seccion === 'documentos' ? 'activo' : ''}`}
-                  href="/documentos"
-                  aria-current={seccion === 'documentos' ? 'page' : undefined}
-                >
-                  Documentos
-                </Link>
                 {admin && (
                   <>
                     <Link

@@ -325,9 +325,18 @@ export default function Boleta({ nombre, admin, accesos, turnoAbierto, secciones
             <h2 className="ref-titulo">Comandos</h2>
             <ul className="ref-lista">
               {COMANDOS.map((c) => (
-                <li key={c.comando}>
+                <li key={c.comando} className={c.pasos ? 'con-pasos' : ''}>
                   <span className="ref-clave">{c.comando}</span>
                   <span className="ref-valor">{c.descripcion}</span>
+                  {/* Los que tienen procedimiento lo llevan escrito: preguntarlo por radio
+                      cada vez es justamente lo que esta pantalla viene a evitar. */}
+                  {c.pasos && (
+                    <ol className="ref-pasos">
+                      {c.pasos.map((paso) => (
+                        <li key={paso}>{paso}</li>
+                      ))}
+                    </ol>
+                  )}
                 </li>
               ))}
             </ul>

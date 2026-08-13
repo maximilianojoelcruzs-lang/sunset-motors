@@ -231,7 +231,6 @@ veces: si no, dos fichas al mismo lugar contarían distinto según cómo se suma
 | [lib/duelo.js](lib/duelo.js) | Duelo de cartas (Dragon Tiger) | 96,3% / 88,8% | 3,70% al bando · 11,25% al empate |
 | [lib/fortuna.js](lib/fortuna.js) | Ruleta de la suerte, 40 gajos | 97,50% | 2,50% |
 | [lib/mines.js](lib/mines.js) | Mines, 25 casillas | 97,00% | 3,00% te plantes donde te plantes |
-| [lib/bingo.js](lib/bingo.js) | Bingo de 75 bolas | 95,00% | 5% de comisión, sin jugar |
 
 Los números salen de tablas de pago reales, no inventadas. Antes de tocar cualquiera,
 compruébalo por muestreo: medio millón de tiradas basta para ver si la ventaja se movió.
@@ -321,34 +320,15 @@ primera casilla o en la vigésima el retorno es el mismo 97%. Y por lo mismo no 
 que la partida termina. Si se sortearan al destapar, el juego podría decidir sobre la marcha
 que justo esa tenía mina.
 
+**Cuantas más minas, más rápido sube el multiplicador**, y eso no es un ajuste: el pago sale
+de la probabilidad de seguir vivo. Con 10 minas la escalera va x1,62 · x2,77 · x4,90 · x8,99 ·
+x17,16 y se dispara en cinco casillas. Por eso `MINAS` quedó en 1, 3 y 5 — la forma de que
+suba más despacio es menos minas, no otra tabla de pagos.
+
 `TOPE_PAGO` corta la escalera. Sin él, destapar las 15 limpias con 10 minas paga **x3.170.697**:
 matemáticamente correcto y una bomba para una economía de fichas que reparte el encargado a
 mano. El tope no cambia el retorno — cada escalón sigue pagando lo suyo, solo deja de haber
 escalones más allá.
-
-### El bingo es la única mesa compartida, y eso trae dos problemas propios
-
-**La ronda avanza al leerla**, como los turnos vencidos: el orden de las bolas se sortea al
-abrir y el ritmo es fijo, así que en qué bola va es una **cuenta del reloj**
-(`bolasCantadas = (ahora − cierraVenta) / RITMO`), no un estado que haya que ir guardando. Da
-igual si nadie mira la página diez minutos; al volver está donde tiene que estar.
-
-**El premio lo cobra cada uno, no lo reparte quien cierra la ronda.** Esto no es un detalle:
-la primera versión pagaba a todos los ganadores al cerrar, y como cerrar ocurre "al leer", dos
-pestañas mirando a la vez cerraban la ronda las dos y **el premio se pagaba dos veces**. Medido
-en una prueba: un ganador de 1.900 se llevó 3.800. Ahora `cobrarPremio()` abona solo a quien
-pregunta, marca `cobrados` **antes** de mover ninguna ficha, y las rondas viejas sin ese campo
-se consideran ya pagadas. El almacén no sabe comparar-y-escribir, así que esto es lo más cerca
-que se puede estar sin cambiarlo por una tabla de verdad.
-
-**Un cartón de 24 números tarda unas 73 bolas en completarse.** Es la matemática del bingo de
-75, no una elección — por eso los bingos de verdad juegan líneas y figuras además del cartón
-lleno. A 2 segundos la bola son dos minutos y medio de cantar; `RITMO_MS` está en 800 y la
-ronda dura poco menos de un minuto.
-
-Las bolas **se reparten de a una en el navegador**: el servidor manda solo las ya cantadas
-—nunca las que vienen— y la pantalla las revela con el reloj del servidor. Sin eso, con un
-latido cada 3 segundos y una bola cada 800 ms, aparecerían de a cuatro de golpe.
 
 ### Las mesas de dos pasos guardan el mazo en el servidor
 
@@ -449,6 +429,27 @@ Reglas que no hay que aflojar:
   Mismo patrón que licencias: borrador privado, resuelta = solo lectura.
 - **[lib/imagenes.js](lib/imagenes.js)** — subida y borrado de capturas.
 
+### La captura vale subida o pegada, y no son lo mismo
+
+`normalizarEnlace()` acepta una URL —la que deja FiveM al hacer la captura— como alternativa a
+subir el archivo. **El servidor valida el enlace pero nunca lo descarga**: ir a buscar una URL
+que escribe cualquiera es pedir que le pidan cosas de la red interna. Lo carga el navegador de
+quien mira la solicitud, como cualquier enlace.
+
+Y no dan la misma privacidad: lo subido va al bucket privado y se sirve firmado; **lo pegado
+vive donde lo subió FiveM y lo ve cualquiera que tenga esa URL**. La pantalla lo dice con esas
+palabras — el pie decía «nadie más puede abrirlas ni con el enlace» y con enlaces pegados eso
+era mentira.
+
+`tieneCaptura()` es lo que decide si una solicitud se puede enviar: una de las dos basta.
+
+### El monto se escribe con los puntos puestos
+
+El campo formatea mientras se escribe (`125000` → `125.000`) y solo deja dígitos. Sin eso,
+`125000` y `12500` se ven casi igual y un cero de más no se nota hasta que el encargado va a
+pagar. Y «12,50» se guardaba como **1.250** sin que nadie lo viera, porque `normalizarMonto()`
+se queda solo con los dígitos.
+
 ### El bucket es privado, y de ahí salen dos reglas
 
 Las imágenes van a **Supabase Storage, bucket `sunset`, privado** (en local, a
@@ -486,87 +487,6 @@ publica y todo el taller lo ve. No le agregues un flujo de revisión; ese no es 
 El estilo "futurista" de la galería vive en `.flyer-marco`: el borde de degradado es un fondo con
 `padding: 1px` y un `::before`, porque los bordes CSS no aceptan degradados. El barrido de luz y
 el desplazamiento están anulados bajo `prefers-reduced-motion`.
-
-## Documentos
-
-**[lib/documentos.js](lib/documentos.js)** — reglamento, contratos, manuales y acuerdos. Mismo
-patrón que los flyers: el admin publica, todo el taller consulta, sin estados ni aprobaciones.
-
-### Un documento se puede asignar a gente concreta
-
-`para: []` significa **todo el taller**, que es como se comportaban todos hasta ahora: los
-documentos que ya existen no traen el campo y no cambian. Con nombres dentro, solo esa gente
-lo ve — un contrato es de quien lo firma, no del taller entero. El admin ve todos, siempre.
-
-**El filtro es del servidor, en dos sitios y no en uno:**
-
-- `GET /api/documentos` devuelve solo lo que le toca a quien pregunta (`listarPara`), y
-  `app/documentos/page.js` filtra igual en el primer pintado — si mandara la lista completa
-  y escondiera filas, los títulos viajarían dentro del HTML.
-- `GET /api/documentos/:id/archivo` comprueba la asignación **antes de firmar la URL**. Sin
-  eso, filtrar la lista no serviría de nada: bastaría con probar identificadores.
-
-Asignar y desasignar son la **misma llamada**: `PATCH { para: [...] }` con la lista completa.
-Dos endpoints distintos se desincronizan en cuanto alguien tiene la pantalla abierta.
-
-El aviso de documento nuevo va solo a quien puede verlo. Avisar de algo que no se puede abrir
-es peor que no avisar.
-
-- La **categoría es texto libre**, con sugerencias en un `datalist`. Una lista cerrada obligaría a
-  tocar código cada vez que el taller inventa un tipo de documento, que es justo lo que estamos
-  sacando de Discord. La vista agrupa por categoría.
-- Editar cambia solo los datos. Para cambiar el archivo se sube uno nuevo y se borra el viejo:
-  así no queda un documento cuyo título dice una cosa y cuyo PDF dice otra.
-- Se firma por **una hora**, como los flyers: un PDF se abre y se lee un rato.
-
-`lib/imagenes.js` acepta ahora también PDF, reconocido por sus primeros bytes (`%PDF-`). El
-parámetro `permitidos` acota qué formatos toma cada uso: capturas y flyers siguen siendo solo
-imágenes, los documentos aceptan además PDF.
-
-### Constantes que necesita el cliente NO pueden vivir junto al almacén
-
-Pasó dos veces: `TINTES` y `CATEGORIAS_SUGERIDAS`. Cualquier `export` que importe un componente
-`'use client'` no puede estar en un módulo que —directa o indirectamente— importe
-`lib/almacen.js`, porque usa `node:fs` y **rompe el build**. Van en `lib/catalogo.js` (que es
-datos puros) o directamente en el componente.
-
-## Retiros del casino
-
-**[lib/retiros.js](lib/retiros.js)** — `pendiente → entregado | rechazado`. La persona pide
-retirar N fichas y el administrador le entrega el dinero dentro del juego.
-
-**Las fichas se descuentan al pedir, no al entregar.** Si el saldo siguiera ahí se podría pedir
-el retiro y seguir jugando esas mismas fichas, y el encargado terminaría pagando algo que ya no
-existe. Por lo mismo, **rechazar devuelve las fichas**: es lo mismo que no haber pedido nada.
-
-- Una sola solicitud abierta por persona. Con varias a la vez el encargado no sabe cuáles ya
-  pagó, y la gente termina pidiendo dos veces lo mismo.
-- El aviso a `ADMINS` y a Discord va **envuelto en `try`**: la solicitud ya está guardada y las
-  fichas ya se descontaron; un webhook caído no puede dejar a alguien sin fichas y sin solicitud.
-- Resolver es solo de admin, verificado en el route handler.
-- Cada movimiento queda en el registro de jugadas como tipo `retiro`, para que el saldo nunca
-  cambie sin una fila que lo explique.
-
-## Todo se actualiza solo
-
-**[app/sondeo.js](app/sondeo.js)** — `useSondeo(consultar, cada)`. Lo usan la campanita (20 s),
-licencias, devoluciones, el panel y los retiros (20 s), y anuncios y documentos (30 s).
-
-Tres cosas que no son adorno:
-
-- **Se detiene con la pestaña escondida.** Sin eso, veinte pestañas olvidadas siguen consultando
-  toda la noche, y contra Supabase eso son lecturas de verdad.
-- **Consulta al volver a la pestaña**, que es justo cuando a alguien le importa estar al día.
-  Esperar al siguiente turno del reloj se siente roto.
-- **No se solapa**: si una consulta tarda más que el intervalo, se salta el turno en vez de
-  encadenar peticiones que llegan desordenadas.
-
-No es tiempo real ni pretende serlo. Para un taller de rol, enterarse en menos de medio minuto
-sobra, y no necesita websockets ni un servicio aparte. Medido: un retiro pedido desde otra
-sesión aparece en el panel del admin en ~16 s sin que nadie recargue.
-
-`useSondeo` va **después** de definir la función que recarga. Antes es un error de zona muerta
-y la pantalla no monta.
 
 ## Avisos (la campanita)
 

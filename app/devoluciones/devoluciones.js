@@ -8,6 +8,23 @@ import Dialogo from '../dialogo';
 const pesos = new Intl.NumberFormat('es-CL');
 const plata = (n) => `$${pesos.format(n)}`;
 
+/**
+ * El monto se guarda como dígitos pelados y se enseña con puntos de miles.
+ *
+ * El campo no acepta otra cosa: coma, punto o `$` escritos a mano se caían igual en el
+ * servidor —`normalizarMonto()` se queda solo con los dígitos—, así que «12,50» se guardaba
+ * como 1.250 sin que nadie lo notara.
+ */
+const soloDigitos = (texto) => String(texto).replace(/\D/g, '').replace(/^0+(?=\d)/, '');
+const conPuntos = (digitos) =>
+  digitos ? new Intl.NumberFormat('es-CL').format(Number(digitos)) : '';
+
+/**
+ * De dónde sale la captura: del enlace pegado, o del archivo subido —que va por una ruta
+ * propia y firmada, porque el bucket es privado—.
+ */
+const fuenteDe = (d) => d.enlace || `/api/devoluciones/${d.id}/imagen`;
+
 const ROTULO = {
   borrador: 'Borrador',
   pendiente: 'Pendiente de pagar',
@@ -19,6 +36,7 @@ function Formulario({ inicial, onGuardar, onCancelar, ocupado }) {
   const [monto, setMonto] = useState(inicial ? String(inicial.monto) : '');
   const [descripcion, setDescripcion] = useState(inicial?.descripcion ?? '');
   const [archivo, setArchivo] = useState(null);
+  const [enlace, setEnlace] = useState(inicial?.enlace ?? '');
   const [vistaPrevia, setVistaPrevia] = useState(null);
 
   const elegir = (e) => {
@@ -35,21 +53,30 @@ function Formulario({ inicial, onGuardar, onCancelar, ocupado }) {
         const forma = new FormData();
         forma.set('monto', monto);
         forma.set('descripcion', descripcion);
+        forma.set('enlace', enlace.trim());
         if (archivo) forma.set('captura', archivo);
         onGuardar(forma);
       }}
     >
       <div className="soli-campos">
-        <label className="campo-inline">
+        <label className="campo-inline monto-campo">
           <span>Monto a devolver</span>
-          <input
-            type="text"
-            inputMode="numeric"
-            value={monto}
-            onChange={(e) => setMonto(e.target.value)}
-            placeholder="12500"
-            required
-          />
+          {/* Se escribe con los puntos puestos: sin ellos, 125000 y 12500 se ven casi igual
+              y un cero de más no se nota hasta que el encargado va a pagar. */}
+          <span className="monto-caja">
+            <span className="monto-signo" aria-hidden="true">
+              $
+            </span>
+            <input
+              type="text"
+              inputMode="numeric"
+              autoComplete="off"
+              value={conPuntos(monto)}
+              onChange={(e) => setMonto(soloDigitos(e.target.value))}
+              placeholder="12.500"
+              required
+            />
+          </span>
         </label>
       </div>
 
@@ -70,8 +97,31 @@ function Formulario({ inicial, onGuardar, onCancelar, ocupado }) {
         <input type="file" accept="image/jpeg,image/png,image/webp" onChange={elegir} />
       </label>
 
+      {/* En FiveM la captura ya queda subida y sale una URL: pegarla ahorra bajarla y
+          volver a subirla. Vale cualquiera de las dos, no hacen falta las dos. */}
+      <label className="campo">
+        <span>…o pega el enlace de la captura de FiveM</span>
+        <input
+          type="url"
+          value={enlace}
+          onChange={(e) => setEnlace(e.target.value)}
+          placeholder="https://…"
+          spellCheck={false}
+        />
+      </label>
+
       {vistaPrevia && <img className="captura-previa" src={vistaPrevia} alt="Vista previa" />}
-      {!vistaPrevia && inicial?.imagen && (
+      {!vistaPrevia && enlace.trim() && (
+        <img
+          className="captura-previa"
+          src={enlace.trim()}
+          alt="Vista previa del enlace"
+          onError={(e) => {
+            e.currentTarget.style.display = 'none';
+          }}
+        />
+      )}
+      {!vistaPrevia && !enlace.trim() && inicial?.imagen && (
         <p className="forma-pie">Ya tiene una captura. Elige otra solo si quieres cambiarla.</p>
       )}
 
@@ -104,9 +154,9 @@ function Tarjeta({ d, mia, admin, onAccion, ocupado, onVerImagen }) {
 
       <p className="soli-motivo">{d.descripcion}</p>
 
-      {d.imagen ? (
+      {d.imagen || d.enlace ? (
         <button type="button" className="dev-captura" onClick={() => onVerImagen(d)}>
-          <img src={`/api/devoluciones/${d.id}/imagen`} alt="Captura del monto" loading="lazy" />
+          <img src={fuenteDe(d)} alt="Captura del monto" loading="lazy" />
           <span>Ver captura</span>
         </button>
       ) : (
@@ -124,7 +174,7 @@ function Tarjeta({ d, mia, admin, onAccion, ocupado, onVerImagen }) {
           <button
             type="button"
             className="accion destacada"
-            disabled={ocupado || !d.imagen}
+            disabled={ocupado || !(d.imagen || d.enlace)}
             onClick={() => onAccion('enviar', d)}
           >
             Enviar
@@ -326,8 +376,9 @@ export default function Devoluciones({
               }
             />
             <p className="forma-pie">
-              Adjunta la captura del juego donde se vea el monto que pagaste. Sin ella no se
-              puede enviar: es la prueba de lo que se te debe.
+              Adjunta la captura del juego donde se vea el monto que pagaste, o pega el
+              enlace que te deja FiveM. Sin una de las dos no se puede enviar: es la prueba
+              de lo que se te debe.
             </p>
           </section>
         )}
@@ -411,8 +462,10 @@ export default function Devoluciones({
         )}
 
         <p className="pie">
-          Las capturas se guardan en privado: solo las ve quien subió la solicitud y el
-          encargado. Nadie más puede abrirlas ni con el enlace.
+          Las capturas <strong>subidas</strong> se guardan en privado: solo las ve quien
+          subió la solicitud y el encargado, y no se abren ni teniendo el enlace. Las que se
+          pegan como enlace viven donde las subió FiveM, así que quien tenga esa URL puede
+          verlas — si la captura es delicada, súbela en vez de pegarla.
         </p>
       </main>
 
@@ -420,7 +473,7 @@ export default function Devoluciones({
         <Dialogo titulo={`Captura · ${plata(viendo.monto)}`} onCerrar={() => setViendo(null)}>
           <img
             className="captura-grande"
-            src={`/api/devoluciones/${viendo.id}/imagen`}
+            src={fuenteDe(viendo)}
             alt="Captura del monto pagado"
           />
         </Dialogo>

@@ -76,18 +76,6 @@ const MESAS = [
     ),
   },
   {
-    id: 'bingo',
-    nombre: 'Bingo',
-    lema: 'La única mesa donde se juega entre todos',
-    ruta: '/casino/bingo',
-    icono: (
-      <>
-        <rect x="8" y="8" width="32" height="32" rx="4" />
-        <path d="M8 18h32M8 29h32M19 8v32M30 8v32" />
-      </>
-    ),
-  },
-  {
     id: 'mines',
     nombre: 'Mines',
     lema: 'Destapa y cobra antes de la mina',

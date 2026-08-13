@@ -1225,154 +1225,6 @@ button {
   margin-top: 14px;
 }
 
-/* ---------- Documentos ---------- */
-
-.doc-cuenta {
-  margin-left: 6px;
-  font-family: var(--font-data), monospace;
-  color: var(--sun-5);
-}
-
-.doc-lista {
-  display: grid;
-  gap: 10px;
-}
-
-.doc {
-  display: flex;
-  align-items: flex-start;
-  gap: 13px;
-  padding: 13px 15px;
-  background: var(--bay-2);
-  border: 1px solid var(--bay-line);
-  border-radius: 4px;
-}
-
-.doc-icono {
-  display: grid;
-  place-items: center;
-  width: 42px;
-  height: 42px;
-  flex-shrink: 0;
-  border-radius: 3px;
-  font-family: var(--font-data), monospace;
-  font-size: 0.6rem;
-  letter-spacing: 0.04em;
-  color: #14161a;
-}
-
-.doc-icono.pdf {
-  background: var(--sun-3);
-}
-
-.doc-icono.img {
-  background: var(--sun-5);
-}
-
-.doc-texto {
-  flex: 1;
-  min-width: 0;
-}
-
-.doc-titulo {
-  margin: 0;
-  font-size: 0.92rem;
-  font-weight: 500;
-  color: var(--ticket);
-}
-
-.doc-descripcion {
-  margin: 4px 0 0;
-  font-size: 0.8rem;
-  line-height: 1.5;
-  color: #948c7d;
-}
-
-.doc-meta {
-  margin: 5px 0 0;
-  font-family: var(--font-data), monospace;
-  font-size: 0.66rem;
-  color: #5d5a53;
-}
-
-.doc-acciones {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  flex-shrink: 0;
-}
-
-.doc-acciones .accion {
-  padding: 5px 9px;
-  font-size: 0.64rem;
-}
-
-@media (max-width: 700px) {
-  .doc {
-    flex-wrap: wrap;
-  }
-
-  .doc-acciones {
-    width: 100%;
-  }
-}
-
-.doc-visor {
-  width: 100%;
-  height: 65vh;
-  border: 1px solid var(--bay-line);
-  border-radius: 3px;
-  background: #fff;
-}
-
-/* ================= Casino =================
-   Paleta propia, encerrada en .casino: es otro local, no el taller. Nada de esto pisa los
-   estilos de las demás páginas. */
-
-.casino {
-  --neon: #22e6d0;
-  --neon-2: #b14cff;
-  --oro: #ffcf5c;
-  --fondo: #06070f;
-  --carta: #0f1226;
-  --linea: #262c4d;
-
-  position: relative;
-  min-height: 100dvh;
-  background: var(--fondo);
-  overflow-x: hidden;
-}
-
-/* La franja del parabrisas es del taller; acá lleva los colores del local. */
-.casino .franja {
-  background: linear-gradient(90deg, var(--neon-2), var(--neon) 50%, var(--oro));
-}
-
-.casino .barra-casino {
-  position: relative;
-  z-index: 2;
-  background: rgba(9, 11, 26, 0.72);
-  border-bottom: 1px solid var(--linea);
-  backdrop-filter: blur(10px);
-}
-
-.casino .barra-marca em {
-  background: linear-gradient(90deg, var(--oro), var(--neon));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-.casino .barra-enlace.activo {
-  color: var(--neon);
-  background: rgba(34, 230, 208, 0.1);
-}
-
-.casino .perfil-circulo {
-  background: linear-gradient(135deg, var(--neon-2), var(--neon));
-  color: #05070f;
-}
-
 /* ---------- Ambiente ---------- */
 
 .casino-fondo {
@@ -2443,170 +2295,6 @@ button {
   color: #6d76a3;
 }
 
-/* ---------- Bingo ---------- */
-
-.bingo-mesa {
-  display: grid;
-  gap: 26px;
-}
-
-@media (min-width: 900px) {
-  .bingo-mesa {
-    grid-template-columns: 1fr 340px;
-    align-items: start;
-  }
-}
-
-.bingo-bombo {
-  display: grid;
-  place-items: center;
-  gap: 8px;
-  min-height: 150px;
-  padding: 20px;
-  background: linear-gradient(180deg, #1b1338, #0b0918);
-  border: 1px solid var(--linea);
-  border-radius: 14px;
-}
-
-.bingo-bombo.cantando {
-  border-color: rgba(34, 230, 208, 0.45);
-}
-
-.bola-grande {
-  display: grid;
-  place-items: center;
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 34% 28%, #fff, #ffcf5c 55%, #c99700);
-  color: #2a1e00;
-  font-family: var(--font-data), monospace;
-  font-size: 2rem;
-  box-shadow: 0 0 30px rgba(255, 207, 92, 0.5);
-  animation: sale-bola 0.4s ease-out;
-}
-
-.bola-grande em {
-  font-style: normal;
-  font-size: 0.8rem;
-  letter-spacing: 0.1em;
-  opacity: 0.7;
-}
-
-@keyframes sale-bola {
-  from { transform: scale(0.5); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
-
-.bingo-espera {
-  font-family: var(--font-data), monospace;
-  font-size: 3rem;
-  color: var(--neon);
-}
-
-.bingo-cuenta {
-  font-size: 0.72rem;
-  letter-spacing: 0.1em;
-  color: #6d76a3;
-  text-align: center;
-}
-
-.bingo-cantadas {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  justify-content: center;
-  margin-top: 12px;
-}
-
-.bola-chica {
-  display: grid;
-  place-items: center;
-  min-width: 26px;
-  height: 26px;
-  padding: 0 4px;
-  border-radius: 50%;
-  background: #23273a;
-  color: #9aa2cd;
-  font-family: var(--font-data), monospace;
-  font-size: 0.66rem;
-}
-
-.bola-chica.nueva {
-  background: var(--oro);
-  color: #0c0d16;
-}
-
-.cartones {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-  gap: 12px;
-  margin-top: 16px;
-}
-
-.carton {
-  padding: 10px;
-  background: rgba(15, 18, 38, 0.7);
-  border: 1px solid var(--linea);
-  border-radius: 10px;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.carton.linea {
-  border-color: var(--neon);
-}
-
-.carton.bingo {
-  border-color: var(--oro);
-  box-shadow: 0 0 28px rgba(255, 207, 92, 0.35);
-}
-
-.carton-dueno {
-  display: block;
-  margin-bottom: 7px;
-  font-size: 0.66rem;
-  letter-spacing: 0.06em;
-  color: #6d76a3;
-}
-
-.carton.bingo .carton-dueno {
-  color: var(--oro);
-}
-
-.carton-rejilla {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 3px;
-}
-
-.carton-letra {
-  text-align: center;
-  font-family: var(--font-data), monospace;
-  font-size: 0.62rem;
-  color: var(--neon);
-}
-
-.carton-casilla {
-  display: grid;
-  place-items: center;
-  aspect-ratio: 1;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.05);
-  font-family: var(--font-data), monospace;
-  font-size: 0.66rem;
-  color: #d5daf5;
-}
-
-.carton-casilla.marcada {
-  background: var(--neon);
-  color: #04120d;
-}
-
-.carton-casilla.libre {
-  background: rgba(255, 207, 92, 0.25);
-  color: var(--oro);
-}
-
 /* ---------- Mines ---------- */
 
 .mina-campo {
@@ -2673,7 +2361,7 @@ button {
 
 .mina-cuantas {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 6px;
   margin-top: 12px;
 }
@@ -2937,6 +2625,40 @@ button {
   color: var(--oro);
 }
 
+/* El monto, con el signo pegado al campo para que se lea como plata y no como un número. */
+.monto-caja {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  background: var(--bay-2);
+  border: 1px solid var(--bay-line);
+  border-radius: 5px;
+}
+
+.monto-caja input {
+  width: 130px;
+  padding: 9px 0;
+  background: none;
+  border: none;
+  font-family: var(--font-data), monospace;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+}
+
+.monto-caja input:focus {
+  outline: none;
+}
+
+.monto-caja:focus-within {
+  border-color: var(--amber);
+}
+
+.monto-signo {
+  font-family: var(--font-data), monospace;
+  color: var(--amber);
+}
+
 /* ---------- Retiros del casino ---------- */
 
 .retiro-boton {
@@ -3018,54 +2740,6 @@ button {
 
 .retiro-nota {
   font-style: italic;
-}
-
-/* ---------- Documentos asignados ---------- */
-
-.doc-para {
-  display: inline-block;
-  margin-top: 4px;
-  padding: 1px 8px;
-  border-radius: 999px;
-  background: rgba(255, 157, 46, 0.14);
-  font-size: 0.66rem;
-  color: var(--amber);
-}
-
-.doc-para.todos {
-  background: rgba(255, 255, 255, 0.06);
-  color: #948c7d;
-}
-
-.doc-para strong {
-  font-weight: 600;
-}
-
-.doc-asignar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 6px;
-}
-
-.doc-quien {
-  padding: 6px 12px;
-  border: 1px solid var(--bay-line);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.04);
-  color: #cfc6b6;
-  font-size: 0.74rem;
-  transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
-}
-
-.doc-quien:hover {
-  border-color: var(--amber);
-}
-
-.doc-quien.activo {
-  border-color: var(--amber);
-  background: rgba(255, 157, 46, 0.16);
-  color: var(--ticket);
 }
 
 /* ---------- Duelo de cartas ---------- */
@@ -5026,6 +4700,40 @@ a.accion {
 
 .ref-valor {
   color: #948c7d;
+}
+
+/* Un comando con procedimiento ocupa varias líneas: la fila pasa a columna para que los
+   pasos queden debajo y no apretados contra la descripción. */
+.ref-lista li.con-pasos {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 12px;
+  row-gap: 4px;
+  padding: 10px 0;
+}
+
+.ref-pasos {
+  grid-column: 1 / -1;
+  margin: 2px 0 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 3px;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: #7d766a;
+}
+
+.ref-pasos li {
+  display: list-item;
+  padding: 0;
+  border: none;
+  font-size: inherit;
+}
+
+.ref-pasos li::marker {
+  color: var(--amber);
+  font-family: var(--font-data), monospace;
+  font-size: 0.72rem;
 }
 
 .pie {

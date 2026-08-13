@@ -66,6 +66,7 @@ export async function POST(peticion) {
       monto: forma.get('monto'),
       descripcion: forma.get('descripcion') ?? '',
       imagen,
+      enlace: forma.get('enlace') ?? '',
       enviar,
     });
     if (error) return NextResponse.json({ error }, { status: 400 });

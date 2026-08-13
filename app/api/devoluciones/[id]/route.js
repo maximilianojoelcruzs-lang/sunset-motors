@@ -89,6 +89,8 @@ export async function PATCH(peticion, { params }) {
       monto: forma.get('monto'),
       descripcion: forma.get('descripcion') ?? '',
       ...(imagen ? { imagen } : {}),
+      // `null` cuando no viene: `editar()` distingue "no lo toques" de "quítalo".
+      ...(forma.has('enlace') ? { enlace: forma.get('enlace') } : {}),
     });
     if (error) return NextResponse.json({ error }, { status: 400 });
     return NextResponse.json({ devolucion });

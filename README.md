@@ -139,22 +139,12 @@ Cuando el encargado corrige un turno, **el motivo queda escrito bajo la fila**, 
 lo corrigió, y también le aparece a esa persona en *Mis turnos*. Las horas de alguien no
 cambian sin explicación a la vista.
 
-### Documentos para una persona en concreto
-
-Al subir un documento —o después, con el botón **Asignar**— el encargado elige a quién le
-llega. Sin nadie marcado es **de todo el taller**, como han sido siempre. Con gente marcada,
-**solo esa gente lo ve**: no le aparece a nadie más en la lista, y tampoco puede abrirlo con el
-enlace directo. El administrador ve todos.
-
-Sirve para lo que no es del taller entero: un contrato firmado, una sanción, un acuerdo
-personal. Se asigna, se desasigna y se elimina desde la misma pantalla.
-
-## Casino
+### Casino
 
 Pestaña **Casino**: una sala aparte, con su propia identidad. Es entretención de rol para el
 servidor — **no se juega con dinero real ni se puede convertir en dinero real**.
 
-**Las doce mesas están abiertas.**
+**Las once mesas están abiertas.**
 
 | Mesa | Retorno al jugador | Se queda la casa |
 |---|---|---|
@@ -166,7 +156,6 @@ servidor — **no se juega con dinero real ni se puede convertir en dinero real*
 | Plinko | ~97,0% | ~3,0% |
 | Ruleta de la suerte | 97,50% | 2,50% |
 | Mines | 97,00% | 3,00% |
-| Bingo | 95,00% | 5% de comisión |
 | Duelo de cartas (bando) | 96,30% | 3,70% |
 | Carrera de surf | 95,00% | 5,00% |
 | Duelo de cartas (empate) | 88,75% | 11,25% |
@@ -304,28 +293,14 @@ Kala gana 3 de cada 10 olas; una cuota justa pagaría 3,33 y paga 3,17. Esa dife
 misma en los seis**, es el 5% que se queda la casa — igual que en una casa de apuestas de
 verdad. Apostar al favorito o al que nadie mira da lo mismo a la larga.
 
-### El bingo
-
-Es **la única mesa donde no se juega contra la casa**. El bote son los cartones vendidos y se
-lo reparten quienes canten; la casa se queda un 5% de comisión y no pone cartones.
-
-La primera compra abre la ronda y arranca una cuenta atrás de 45 segundos para que se sume
-quien quiera. Después empiezan a salir bolas, una cada 0,8 segundos, hasta que alguien completa
-el cartón. La **línea** (una fila) se lleva el 30% del bote y el **bingo** (cartón entero) el
-70%. Si cantan varios a la vez, se reparte en partes iguales.
-
-Cada cartón vale 500 fichas y se pueden llevar hasta 4 por ronda. No se puede comprar con la
-ronda ya empezada: sería comprar sabiendo qué bolas salieron.
-
-Si ganas y cierras la página, el premio queda anotado y **te lo abonan la próxima vez que
-entres**. No se pierde.
-
 ### Mines
 
 25 casillas y unas cuantas minas. Destapas de a una, cada casilla limpia sube el multiplicador
 y cobras cuando quieras. Una mina y se pierde todo.
 
-Puedes elegir 1, 3, 5, 10 o 24 minas. Con más minas cada casilla paga más, pero se vuela antes.
+Puedes elegir 1, 3 o 5 minas. Con más minas cada casilla paga más, pero se vuela antes — y por
+eso no hay opciones más altas: con 10 el multiplicador se dispara en cinco casillas y la partida
+deja de sentirse una partida.
 
 Lo interesante: **da igual dónde te plantes**. Cobrar en la primera casilla o en la décima
 devuelve el mismo 97% a la larga — lo único que cambia es cada cuánto ganas. Y tampoco sirve
@@ -492,21 +467,6 @@ uno nuevo, le llega el aviso a todos.
 promoción de la semana, lo que sea— con un botón **Copiar** al lado. El mecánico lo copia y lo
 pega tal cual en el anuncio del juego, sin escribirlo de memoria ni equivocarse en el número
 de teléfono.
-
-## Documentos
-
-Pestaña **Documentos**: el reglamento interno, los contratos, los manuales, los acuerdos con
-la policía o el hospital. Lo que hoy anda suelto en un canal de Discord.
-
-El encargado sube archivos **PDF o imagen**, con título, descripción y categoría. La categoría
-la escribe él —no hay lista fija—, y la vista agrupa los documentos por esa categoría. Hay
-buscador por título, descripción o categoría.
-
-Todo el taller puede abrirlos: los PDF se ven dentro de la misma página, las imágenes en
-grande, y siempre está el botón de descargar.
-
-Se guardan en privado igual que las capturas: hace falta tener sesión para abrirlos, aunque se
-tenga el enlace directo.
 
 ## Avisos
 
