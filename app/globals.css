@@ -1225,6 +1225,61 @@ button {
   margin-top: 14px;
 }
 
+/* ================================================================
+   CASINO
+   ================================================================ */
+
+/*
+ * La paleta del casino vive **encerrada bajo `.casino`**, no en `:root`.
+ *
+ * Es un local distinto: no debe parecerse al taller ni pisarle los estilos. Todo lo que hay
+ * debajo —mesas, fichas, cartas, ruedas— cuelga de estas cuatro variables, así que si este
+ * bloque desaparece la sala entera se queda sin color y se ve apagada. Pasó: al borrar la
+ * sección de Documentos, que estaba justo encima, se fue este bloque con ella.
+ */
+.casino {
+  --neon: #22e6d0;
+  --neon-2: #b14cff;
+  --oro: #ffcf5c;
+  --linea: #262c4d;
+  --tinta: #e6ebff;
+
+  position: relative;
+  min-height: 100vh;
+  background: #05060f;
+  color: var(--tinta);
+}
+
+/* La franja del parabrisas es del taller; acá lleva los colores del local. */
+.casino .franja {
+  background: linear-gradient(90deg, var(--neon-2), var(--neon) 50%, var(--oro));
+}
+
+.casino .barra-casino {
+  position: relative;
+  z-index: 2;
+  background: rgba(9, 11, 26, 0.72);
+  border-bottom: 1px solid var(--linea);
+  backdrop-filter: blur(10px);
+}
+
+.casino .barra-marca em {
+  background: linear-gradient(90deg, var(--oro), var(--neon));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.casino .barra-enlace.activo {
+  color: var(--neon);
+  background: rgba(34, 230, 208, 0.1);
+}
+
+.casino .perfil-circulo {
+  background: linear-gradient(135deg, var(--neon-2), var(--neon));
+  color: #05070f;
+}
+
 /* ---------- Ambiente ---------- */
 
 .casino-fondo {
