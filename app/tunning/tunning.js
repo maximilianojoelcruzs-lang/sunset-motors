@@ -61,6 +61,11 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
   const [ocupado, setOcupado] = useState(false);
   const campoValor = useRef(null);
 
+  // Marcas mandadas que todavía no volvieron. Mientras haya alguna, el sondeo no pisa la
+  // pantalla: traería la lista de antes de la marca y el check saltaría hacia atrás.
+  const pendientes = useRef(0);
+  const cola = useRef(Promise.resolve());
+
   const recargar = async () => {
     const r = await fetch('/api/tunning', { cache: 'no-store' });
     const cuerpo = await r.json().catch(() => ({}));
@@ -68,7 +73,7 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
   };
 
   // Dos mecánicos pueden estar con el mismo auto: la lista se pone al día sola.
-  useSondeo(recargar, 15000);
+  useSondeo(() => (pendientes.current ? undefined : recargar()), 15000);
 
   const pedido = pedidos.find((p) => p.id === abiertoId) ?? null;
   const piezas = pedido?.piezas ?? [];
@@ -152,7 +157,60 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
     }
   };
 
-  const marcar = (pieza, hecha) => patch({ pieza: pieza.id, hecha });
+  // ---------- Marcar y quitar: al instante ----------
+  //
+  // Antes cada check esperaba **dos** idas al servidor —la que guardaba y la que recargaba la
+  // lista entera— y encima dejaba toda la pantalla deshabilitada mientras tanto. Marcando
+  // treinta piezas eso se siente pegado, y es lo único que se hace en esta pantalla.
+  //
+  // Ahora se pinta de inmediato y la escritura va por detrás. El servidor sigue mandando: si
+  // falla, se vuelve a leer y la lista queda como esté allá, con el aviso.
+  const cambiarPiezas = (hacer) =>
+    setPedidos((antes) =>
+      antes.map((p) => (p.id === abiertoId ? { ...p, piezas: hacer(p.piezas) } : p))
+    );
+
+  /**
+   * Manda un cambio sin bloquear la pantalla, y **de a uno**.
+   *
+   * En cola y no en paralelo porque cada escritura lee y reescribe la colección entera: dos a
+   * la vez se pisan y una de las dos marcas se pierde. Marcando rápido eso pasa siempre.
+   */
+  const enSegundoPlano = (cambios) => {
+    pendientes.current += 1;
+
+    const tarea = async () => {
+      try {
+        const r = await fetch(`/api/tunning/${abiertoId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(cambios),
+        });
+        if (r.ok) return;
+        const cuerpo = await r.json().catch(() => ({}));
+        setError(cuerpo.error || 'No se pudo guardar.');
+      } catch {
+        setError('Sin conexión con el servidor.');
+      }
+      await recargar().catch(() => {});
+    };
+
+    // `then(tarea, tarea)` y no `then(tarea)`: si una se cayera, la cola quedaría rota y las
+    // siguientes marcas no se mandarían nunca.
+    cola.current = cola.current.then(tarea, tarea).finally(() => {
+      pendientes.current -= 1;
+    });
+  };
+
+  const marcar = (pieza, hecha) => {
+    cambiarPiezas((lista) => lista.map((x) => (x.id === pieza.id ? { ...x, hecha } : x)));
+    enSegundoPlano({ pieza: pieza.id, hecha });
+  };
+
+  const quitar = (pieza) => {
+    cambiarPiezas((lista) => lista.filter((x) => x.id !== pieza.id));
+    enSegundoPlano({ quitar: pieza.id });
+  };
 
   const porGrupo = useMemo(() => {
     const grupos = new Map();
@@ -390,13 +448,14 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
                   <h3 className="tun-grupo-titulo">{grupo}</h3>
                   <ul className="tun-filas">
                     {lista.map((p) => (
+                      /* Sin `bloqueado`: deshabilitar la lista mientras viaja una marca es
+                         justo lo que la hacía sentirse lenta. */
                       <Fila
                         key={p.id}
                         pieza={p}
                         siguiente={siguiente?.id === p.id}
-                        bloqueado={ocupado}
                         onMarcar={marcar}
-                        onQuitar={(x) => patch({ quitar: x.id })}
+                        onQuitar={quitar}
                       />
                     ))}
                   </ul>

@@ -545,6 +545,29 @@ Un pedido tampoco se **cierra**: se trabaja y se elimina. El bloque *Cerrados* d
 sigue ahí solo para los que quedaron cerrados con la versión anterior — sin él no habría forma de
 volver a verlos ni de sacarlos. `cerrar()` y `{ cerrado }` en la API se quedan por eso.
 
+### El check se pinta al instante y la escritura va por detrás
+
+Marcar es lo único que se hace en esta pantalla, y esperaba **dos** idas al servidor —la que
+guardaba y un `recargar()` de la lista entera— con toda la pantalla deshabilitada mientras
+tanto. Con treinta piezas eso se siente pegado. Ahora `marcar()` y `quitar()` cambian el estado
+local primero y mandan después; si la escritura falla se vuelve a leer y la lista queda como
+esté en el servidor, con el aviso. Medido: el check aparece en menos de 80 ms y ninguna marca
+se pierde marcando las 20 seguidas.
+
+Tres piezas que no son adorno:
+
+- **Las escrituras van en cola, no en paralelo** (`cola` en `tunning.js`). Cada una lee y
+  reescribe la colección entera: dos a la vez se pisan y una marca se pierde. Marcando rápido
+  eso pasa siempre. La cola encadena con `then(tarea, tarea)` para que un fallo no la deje rota.
+- **El sondeo no pisa mientras hay escrituras en vuelo** (`pendientes`). Si no, la respuesta del
+  `GET` trae la lista de antes de la marca y el check salta hacia atrás.
+- **Las filas ya no llevan `bloqueado`.** Deshabilitar la lista mientras viaja una marca era
+  justo lo que la hacía sentirse lenta.
+
+Al medir esto, cuidado con la prueba: sondear el servidor con `waitForFunction` lanza un `fetch`
+por fotograma, ahoga al servidor de desarrollo y hace parecer que se pierden marcas cuando lo
+que falta es turno de CPU. Consulta cada 300 ms.
+
 ### El campo se vacía antes de mandar, no al volver la respuesta
 
 Cargando treinta piezas se escribe la siguiente mientras la anterior viaja. Limpiando al volver
