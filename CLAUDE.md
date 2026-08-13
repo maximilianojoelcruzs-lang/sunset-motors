@@ -517,7 +517,7 @@ llega después de empezar.
 
 ### El orden de la lista es el del menú, no el de llegada
 
-`ordenar()` en [lib/tunning.js](lib/tunning.js) usa `ordenDe()` de
+`ordenar()` y `ordenDe()` viven en
 **[lib/tunning-categorias.js](lib/tunning-categorias.js)**, donde `orden` **no se escribe: es la
 posición en el arreglo**. Mover una categoría de sitio ahí cambia el orden de trabajo en toda la
 app. Ese orden es el punto entero de la pantalla: siguiendo el pedido tal como llega se entra y
@@ -545,14 +545,24 @@ Un pedido tampoco se **cierra**: se trabaja y se elimina. El bloque *Cerrados* d
 sigue ahí solo para los que quedaron cerrados con la versión anterior — sin él no habría forma de
 volver a verlos ni de sacarlos. `cerrar()` y `{ cerrado }` en la API se quedan por eso.
 
-### El check se pinta al instante y la escritura va por detrás
+### La pantalla se pinta al instante y la escritura va por detrás
 
-Marcar es lo único que se hace en esta pantalla, y esperaba **dos** idas al servidor —la que
-guardaba y un `recargar()` de la lista entera— con toda la pantalla deshabilitada mientras
-tanto. Con treinta piezas eso se siente pegado. Ahora `marcar()` y `quitar()` cambian el estado
-local primero y mandan después; si la escritura falla se vuelve a leer y la lista queda como
-esté en el servidor, con el aviso. Medido: el check aparece en menos de 80 ms y ninguna marca
-se pierde marcando las 20 seguidas.
+Marcar, quitar y añadir esperaban **dos** idas al servidor —la que guardaba y un `recargar()` de
+la lista entera— con toda la pantalla deshabilitada mientras tanto. Con treinta piezas eso se
+siente pegado. Ahora los tres cambian el estado local primero y mandan después; si la escritura
+falla se vuelve a leer y la lista queda como esté en el servidor, con el aviso. Medido: el check
+aparece en menos de 80 ms y la fila nueva en menos de 70, y no se pierde nada haciendo las 20
+seguidas.
+
+**El identificador de una pieza nueva lo pone el navegador y el servidor lo respeta**
+(`idPropuesto()` en `lib/tunning.js`: lo acepta si tiene forma de UUID y no está usado, si no
+inventa uno). Sin eso, la fila pintada y la guardada serían piezas distintas, y marcar una
+recién añadida no encontraría nada que marcar y no haría nada **en silencio**, hasta la
+siguiente lectura.
+
+`ordenar()` vive en `tunning-categorias.js` justamente para esto: el navegador coloca la fila
+nueva con la misma función que el servidor, así nace en su sitio en vez de saltar cuando llega
+la respuesta.
 
 Tres piezas que no son adorno:
 

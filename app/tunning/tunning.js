@@ -9,6 +9,7 @@ import {
   GRUPOS,
   categoria,
   interpretarLista,
+  ordenar,
 } from '../../lib/tunning-categorias';
 
 const nombreDe = (p) => categoria(p.categoria)?.nombre ?? p.etiqueta;
@@ -137,9 +138,21 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
     setPegando(null);
   };
 
-  const agregar = async (e) => {
+  const agregar = (e) => {
     e.preventDefault();
-    const enviar = { categoria: cat === 'otra' ? null : cat, etiqueta: otra, valor };
+    const limpio = valor.trim();
+    if (!limpio) return;
+
+    // El identificador lo pone el navegador y el servidor lo respeta. Así la fila que se acaba
+    // de pintar y la que se guarda son la misma pieza, y se puede marcar de inmediato sin
+    // esperar a la siguiente lectura.
+    const nueva = {
+      id: crypto.randomUUID(),
+      categoria: cat === 'otra' ? null : cat,
+      etiqueta: cat === 'otra' ? otra.trim().slice(0, 40) : null,
+      valor: limpio.slice(0, 40),
+      hecha: false,
+    };
 
     // Se vacía **antes** de mandar, no al volver la respuesta. Escribiendo una tras otra se
     // teclea la siguiente mientras la anterior viaja, y limpiar al volver borraba lo recién
@@ -149,12 +162,13 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
     // El foco vuelve al número: se carga el pedido entero sin tocar el mouse.
     campoValor.current?.focus();
 
-    const r = await patch({ agregar: enviar });
-    // Si falló, se devuelve lo escrito — salvo que ya se esté escribiendo otra cosa.
-    if (!r) {
-      setValor((v) => v || enviar.valor);
-      setOtra((v) => v || enviar.etiqueta);
-    }
+    // `ordenar` es la misma del servidor: la fila nace en su sitio y no salta después.
+    cambiarPiezas((lista) => ordenar([...lista, nueva]));
+    enSegundoPlano({ agregar: nueva }, () => {
+      // Si falló, se devuelve lo escrito — salvo que ya se esté escribiendo otra cosa.
+      setValor((v) => v || nueva.valor);
+      setOtra((v) => v || nueva.etiqueta || '');
+    });
   };
 
   // ---------- Marcar y quitar: al instante ----------
@@ -176,7 +190,7 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
    * En cola y no en paralelo porque cada escritura lee y reescribe la colección entera: dos a
    * la vez se pisan y una de las dos marcas se pierde. Marcando rápido eso pasa siempre.
    */
-  const enSegundoPlano = (cambios) => {
+  const enSegundoPlano = (cambios, alFallar) => {
     pendientes.current += 1;
 
     const tarea = async () => {
@@ -192,6 +206,7 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
       } catch {
         setError('Sin conexión con el servidor.');
       }
+      alFallar?.();
       await recargar().catch(() => {});
     };
 
