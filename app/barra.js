@@ -139,19 +139,21 @@ export default function Barra({
                 >
                   Calculadora
                 </Link>
-                <Link
-                  className={`barra-enlace ${seccion === 'licencias' ? 'activo' : ''}`}
-                  href="/licencias"
-                  aria-current={seccion === 'licencias' ? 'page' : undefined}
-                >
-                  Licencias
-                </Link>
+                {/* Tunning va pegado a la calculadora: son las dos pantallas que se usan con
+                    el auto delante, y el resto son trámites. */}
                 <Link
                   className={`barra-enlace ${seccion === 'tunning' ? 'activo' : ''}`}
                   href="/tunning"
                   aria-current={seccion === 'tunning' ? 'page' : undefined}
                 >
                   Tunning
+                </Link>
+                <Link
+                  className={`barra-enlace ${seccion === 'licencias' ? 'activo' : ''}`}
+                  href="/licencias"
+                  aria-current={seccion === 'licencias' ? 'page' : undefined}
+                >
+                  Licencias
                 </Link>
                 <Link
                   className={`barra-enlace ${seccion === 'devoluciones' ? 'activo' : ''}`}

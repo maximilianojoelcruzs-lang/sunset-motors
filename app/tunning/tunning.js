@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import Barra from '../barra';
 import useSondeo from '../sondeo';
 import { soloHora } from '../../lib/tiempo';
-import { CATEGORIAS, GRUPOS, categoria, interpretarLista } from '../../lib/tunning-categorias';
+import { CATEGORIAS, GRUPOS, categoria } from '../../lib/tunning-categorias';
 
 // Un pedido no lleva patente: se distingue por cuándo se abrió. Los viejos que la tengan
 // guardada la siguen mostrando, para no dejar en blanco lo que hasta ayer tenía nombre.
@@ -66,9 +66,6 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
   const [pedidos, setPedidos] = useState(iniciales);
   const [turno, setTurno] = useState(turnoPropio);
   const [abiertoId, setAbiertoId] = useState(iniciales.find((p) => !p.cerrado)?.id ?? null);
-  // 'nuevo' abre un pedido con lo pegado; 'agregar' lo suma al que ya está abierto.
-  const [pegando, setPegando] = useState(null);
-  const [pegado, setPegado] = useState('');
   // Lo que se está tecleando ahora mismo, por fila. Mientras hay borrador manda él: si no, la
   // respuesta del servidor pisaría el campo justo mientras alguien escribe dentro.
   const [borradores, setBorradores] = useState({});
@@ -212,41 +209,13 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
     if (texto !== undefined) guardar(fila, texto);
   };
 
-  // ---------- Pegar el pedido entero ----------
-  const leidas = useMemo(() => interpretarLista(pegado), [pegado]);
-  const buenas = leidas.filter((f) => f.valor);
-  const sinNumero = leidas.length - buenas.length;
-
-  const guardarPegado = async () => {
-    const entradas = buenas.map((f) => ({
-      categoria: f.categoria,
-      etiqueta: f.etiqueta,
-      valor: f.valor,
-    }));
-
-    const r =
-      pegando === 'nuevo'
-        ? await pedir('/api/tunning', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ piezas: entradas }),
-          })
-        : await pedir(`/api/tunning/${abiertoId}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ agregar: entradas }),
-          });
-
-    if (!r) return;
-    if (r.pedido) setAbiertoId(r.pedido.id);
-
-    // Se abren las secciones que acaba de tocar la lista pegada. Dejarlas cerradas haría
-    // parecer que no entró nada: lo pegado quedaría detrás de una cabecera plegada.
-    const tocadas = buenas.map((f) => categoria(f.categoria)?.grupo ?? 'Otras');
-    setAbiertas((prev) => new Set([...prev, ...tocadas]));
-
-    setPegado('');
-    setPegando(null);
+  const nuevoPedido = async () => {
+    const r = await pedir('/api/tunning', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ piezas: [] }),
+    });
+    if (r?.pedido) setAbiertoId(r.pedido.id);
   };
 
   // ---------- Las filas: el menú entero, siempre ----------
@@ -265,9 +234,8 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
       pieza: puestas.get(c.id) ?? null,
     }));
 
-    // Lo que llegó pegado y no se reconoció no se esconde: va al final, con su nombre. Y si el
-    // almacén trae una categoría que el catálogo ya no tiene, se muestra por su identificador
-    // en vez de dejar la fila sin nombre.
+    // Una categoría que el almacén trae y el catálogo ya no tiene se muestra por su nombre —o
+    // por su identificador— en vez de dejar la fila en blanco.
     const propias = piezas
       .filter((p) => !categoria(p.categoria))
       .map((p) => ({
@@ -346,96 +314,15 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
           </div>
           <button
             type="button"
-            className="accion"
+            className="tun-boton-fuerte"
             disabled={ocupado}
-            onClick={() => {
-              setPegando('nuevo');
-              setPegado('');
-            }}
+            onClick={nuevoPedido}
           >
             Nuevo pedido
           </button>
         </header>
 
         {error && <p className="panel-error">{error}</p>}
-
-        {pegando && (
-          <section className="tun-pegar">
-            <h2 className="ref-titulo">
-              {pegando === 'nuevo' ? 'Pega el pedido' : 'Pega más piezas'}
-            </h2>
-            <p className="tun-ayuda">
-              Una pieza por línea, tal como la canta la tablet. Da igual el formato:{' '}
-              <code>Parachoques delantero: 4</code>, <code>Techo 4</code> o <code>- Llantas 12</code>.
-            </p>
-
-            <textarea
-              className="tun-textarea"
-              value={pegado}
-              onChange={(e) => setPegado(e.target.value)}
-              rows={10}
-              spellCheck={false}
-              autoFocus
-              placeholder={'Color primario: METÁLICO - RGB(84,118,204)\nParachoques delantero: 4\nLlantas 12\nTinte de ventanas 3'}
-            />
-
-            {leidas.length > 0 && (
-              <>
-                <p className="tun-resumen">
-                  {buenas.length} pieza{buenas.length === 1 ? '' : 's'} reconocida
-                  {buenas.length === 1 ? '' : 's'}
-                  {/* Decir «1 sin número» y no cuál obliga a ir a buscarla, y la lista de la
-                      vista previa lleva su propio scroll: puede estar fuera de la vista. */}
-                  {sinNumero > 0 && (
-                    <em>
-                      {' '}
-                      · {sinNumero} sin número, {sinNumero === 1 ? 'queda' : 'quedan'} fuera:{' '}
-                      {leidas
-                        .filter((f) => !f.valor)
-                        .slice(0, 4)
-                        .map((f) => categoria(f.categoria)?.nombre ?? f.etiqueta)
-                        .join(', ')}
-                      {sinNumero > 4 ? '…' : ''}
-                    </em>
-                  )}
-                </p>
-                <ul className="tun-vista">
-                  {leidas.map((f, i) => (
-                    <li key={i} className={f.valor ? '' : 'falta'}>
-                      <span className={f.categoria ? '' : 'propia'}>
-                        {categoria(f.categoria)?.nombre ?? f.etiqueta}
-                      </span>
-                      <span>{f.valor || 'sin número'}</span>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
-
-            <div className="fila-acciones">
-              <button
-                type="button"
-                className="tun-boton-pegar"
-                disabled={ocupado || (pegando === 'agregar' && !buenas.length)}
-                onClick={guardarPegado}
-              >
-                {buenas.length
-                  ? `Guardar ${buenas.length} pieza${buenas.length === 1 ? '' : 's'}`
-                  : 'Abrir el pedido vacío'}
-              </button>
-              <button
-                type="button"
-                className="accion"
-                onClick={() => {
-                  setPegando(null);
-                  setPegado('');
-                }}
-              >
-                Cancelar
-              </button>
-            </div>
-          </section>
-        )}
 
         {abiertos.length > 1 && (
           <div className="tun-pestanas">
@@ -456,13 +343,11 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
         )}
 
         {!pedido ? (
-          !pegando && (
-            <p className="vacio">
-              {abiertos.length === 0
-                ? 'No hay pedidos abiertos. Pulsa «Nuevo pedido».'
-                : 'Elige un pedido.'}
-            </p>
-          )
+          <p className="vacio">
+            {abiertos.length === 0
+              ? 'No hay pedidos abiertos. Pulsa «Nuevo pedido».'
+              : 'Elige un pedido.'}
+          </p>
         ) : (
           <section className="tun-lista">
             <div className="tun-cabeza">
@@ -481,17 +366,6 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
                   }
                 >
                   {todoAbierto ? 'Cerrar todo' : 'Abrir todo'}
-                </button>
-                <button
-                  type="button"
-                  className="tun-boton-pegar"
-                  disabled={ocupado}
-                  onClick={() => {
-                    setPegando('agregar');
-                    setPegado('');
-                  }}
-                >
-                  📋 Pegar lista
                 </button>
                 <button
                   type="button"

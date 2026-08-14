@@ -464,12 +464,8 @@ casilla de la derecha: el número que hay que elegir, o el color. Las que el ped
 dejan en blanco. Así se baja por la lista igual que se baja por la tablet, sin buscar cada pieza
 en un desplegable y sin escribir el nombre largo, que dentro del menú no se usa para nada.
 
-Si el pedido ya está escrito en alguna parte, **se pega entero de una vez** con *Pegar lista*:
-una pieza por línea, y da igual el formato —`Parachoques delantero: 4`, `Techo 4` o
-`- Llantas 12` entran igual, y también reconoce los nombres de todos los días: rines, spoiler,
-polarizado, bocina—. Antes de guardar se muestra lo que entendió, para revisarlo de un vistazo;
-las líneas a las que les falta el número se marcan en rojo, se dicen por su nombre y quedan
-fuera. Treinta piezas entran en menos de un segundo.
+Se empieza con **Nuevo pedido**, que abre la lista en blanco. Rellenar siete casillas leyendo la
+tablet toma menos de un segundo en total: se escribe y se guarda solo, sin pulsar nada.
 
 Cada categoría aparece **una sola vez**, como en el juego: volver a poner «Techo» cambia el
 número en vez de dejar dos filas que se contradicen, y corregir un número no desmarca lo que ya

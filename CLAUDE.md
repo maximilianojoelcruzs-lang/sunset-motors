@@ -504,53 +504,38 @@ contradicen: en el juego tampoco se pueden instalar dos techos. Por eso `agregar
 y conserva el `id` y el `hecha` de la pieza que ya estaba — corregir un número no desmarca lo ya
 instalado. Vaciar la casilla saca la pieza del pedido.
 
-Lo que llega pegado y no se reconoce (`categoria: null`) no se esconde: sale al final, en un
-grupo *Otras*, con su nombre y su casilla.
+Las piezas que no son del catálogo (`categoria: null` con `etiqueta`, o una categoría que el
+almacén tiene y el código ya no) no se esconden: salen al final, en un grupo *Otras*, con su
+nombre y su casilla.
 
 ### Las secciones se pliegan, con el mismo acordeón de la calculadora
 
 Con el menú entero son siete secciones y 37 filas. `abiertas` es un `Set` y `alternar()` es el
 mismo de [app/boleta.js](app/boleta.js) — si tocas uno, mira el otro.
 
-Tres reglas que hacen que no estorbe:
+Dos reglas que hacen que no estorbe:
 
 - **Arrancan abiertas las secciones que el pedido toca**, que es lo que hay que trabajar; si no
   hay ninguna, la primera, para no dejar la pantalla en blanco. Se recalcula al **cambiar de
   pedido**, no al añadir una pieza: si no, cerrar una sección duraría hasta la siguiente tecla.
 - **Cerrada, la cabecera dice `hechas/puestas`** (o «5 sin usar»). Es lo único que queda a la
   vista de esa sección: sin el contador, plegar sería esconder trabajo pendiente.
-- **Pegar una lista abre las secciones que toca.** Con todo cerrado, lo pegado quedaría detrás de
-  una cabecera plegada y parecería que no entró nada.
 
 `.flecha` se reutiliza tal cual, pero con el borde en claro: en la calculadora va sobre papel y
 acá sobre el fondo oscuro, y con `--ink-soft` no se veía.
 
-### El pedido entra pegado, de una vez
+### Ya no se pega una lista, y el intérprete se borró
 
-Cargar treinta piezas de a una son treinta idas al servidor —y contra Supabase cada una lee y
-reescribe la colección entera— más treinta oportunidades de perder el hilo. Se pega la lista tal
-como la canta la tablet y **entra en una sola escritura**: `crear()` acepta las piezas en la
-misma llamada que la creación, y `agregar()` acepta un objeto o un arreglo. Medido: 30 líneas de
-punta a punta en 261 ms.
+Hubo un panel para pegar el pedido entero, con un intérprete que reconocía «Parachoques
+delantero: 4», «Techo 4» o «- Llantas 12» y una tabla de `ALIAS` (rines, spoiler, polarizado…).
+**Se quitó a pedido del usuario** cuando la pantalla pasó a ser el menú completo: teniendo las
+36 casillas delante, pegar era un rodeo. `interpretarLinea()`, `interpretarLista()` y `ALIAS` se
+borraron de `tunning-categorias.js` en vez de quedarse ahí sin llamar — están en el historial de
+git si alguna vez hacen falta. No los vuelvas a añadir sin que se pidan.
 
-`interpretarLinea()` vive en `tunning-categorias.js` porque la vista previa corre en el
-navegador. Reconoce «Parachoques delantero: 4», «Techo 4», «- Llantas 12» y «2. Escape = 2», y
-lleva una tabla de `ALIAS` porque la tablet y la gente no usan el mismo nombre (rines, spoiler,
-polarizado…). Dos reglas que no hay que aflojar:
-
-- **Los nombres se prueban del más largo al más corto.** Si «Parachoques» se probara antes que
-  «Parachoques delantero», todo delantero quedaría como parachoques a secas y el número
-  apuntaría a otro submenú.
-- **Lo que no reconoce no se tira**: vuelve con `categoria: null` y el texto tal cual, igual que
-  una categoría escrita a mano. Perder una línea en silencio es el peor de los dos errores.
-
-**Lo interpretado se enseña antes de guardar.** Un intérprete que adivina mal sin avisar deja el
-pedido mintiendo y eso no se nota hasta que el auto sale mal. Las líneas sin número quedan fuera
-y **se nombran** en el resumen: decir «1 sin número» y no cuál obliga a ir a buscarla, y la lista
-de la vista previa tiene su propio scroll.
-
-Cargar una pieza suelta sigue siendo dos gestos —categoría del `<select>` y número—, para lo que
-llega después de empezar.
+Lo que sí se quedó es que **`crear()` acepta las piezas en la misma llamada que la creación** y
+`agregar()` acepta un objeto o un arreglo: es lo que permitiría volver a cargar un pedido entero
+en una sola escritura, y contra Supabase cada llamada lee y reescribe la colección completa.
 
 ### El orden de la lista es el del menú, no el de llegada
 
