@@ -504,9 +504,24 @@ contradicen: en el juego tampoco se pueden instalar dos techos. Por eso `agregar
 y conserva el `id` y el `hecha` de la pieza que ya estaba — corregir un número no desmarca lo ya
 instalado. Vaciar la casilla saca la pieza del pedido.
 
-Las piezas que no son del catálogo (`categoria: null` con `etiqueta`, o una categoría que el
-almacén tiene y el código ya no) no se esconden: salen al final, en un grupo *Otras*, con su
-nombre y su casilla.
+### *Otras*: lo que el menú del juego no contempla
+
+El catálogo son las 36 opciones del menú, pero un pedido trae cosas que no son un número de
+submenú: «revisar frenos antes de entregar», «las llantas las trae el cliente». Sin un sitio
+donde anotarlas terminaban en un papel aparte, que es justo lo que esta pantalla evita.
+
+*Otras* está **siempre**, aunque esté vacía, con una fila al final para escribir. Tres reglas:
+
+- **El valor es opcional en una línea escrita a mano** y obligatorio en una del catálogo. Una
+  categoría del menú sin número no sirve para nada —hay que elegir *algo* dentro del submenú—,
+  pero «falta pieza» a secas ya es todo el recado.
+- **Vaciar la casilla borra la del catálogo, no la escrita a mano.** Si no, una línea de texto
+  sin valor se borraría sola al guardarse. Esas se quitan con la ×.
+- Ahí caen también las piezas con una categoría que el almacén tiene y el código ya no, en vez
+  de dejar la fila sin nombre.
+
+El nombre no se edita: para cambiarlo se quita y se vuelve a escribir. Renombrar cambiaría la
+`claveDe()` y el servidor lo tomaría por una línea nueva, dejando las dos.
 
 ### Las secciones se pliegan, con el mismo acordeón de la calculadora
 

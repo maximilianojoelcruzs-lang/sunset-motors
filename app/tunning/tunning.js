@@ -21,7 +21,7 @@ const claveDe = (p) => p.categoria ?? `otra:${String(p.etiqueta ?? '').toLowerCa
  * y pulsar «Añadir» pieza por pieza; con treinta piezas eso son noventa gestos. Acá está todo
  * el menú a la vista y solo se rellena lo que el pedido trae.
  */
-function Fila({ fila, valor, siguiente, onEscribir, onCerrar, onMarcar }) {
+function Fila({ fila, valor, siguiente, onEscribir, onCerrar, onMarcar, onQuitar }) {
   const puesta = Boolean(fila.pieza);
   const hecha = Boolean(fila.pieza?.hecha);
 
@@ -29,7 +29,7 @@ function Fila({ fila, valor, siguiente, onEscribir, onCerrar, onMarcar }) {
     <li
       className={`tun-fila ${puesta ? 'puesta' : 'vacia'} ${hecha ? 'hecha' : ''} ${
         siguiente ? 'siguiente' : ''
-      } ${fila.texto ? 'texto' : ''}`}
+      } ${fila.texto ? 'texto' : ''} ${fila.propia ? 'propia' : ''}`}
     >
       {puesta ? (
         <button
@@ -52,12 +52,26 @@ function Fila({ fila, valor, siguiente, onEscribir, onCerrar, onMarcar }) {
         onChange={(e) => onEscribir(fila, e.target.value)}
         onBlur={() => onCerrar(fila)}
         onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), e.target.blur())}
-        placeholder={fila.texto ? 'color' : 'nº'}
+        placeholder={fila.propia ? 'opcional' : fila.texto ? 'color' : 'nº'}
         maxLength={40}
         spellCheck={false}
         title={valor || undefined}
         aria-label={`Valor de ${fila.nombre}`}
       />
+
+      {/* Las escritas a mano se borran con la equis: vaciar la casilla no puede sacarlas,
+          porque una línea de texto suelta —«falta pieza»— no lleva valor y seguiría siendo
+          válida. Las del catálogo sí desaparecen al vaciar el número. */}
+      {fila.propia && (
+        <button
+          type="button"
+          className="tun-quitar"
+          onClick={() => onQuitar(fila.pieza)}
+          aria-label={`Quitar ${fila.nombre}`}
+        >
+          ×
+        </button>
+      )}
     </li>
   );
 }
@@ -71,10 +85,14 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
   const [borradores, setBorradores] = useState({});
   // Qué secciones están desplegadas. Un `Set`, igual que en la calculadora.
   const [abiertas, setAbiertas] = useState(new Set());
+  // La línea escrita a mano que se está redactando.
+  const [nombreNuevo, setNombreNuevo] = useState('');
+  const [valorNuevo, setValorNuevo] = useState('');
   const [error, setError] = useState(fallo);
   const [ocupado, setOcupado] = useState(false);
 
   const relojes = useRef({});
+  const campoNuevo = useRef(null);
   const pendientes = useRef(0);
   const cola = useRef(Promise.resolve());
 
@@ -174,11 +192,15 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
     const antes = fila.pieza;
     if (limpio === (antes?.valor ?? '')) return;
 
-    if (!limpio) {
+    // Vaciar el número saca la pieza del pedido… salvo en las escritas a mano, donde el valor
+    // es opcional: «falta pieza» sin nada al lado sigue siendo un recado válido. Esas se
+    // quitan con la equis.
+    if (!limpio && !fila.propia) {
       cambiarPiezas((lista) => lista.filter((x) => x.id !== antes.id));
       enSegundoPlano({ quitar: antes.id });
       return;
     }
+    if (!limpio && !antes) return;
 
     if (antes) {
       cambiarPiezas((lista) =>
@@ -209,6 +231,39 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
     if (texto !== undefined) guardar(fila, texto);
   };
 
+  const quitar = (pieza) => {
+    cambiarPiezas((lista) => lista.filter((x) => x.id !== pieza.id));
+    enSegundoPlano({ quitar: pieza.id });
+  };
+
+  // ---------- Una línea escrita a mano ----------
+  //
+  // El menú del juego no lo contempla todo, y hay cosas del pedido que no son un número de
+  // submenú: «llevar a la ITV», «falta la pieza, avisar al cliente». Sin esto no había dónde
+  // anotarlas y terminaban en un papel aparte, que es justo lo que esta pantalla evita.
+  const anadirPropia = (e) => {
+    e.preventDefault();
+    const etiqueta = nombreNuevo.trim().slice(0, 40);
+    if (!etiqueta) return;
+
+    const nueva = {
+      id: crypto.randomUUID(),
+      categoria: null,
+      etiqueta,
+      valor: valorNuevo.trim().slice(0, 40),
+      hecha: false,
+    };
+
+    // Se vacía antes de mandar: escribiendo una tras otra se teclea la siguiente mientras la
+    // anterior viaja, y limpiar al volver la respuesta borraría lo recién escrito.
+    setNombreNuevo('');
+    setValorNuevo('');
+    campoNuevo.current?.focus();
+
+    cambiarPiezas((lista) => [...lista.filter((x) => claveDe(x) !== claveDe(nueva)), nueva]);
+    enSegundoPlano({ agregar: nueva });
+  };
+
   const nuevoPedido = async () => {
     const r = await pedir('/api/tunning', {
       method: 'POST',
@@ -234,8 +289,8 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
       pieza: puestas.get(c.id) ?? null,
     }));
 
-    // Una categoría que el almacén trae y el catálogo ya no tiene se muestra por su nombre —o
-    // por su identificador— en vez de dejar la fila en blanco.
+    // Las escritas a mano. También cae acá una categoría que el almacén trae y el catálogo ya
+    // no tiene: se muestra por su nombre —o por su identificador— en vez de quedar en blanco.
     const propias = piezas
       .filter((p) => !categoria(p.categoria))
       .map((p) => ({
@@ -243,6 +298,7 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
         nombre: p.etiqueta ?? p.categoria,
         grupo: 'Otras',
         texto: true,
+        propia: true,
         entrada: { categoria: p.categoria, etiqueta: p.etiqueta },
         pieza: p,
       }));
@@ -254,7 +310,9 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
     const grupos = new Map([...GRUPOS, 'Otras'].map((g) => [g, []]));
     for (const f of filas) grupos.get(f.grupo)?.push(f);
     return [...grupos.entries()]
-      .filter(([, lista]) => lista.length)
+      // «Otras» está siempre, aunque no tenga nada: es donde se escribe lo que el menú del
+      // juego no contempla, y si desapareciera al quedarse vacía no habría dónde empezar.
+      .filter(([grupo, lista]) => lista.length || grupo === 'Otras')
       .map(([grupo, lista]) => ({
         grupo,
         lista,
@@ -397,24 +455,67 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
                     <span className="tun-grupo-titulo">{grupo}</span>
                     {/* Cerrada, el contador es lo único que dice si ahí queda trabajo. */}
                     <span className="tun-grupo-cuenta">
-                      {puestas ? `${hechasGrupo}/${puestas}` : `${lista.length} sin usar`}
+                      {puestas
+                        ? `${hechasGrupo}/${puestas}`
+                        : grupo === 'Otras'
+                          ? '+ escribir'
+                          : `${lista.length} sin usar`}
                     </span>
                   </button>
 
                   {abierta && (
-                    <ul className="tun-filas">
-                      {lista.map((f) => (
-                        <Fila
-                          key={f.clave}
-                          fila={f}
-                          valor={borradores[f.clave] ?? f.pieza?.valor ?? ''}
-                          siguiente={Boolean(f.pieza) && siguiente?.id === f.pieza.id}
-                          onEscribir={escribir}
-                          onCerrar={cerrar}
-                          onMarcar={marcar}
-                        />
-                      ))}
-                    </ul>
+                    <>
+                      <ul className="tun-filas">
+                        {lista.map((f) => (
+                          <Fila
+                            key={f.clave}
+                            fila={f}
+                            valor={borradores[f.clave] ?? f.pieza?.valor ?? ''}
+                            siguiente={Boolean(f.pieza) && siguiente?.id === f.pieza.id}
+                            onEscribir={escribir}
+                            onCerrar={cerrar}
+                            onMarcar={marcar}
+                            onQuitar={quitar}
+                          />
+                        ))}
+                      </ul>
+
+                      {/* Lo que el menú del juego no contempla se escribe acá, con sus
+                          palabras. El valor es opcional: «falta pieza» ya es todo el recado. */}
+                      {grupo === 'Otras' && (
+                        <form className="tun-fila tun-nueva" onSubmit={anadirPropia}>
+                          <span className="tun-marca-hueco" aria-hidden="true">
+                            +
+                          </span>
+                          <input
+                            ref={campoNuevo}
+                            className="tun-nombre-nuevo"
+                            value={nombreNuevo}
+                            onChange={(e) => setNombreNuevo(e.target.value)}
+                            placeholder="Escribe lo que falte: «revisar frenos», «llantas del cliente»…"
+                            maxLength={40}
+                            aria-label="Nombre de la línea nueva"
+                          />
+                          <input
+                            className="tun-campo"
+                            value={valorNuevo}
+                            onChange={(e) => setValorNuevo(e.target.value)}
+                            placeholder="opcional"
+                            maxLength={40}
+                            spellCheck={false}
+                            aria-label="Valor de la línea nueva"
+                          />
+                          <button
+                            type="submit"
+                            className="tun-quitar anadir"
+                            disabled={!nombreNuevo.trim()}
+                            aria-label="Añadir la línea"
+                          >
+                            ↵
+                          </button>
+                        </form>
+                      )}
+                    </>
                   )}
                 </div>
               );
@@ -455,8 +556,11 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
 
         <p className="pie">
           Está el menú completo, en el mismo orden que en el juego: se baja una vez por sección
-          rellenando lo que el pedido trae y las demás quedan en blanco. Vaciar una casilla la
-          saca del pedido. Se marca cada pieza al instalarla; volver a pulsar la desmarca.
+          rellenando lo que el pedido trae y las demás quedan en blanco. Vaciar una casilla saca
+          esa pieza del pedido. En <strong>Otras</strong> se escribe con tus palabras lo que el
+          menú no contempla —«revisar frenos», «las llantas las trae el cliente»—, con número o
+          sin él; esas se quitan con la ×. Se marca cada pieza al instalarla; volver a pulsar la
+          desmarca.
         </p>
       </main>
     </>

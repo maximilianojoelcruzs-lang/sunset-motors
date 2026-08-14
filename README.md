@@ -477,6 +477,11 @@ plegadas las demás, así no hay que recorrer las cuarenta filas para llegar a l
 esté cerrada, a la derecha del título se ve cuánto lleva —`2/5`— o «5 sin usar» si el pedido no
 trae nada de ahí. *Abrir todo* y *Cerrar todo* hacen lo que dicen.
 
+Al final está **Otras**, para lo que el menú del juego no contempla: se escribe con tus palabras
+—«revisar frenos antes de entregar», «las llantas las trae el cliente»— y el número es opcional,
+porque muchas veces la frase ya es todo el recado. Esas líneas se quitan con la × de la derecha;
+las del catálogo, vaciando su casilla.
+
 Se marca cada pieza al instalarla —volver a pulsar la desmarca— y lo marcado queda guardado: si
 se cierra la pestaña o se cambia de computador, la lista sigue donde iba.
 

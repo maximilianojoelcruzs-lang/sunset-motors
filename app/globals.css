@@ -1141,6 +1141,66 @@ button {
   outline: none;
 }
 
+/* Las líneas escritas a mano llevan una equis para sacarlas, así que necesitan una columna
+   más. Las del catálogo no: esas se quitan vaciando el número. */
+.tun-fila.propia,
+.tun-fila.tun-nueva {
+  grid-template-columns: 30px 1fr 230px 26px;
+}
+
+.tun-quitar {
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 5px;
+  background: none;
+  color: #7d766a;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.tun-quitar:hover:not(:disabled) {
+  color: var(--sun-2);
+}
+
+.tun-quitar.anadir:hover:not(:disabled) {
+  color: var(--amber);
+}
+
+.tun-quitar:disabled {
+  opacity: 0.3;
+}
+
+/* La fila de escribir va discreta: es una invitación, no una pieza más de la lista. */
+.tun-nueva {
+  background: transparent;
+  border-style: dashed;
+  border-left-color: transparent;
+}
+
+.tun-nueva .tun-marca-hueco {
+  display: grid;
+  place-items: center;
+  color: #5c564c;
+  font-size: 1.1rem;
+}
+
+.tun-nombre-nuevo {
+  padding: 6px 0;
+  background: transparent;
+  border: 0;
+  color: var(--ticket);
+  font-size: 0.92rem;
+}
+
+.tun-nombre-nuevo:focus {
+  outline: none;
+}
+
+.tun-nombre-nuevo::placeholder {
+  color: #5c564c;
+}
+
 .tun-cerrados {
   list-style: none;
   margin: 8px 0 0;
@@ -1181,6 +1241,17 @@ button {
 
   .tun-fila.texto .tun-campo {
     grid-column: 2;
+  }
+
+  .tun-fila.propia,
+  .tun-fila.tun-nueva {
+    grid-template-columns: 28px 1fr 26px;
+    row-gap: 6px;
+  }
+
+  .tun-fila.propia .tun-campo,
+  .tun-fila.tun-nueva .tun-campo {
+    grid-column: 2 / -1;
   }
 }
 
