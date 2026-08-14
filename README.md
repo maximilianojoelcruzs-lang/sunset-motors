@@ -475,6 +475,12 @@ Cada categoría aparece **una sola vez**, como en el juego: volver a poner «Tec
 número en vez de dejar dos filas que se contradicen, y corregir un número no desmarca lo que ya
 estaba instalado. Vaciar la casilla saca esa pieza del pedido.
 
+**Las secciones se abren y se cierran**, igual que en la calculadora: se pulsa el título y la
+sección se pliega. Al abrir el pedido ya vienen abiertas las secciones que tiene que trabajar y
+plegadas las demás, así no hay que recorrer las cuarenta filas para llegar a la que toca. Aunque
+esté cerrada, a la derecha del título se ve cuánto lleva —`2/5`— o «5 sin usar» si el pedido no
+trae nada de ahí. *Abrir todo* y *Cerrar todo* hacen lo que dicen.
+
 Se marca cada pieza al instalarla —volver a pulsar la desmarca— y lo marcado queda guardado: si
 se cierra la pestaña o se cambia de computador, la lista sigue donde iba.
 

@@ -72,6 +72,8 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
   // Lo que se está tecleando ahora mismo, por fila. Mientras hay borrador manda él: si no, la
   // respuesta del servidor pisaría el campo justo mientras alguien escribe dentro.
   const [borradores, setBorradores] = useState({});
+  // Qué secciones están desplegadas. Un `Set`, igual que en la calculadora.
+  const [abiertas, setAbiertas] = useState(new Set());
   const [error, setError] = useState(fallo);
   const [ocupado, setOcupado] = useState(false);
 
@@ -237,6 +239,12 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
 
     if (!r) return;
     if (r.pedido) setAbiertoId(r.pedido.id);
+
+    // Se abren las secciones que acaba de tocar la lista pegada. Dejarlas cerradas haría
+    // parecer que no entró nada: lo pegado quedaría detrás de una cabecera plegada.
+    const tocadas = buenas.map((f) => categoria(f.categoria)?.grupo ?? 'Otras');
+    setAbiertas((prev) => new Set([...prev, ...tocadas]));
+
     setPegado('');
     setPegando(null);
   };
@@ -277,8 +285,42 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
   const porGrupo = useMemo(() => {
     const grupos = new Map([...GRUPOS, 'Otras'].map((g) => [g, []]));
     for (const f of filas) grupos.get(f.grupo)?.push(f);
-    return [...grupos.entries()].filter(([, lista]) => lista.length);
+    return [...grupos.entries()]
+      .filter(([, lista]) => lista.length)
+      .map(([grupo, lista]) => ({
+        grupo,
+        lista,
+        puestas: lista.filter((f) => f.pieza).length,
+        hechas: lista.filter((f) => f.pieza?.hecha).length,
+      }));
   }, [filas]);
+
+  // ---------- El acordeón ----------
+  //
+  // Con el menú entero son seis secciones y casi cuarenta filas: plegado se llega a cualquiera
+  // sin recorrer la página. Es el mismo acordeón de la calculadora, incluido el `Set`.
+  const alternar = (grupo) =>
+    setAbiertas((prev) => {
+      const siguiente = new Set(prev);
+      siguiente.has(grupo) ? siguiente.delete(grupo) : siguiente.add(grupo);
+      return siguiente;
+    });
+
+  const todoAbierto = porGrupo.length > 0 && porGrupo.every(({ grupo }) => abiertas.has(grupo));
+
+  // Arrancan abiertas las secciones que el pedido toca: es lo que hay que trabajar. Si no hay
+  // ninguna, la primera, para no dejar la pantalla en blanco.
+  const conPiezas = (lista) => {
+    const tocadas = lista.filter(({ puestas }) => puestas > 0).map(({ grupo }) => grupo);
+    return new Set(tocadas.length ? tocadas : lista.slice(0, 1).map(({ grupo }) => grupo));
+  };
+
+  // Al cambiar de pedido se replantea qué está abierto; mientras se trabaja en uno, no, para
+  // no volver a desplegar lo que alguien acaba de cerrar.
+  useEffect(() => {
+    setAbiertas(conPiezas(porGrupo));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [abiertoId]);
 
   const abiertos = pedidos.filter((p) => !p.cerrado);
   // Un pedido ya no se cierra: se trabaja y se elimina. Esto queda solo para los que quedaron
@@ -433,6 +475,15 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
               <span className="fila-acciones">
                 <button
                   type="button"
+                  className="accion"
+                  onClick={() =>
+                    setAbiertas(todoAbierto ? new Set() : new Set(porGrupo.map((g) => g.grupo)))
+                  }
+                >
+                  {todoAbierto ? 'Cerrar todo' : 'Abrir todo'}
+                </button>
+                <button
+                  type="button"
                   className="tun-boton-pegar"
                   disabled={ocupado}
                   onClick={() => {
@@ -458,24 +509,42 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
               </span>
             </div>
 
-            {porGrupo.map(([grupo, lista]) => (
-              <div className="tun-grupo" key={grupo}>
-                <h3 className="tun-grupo-titulo">{grupo}</h3>
-                <ul className="tun-filas">
-                  {lista.map((f) => (
-                    <Fila
-                      key={f.clave}
-                      fila={f}
-                      valor={borradores[f.clave] ?? f.pieza?.valor ?? ''}
-                      siguiente={Boolean(f.pieza) && siguiente?.id === f.pieza.id}
-                      onEscribir={escribir}
-                      onCerrar={cerrar}
-                      onMarcar={marcar}
-                    />
-                  ))}
-                </ul>
-              </div>
-            ))}
+            {porGrupo.map(({ grupo, lista, puestas, hechas: hechasGrupo }) => {
+              const abierta = abiertas.has(grupo);
+              return (
+                <div className="tun-grupo" key={grupo}>
+                  <button
+                    type="button"
+                    className={`tun-grupo-cabeza ${puestas ? 'con-piezas' : ''}`}
+                    onClick={() => alternar(grupo)}
+                    aria-expanded={abierta}
+                  >
+                    <span className={`flecha ${abierta ? 'abierta' : ''}`} />
+                    <span className="tun-grupo-titulo">{grupo}</span>
+                    {/* Cerrada, el contador es lo único que dice si ahí queda trabajo. */}
+                    <span className="tun-grupo-cuenta">
+                      {puestas ? `${hechasGrupo}/${puestas}` : `${lista.length} sin usar`}
+                    </span>
+                  </button>
+
+                  {abierta && (
+                    <ul className="tun-filas">
+                      {lista.map((f) => (
+                        <Fila
+                          key={f.clave}
+                          fila={f}
+                          valor={borradores[f.clave] ?? f.pieza?.valor ?? ''}
+                          siguiente={Boolean(f.pieza) && siguiente?.id === f.pieza.id}
+                          onEscribir={escribir}
+                          onCerrar={cerrar}
+                          onMarcar={marcar}
+                        />
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              );
+            })}
           </section>
         )}
 

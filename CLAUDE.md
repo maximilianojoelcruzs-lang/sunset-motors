@@ -507,6 +507,24 @@ instalado. Vaciar la casilla saca la pieza del pedido.
 Lo que llega pegado y no se reconoce (`categoria: null`) no se esconde: sale al final, en un
 grupo *Otras*, con su nombre y su casilla.
 
+### Las secciones se pliegan, con el mismo acordeón de la calculadora
+
+Con el menú entero son siete secciones y 37 filas. `abiertas` es un `Set` y `alternar()` es el
+mismo de [app/boleta.js](app/boleta.js) — si tocas uno, mira el otro.
+
+Tres reglas que hacen que no estorbe:
+
+- **Arrancan abiertas las secciones que el pedido toca**, que es lo que hay que trabajar; si no
+  hay ninguna, la primera, para no dejar la pantalla en blanco. Se recalcula al **cambiar de
+  pedido**, no al añadir una pieza: si no, cerrar una sección duraría hasta la siguiente tecla.
+- **Cerrada, la cabecera dice `hechas/puestas`** (o «5 sin usar»). Es lo único que queda a la
+  vista de esa sección: sin el contador, plegar sería esconder trabajo pendiente.
+- **Pegar una lista abre las secciones que toca.** Con todo cerrado, lo pegado quedaría detrás de
+  una cabecera plegada y parecería que no entró nada.
+
+`.flecha` se reutiliza tal cual, pero con el borde en claro: en la calculadora va sobre papel y
+acá sobre el fondo oscuro, y con `--ink-soft` no se veía.
+
 ### El pedido entra pegado, de una vez
 
 Cargar treinta piezas de a una son treinta idas al servidor —y contra Supabase cada una lee y

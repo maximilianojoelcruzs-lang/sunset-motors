@@ -1079,12 +1079,53 @@ button {
   margin-bottom: 12px;
 }
 
+/* Cabecera plegable de cada sección, como el acordeón de la calculadora. Con el menú entero
+   son seis secciones y casi cuarenta filas: plegadas se llega a cualquiera sin recorrer la
+   página. Cerrada, el contador de la derecha es lo único que dice si ahí queda trabajo. */
+.tun-grupo-cabeza {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin: 14px 0 6px;
+  padding: 8px 10px;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--bay-line);
+  text-align: left;
+}
+
+.tun-grupo-cabeza:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* La flecha es la misma de la calculadora, pero allá va sobre papel y acá sobre el fondo
+   oscuro: con `--ink-soft` no se veía. */
+.tun-grupo-cabeza .flecha {
+  border-color: #7d766a;
+}
+
 .tun-grupo-titulo {
-  margin: 16px 0 6px;
+  margin: 0;
   font-size: 0.66rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
+  color: #7d766a;
+}
+
+.tun-grupo-cabeza.con-piezas .tun-grupo-titulo {
   color: var(--amber);
+}
+
+.tun-grupo-cuenta {
+  margin-left: auto;
+  font-family: var(--font-data), monospace;
+  font-size: 0.7rem;
+  color: #5d5a53;
+}
+
+.tun-grupo-cabeza.con-piezas .tun-grupo-cuenta {
+  color: #cfc6b6;
 }
 
 .tun-filas {
