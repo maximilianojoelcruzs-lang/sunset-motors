@@ -488,6 +488,25 @@ En el menú del juego se entra a «Parachoques» y se elige el 4. El nombre boni
 («Parachoques delantero de fibra Mk2») **no se usa para nada mientras se instala**, y escribirlo
 entero treinta veces es lo que hace que nadie use la lista.
 
+### La pantalla es el menú entero, y solo se escribe el valor
+
+Se ven **las 36 categorías del catálogo siempre**, en orden, y de cada una solo se rellena la
+casilla del valor. Las que el pedido no trae quedan en blanco y apagadas.
+
+Antes había un `<select>` de categoría más un campo más un botón *Añadir*, pieza por pieza: con
+treinta piezas son noventa gestos y hay que buscar cada categoría en un desplegable. Con el menú
+entero a la vista se baja por la lista igual que por la tablet. **No lo vuelvas a convertir en un
+formulario de a una** — es exactamente lo que se pidió quitar.
+
+**Una categoría vale una sola vez.** `claveDe()` está en el cliente y en `lib/tunning.js`, y es
+lo que hace que volver a mandar «Techo» cambie el número en vez de dejar dos filas que se
+contradicen: en el juego tampoco se pueden instalar dos techos. Por eso `agregar()` es un upsert
+y conserva el `id` y el `hecha` de la pieza que ya estaba — corregir un número no desmarca lo ya
+instalado. Vaciar la casilla saca la pieza del pedido.
+
+Lo que llega pegado y no se reconoce (`categoria: null`) no se esconde: sale al final, en un
+grupo *Otras*, con su nombre y su casilla.
+
 ### El pedido entra pegado, de una vez
 
 Cargar treinta piezas de a una son treinta idas al servidor —y contra Supabase cada una lee y
@@ -547,22 +566,23 @@ volver a verlos ni de sacarlos. `cerrar()` y `{ cerrado }` en la API se quedan p
 
 ### La pantalla se pinta al instante y la escritura va por detrás
 
-Marcar, quitar y añadir esperaban **dos** idas al servidor —la que guardaba y un `recargar()` de
-la lista entera— con toda la pantalla deshabilitada mientras tanto. Con treinta piezas eso se
-siente pegado. Ahora los tres cambian el estado local primero y mandan después; si la escritura
-falla se vuelve a leer y la lista queda como esté en el servidor, con el aviso. Medido: el check
-aparece en menos de 80 ms y la fila nueva en menos de 70, y no se pierde nada haciendo las 20
-seguidas.
+Marcar y escribir un valor esperaban **dos** idas al servidor —la que guardaba y un `recargar()`
+de la lista entera— con toda la pantalla deshabilitada mientras tanto. Con treinta piezas eso se
+siente pegado. Ahora cambian el estado local primero y mandan después; si la escritura falla se
+vuelve a leer y la lista queda como esté en el servidor, con el aviso. Medido: el check aparece
+en menos de 80 ms, y diez casillas se rellenan en 256 ms sin perder ninguna.
 
 **El identificador de una pieza nueva lo pone el navegador y el servidor lo respeta**
 (`idPropuesto()` en `lib/tunning.js`: lo acepta si tiene forma de UUID y no está usado, si no
 inventa uno). Sin eso, la fila pintada y la guardada serían piezas distintas, y marcar una
-recién añadida no encontraría nada que marcar y no haría nada **en silencio**, hasta la
+recién escrita no encontraría nada que marcar y no haría nada **en silencio**, hasta la
 siguiente lectura.
 
-`ordenar()` vive en `tunning-categorias.js` justamente para esto: el navegador coloca la fila
-nueva con la misma función que el servidor, así nace en su sitio en vez de saltar cuando llega
-la respuesta.
+**Lo tecleado se manda al parar de escribir, no en cada tecla** (`borradores` + `relojes`, medio
+segundo, y de inmediato al salir del campo). Escribir «12» son dos teclas y sería reescribir la
+colección entera dos veces para un solo número. Mientras hay borrador **manda el borrador**: si
+no, la respuesta de una escritura anterior pisaría el campo justo mientras alguien escribe
+dentro.
 
 Tres piezas que no son adorno:
 
@@ -577,12 +597,6 @@ Tres piezas que no son adorno:
 Al medir esto, cuidado con la prueba: sondear el servidor con `waitForFunction` lanza un `fetch`
 por fotograma, ahoga al servidor de desarrollo y hace parecer que se pierden marcas cuando lo
 que falta es turno de CPU. Consulta cada 300 ms.
-
-### El campo se vacía antes de mandar, no al volver la respuesta
-
-Cargando treinta piezas se escribe la siguiente mientras la anterior viaja. Limpiando al volver
-la respuesta se borraba lo recién tecleado y **la pieza se perdía sin decir nada**: se cargaban
-diez y entraban nueve. Si falla el envío se repone lo escrito, pero solo si el campo sigue vacío.
 
 `agregar` y `quitar` son del route handler; toda la API pasa por `exigirTaller()`, así que un
 invitado del casino no entra. Se guardan los últimos 20 pedidos cerrados: sirven para consultar,

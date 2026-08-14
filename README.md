@@ -459,23 +459,24 @@ para crear el bucket.
 
 Pestaña **Tunning**, para no tener que volver a mirar la tablet cada dos piezas.
 
-Se pulsa **Nuevo pedido** y se **pega la lista completa** tal como la canta la tablet, una pieza
-por línea. Da igual el formato: `Parachoques delantero: 4`, `Techo 4` o `- Llantas 12` entran
-igual, y también reconoce los nombres de todos los días —rines, spoiler, polarizado, bocina—.
-Antes de guardar se muestra lo que entendió, para revisarlo de un vistazo; las líneas a las que
-les falta el número se marcan en rojo, se dicen por su nombre y quedan fuera. Treinta piezas
-entran de una sola vez, en menos de un segundo.
+**Está el menú completo del juego, en el mismo orden**, y de cada categoría solo se rellena la
+casilla de la derecha: el número que hay que elegir, o el color. Las que el pedido no trae se
+dejan en blanco. Así se baja por la lista igual que se baja por la tablet, sin buscar cada pieza
+en un desplegable y sin escribir el nombre largo, que dentro del menú no se usa para nada.
 
-De cada pieza se anota **la categoría y el número**, que es lo único que se usa dentro del menú
-del juego. El nombre largo del pedido no hace falta. Si después llega una pieza más, se añade de
-a una con el desplegable, o se vuelve a pegar una lista con **Pegar lista**.
+Si el pedido ya está escrito en alguna parte, **se pega entero de una vez** con *Pegar lista*:
+una pieza por línea, y da igual el formato —`Parachoques delantero: 4`, `Techo 4` o
+`- Llantas 12` entran igual, y también reconoce los nombres de todos los días: rines, spoiler,
+polarizado, bocina—. Antes de guardar se muestra lo que entendió, para revisarlo de un vistazo;
+las líneas a las que les falta el número se marcan en rojo, se dicen por su nombre y quedan
+fuera. Treinta piezas entran en menos de un segundo.
 
-**La lista se ordena sola como el menú del juego, no como llega el pedido.** El pedido viene
-revuelto —un color, un techo, otro color— y seguirlo así obliga a entrar y salir del mismo
-submenú todo el rato. Ordenada, se baja una vez por sección: primero todos los colores, después
-las ruedas, después la carrocería. Se marca cada pieza al instalarla —volver a pulsar la
-desmarca, y la × de la derecha la saca del pedido— y lo marcado queda guardado: si se cierra la
-pestaña o se cambia de computador, la lista sigue donde iba.
+Cada categoría aparece **una sola vez**, como en el juego: volver a poner «Techo» cambia el
+número en vez de dejar dos filas que se contradicen, y corregir un número no desmarca lo que ya
+estaba instalado. Vaciar la casilla saca esa pieza del pedido.
+
+Se marca cada pieza al instalarla —volver a pulsar la desmarca— y lo marcado queda guardado: si
+se cierra la pestaña o se cambia de computador, la lista sigue donde iba.
 
 Al terminar el auto se **elimina** el pedido con el botón de la derecha. Un pedido no lleva
 patente: se abre, se trabaja y se elimina mientras el auto está en el elevador, y se distingue

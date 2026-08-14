@@ -1079,29 +1079,6 @@ button {
   margin-bottom: 12px;
 }
 
-.tun-agregar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 18px;
-}
-
-.tun-agregar select,
-.tun-agregar input {
-  padding: 9px 12px;
-  background: var(--bay-2);
-  border: 1px solid var(--bay-line);
-  border-radius: 5px;
-  color: var(--ticket);
-  font-size: 0.82rem;
-}
-
-/* El número es lo que se teclea treinta veces: chico, y con el foco de vuelta encima. */
-.tun-numero {
-  width: 150px;
-  font-family: var(--font-data), monospace;
-}
-
 .tun-grupo-titulo {
   margin: 16px 0 6px;
   font-size: 0.66rem;
@@ -1115,21 +1092,35 @@ button {
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 4px;
+  gap: 3px;
 }
 
-/* Las filas son grandes a propósito: se leen de reojo, con el juego al lado. */
+/* Está el menú entero —casi cuarenta filas—, así que son más apretadas que antes. La casilla
+   del valor va a la derecha, alineada en toda la lista: se rellena bajando con el tabulador. */
 .tun-fila {
   display: grid;
-  grid-template-columns: 34px 1fr auto auto;
+  /* 230px y no lo justo para un número: los colores vienen como
+     «METÁLICO - RGB(84,118,204)» y con la casilla estrecha se cortaban a media cifra. Una sola
+     medida para toda la lista, que es lo que permite recorrerla de un vistazo. */
+  grid-template-columns: 30px 1fr 230px;
   align-items: center;
   gap: 12px;
-  padding: 10px 12px;
+  padding: 6px 12px;
   background: var(--bay-2);
   border: 1px solid var(--bay-line);
   border-left: 3px solid transparent;
   border-radius: 6px;
   transition: border-color 0.15s ease, opacity 0.15s ease;
+}
+
+/* Las que el pedido no trae se ven, pero no compiten con las que sí hay que instalar. */
+.tun-fila.vacia {
+  background: transparent;
+  border-color: transparent;
+}
+
+.tun-fila.vacia .tun-categoria {
+  color: #7d766a;
 }
 
 .tun-fila.siguiente {
@@ -1146,8 +1137,8 @@ button {
 }
 
 .tun-marca {
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   border: 2px solid var(--bay-line);
   border-radius: 6px;
   background: transparent;
@@ -1160,33 +1151,45 @@ button {
   border-color: var(--amber);
 }
 
+/* Sin casilla puesta no hay nada que marcar, pero el hueco se reserva igual: si no, el nombre
+   se corre a la izquierda y la lista queda en zigzag. */
+.tun-marca-hueco {
+  width: 28px;
+  height: 28px;
+}
+
 .tun-categoria {
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   color: var(--ticket);
 }
 
-.tun-valor {
-  font-family: var(--font-data), monospace;
-  font-size: 1.2rem;
-  color: var(--amber);
-}
-
-.tun-quitar {
-  width: 26px;
-  height: 26px;
+.tun-campo {
+  width: 100%;
+  padding: 6px 10px;
+  background: var(--bay);
+  border: 1px solid var(--bay-line);
   border-radius: 5px;
-  background: none;
-  border: none;
-  color: #7d766a;
-  font-size: 1.1rem;
-  line-height: 1;
+  color: var(--amber);
+  font-family: var(--font-data), monospace;
+  font-size: 1.05rem;
+  text-align: right;
 }
 
-.tun-quitar:hover {
-  color: var(--rojo, #c02334);
+/* Los colores no son un número sino «METÁLICO - RGB(84,118,204)»: no cabe a ese tamaño. */
+.tun-campo.ancho {
+  font-size: 0.78rem;
+  text-align: left;
 }
 
-/* ---------- Modo trabajo ---------- */
+.tun-campo::placeholder {
+  color: #5c564c;
+  font-size: 0.78rem;
+}
+
+.tun-campo:focus {
+  border-color: var(--amber);
+  outline: none;
+}
 
 .tun-cerrados {
   list-style: none;
@@ -1214,12 +1217,20 @@ button {
 
 @media (max-width: 520px) {
   .tun-fila {
-    grid-template-columns: 30px 1fr auto auto;
+    grid-template-columns: 28px 1fr 92px;
     gap: 8px;
+    padding: 6px 8px;
   }
 
-  .tun-numero {
-    width: 100%;
+  /* En el teléfono no caben el nombre y un RGB entero en la misma línea, así que el color se
+     baja a la suya. Los números siguen al lado del nombre, que es como se leen mejor. */
+  .tun-fila.texto {
+    grid-template-columns: 28px 1fr;
+    row-gap: 6px;
+  }
+
+  .tun-fila.texto .tun-campo {
+    grid-column: 2;
   }
 }
 
