@@ -5598,3 +5598,26 @@ a.accion {
     overflow-wrap: anywhere;
   }
 }
+
+.inv-capturas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+/* El input de archivo va escondido dentro del label: el nativo no se puede estilar y queda
+   como un botón de otro sitio web. */
+.inv-subir {
+  cursor: pointer;
+}
+
+.inv-subir input {
+  display: none;
+}
+
+.inv-leyendo {
+  font-size: 0.76rem;
+  color: #7d766a;
+}

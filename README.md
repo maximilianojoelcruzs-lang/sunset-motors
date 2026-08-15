@@ -499,6 +499,27 @@ Al terminar el auto se **elimina** el pedido con el botón de la derecha. Un ped
 patente: se abre, se trabaja y se elimina mientras el auto está en el elevador, y se distingue
 por la hora en que se abrió.
 
+## Inventario
+
+Pestaña **Inventario**: qué hay en la bodega y cuánto, sin llevarlo en un papel.
+
+**Se sube la captura del juego y se lee sola.** La bodega no cabe en una pantalla, así que se
+baja y se sube sacando varias fotos: se suben todas juntas y las filas repetidas entre pantallas
+se juntan solas. En la prueba leyó 22 de 22 artículos con las 22 cantidades exactas, en cuatro
+segundos por captura.
+
+**Nada entra sin que lo mires.** Antes de guardar aparece la tabla con lo que entendió: qué es
+nuevo, qué cambió y de cuánto a cuánto. Lo que no se entendió queda marcado y no se guarda.
+
+Un conteo **no borra** lo que no saliste a fotografiar: lo demás se queda como estaba, y la
+columna *Visto* dice cuándo se contó cada cosa por última vez. Solo marcando *recorrí la bodega
+entera* lo que no apareció baja a cero — y aun así pasa por la misma tabla antes de guardarse.
+
+Cualquiera con cuenta del taller puede contar, no solo el encargado. Los nombres y las cantidades
+se corrigen a mano en la lista, y queda anotado quién hizo cada conteo.
+
+Si no hay lector configurado (`GEMINI_API_KEY`), la pestaña funciona igual anotando a mano.
+
 ## Anuncios
 
 Pestaña **Anuncios**, con dos partes.

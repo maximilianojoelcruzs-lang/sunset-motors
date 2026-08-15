@@ -332,3 +332,21 @@ repositorio en GitHub y rehacer el Paso 2 sin marcar esas casillas.
 Borrar el archivo y hacer commit no lo saca del historial. Si fue una clave o algo sensible, lo
 práctico es borrar el repositorio en GitHub, cambiar lo que se filtró (el `SUNSET_SECRETO`, la
 clave que sea) y volver a subir desde cero.
+
+## Opcional: leer el inventario desde una captura
+
+La pestaña **Inventario** puede leer las capturas de la bodega en vez de que alguien las anote a
+mano. Para eso hace falta una llave de Gemini, que es gratuita:
+
+1. Entra a [aistudio.google.com/apikey](https://aistudio.google.com/apikey) y crea una API key.
+2. En Vercel, *Settings → Environment Variables*, agrega:
+
+   ```
+   GEMINI_API_KEY = la-llave-que-copiaste
+   ```
+
+3. Vuelve a desplegar (*Deployments → … → Redeploy*).
+
+**Sin esa variable no se rompe nada**: la pestaña funciona igual, solo que las cantidades se
+anotan a mano. Y la llave **nunca lleva prefijo `NEXT_PUBLIC_`** — con él viajaría al navegador y
+quedaría a la vista de cualquiera, igual que la de Supabase.

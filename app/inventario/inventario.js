@@ -121,6 +121,7 @@ export default function Inventario({
   // El conteo en curso: lo leído de las capturas, antes de guardarse.
   const [leidos, setLeidos] = useState(null);
   const [completo, setCompleto] = useState(false);
+  const [leyendo, setLeyendo] = useState('');
   const campoNombre = useRef(null);
 
   const recargar = async () => {
@@ -190,6 +191,39 @@ export default function Inventario({
     ]);
     e.target.reset();
     campoNombre.current?.focus();
+  };
+
+  /**
+   * Sube las capturas y suma lo que se lee al conteo en curso.
+   *
+   * Una por una y no todas juntas: la bodega necesita varias pantallas, y así se ve el avance
+   * («2 de 4») en vez de quedarse mirando un botón muerto medio minuto. Lo leído **no se
+   * guarda**: cae en la misma tabla de confirmación que lo anotado a mano.
+   */
+  const escanear = async (e) => {
+    const imagenes = [...e.target.files];
+    e.target.value = '';
+    if (!imagenes.length) return;
+
+    setError('');
+    for (const [i, imagen] of imagenes.entries()) {
+      setLeyendo(`Leyendo ${i + 1} de ${imagenes.length}…`);
+      const datos = new FormData();
+      datos.append('imagen', imagen);
+      try {
+        const r = await fetch('/api/inventario/leer', { method: 'POST', body: datos });
+        const cuerpo = await r.json().catch(() => ({}));
+        if (!r.ok) {
+          setError(`${imagen.name}: ${cuerpo.error || 'no se pudo leer.'}`);
+          continue;
+        }
+        setLeidos((antes) => [...(antes ?? []), ...cuerpo.filas]);
+      } catch {
+        setError('Sin conexión con el servidor.');
+        break;
+      }
+    }
+    setLeyendo('');
   };
 
   const guardarConteo = async () => {
@@ -276,6 +310,22 @@ export default function Inventario({
               se sube: <strong>todo lo de una misma pasada va en el mismo conteo</strong>, y las
               repeticiones entre pantallas se juntan solas.
             </p>
+
+            <div className="inv-capturas">
+              <label className="tun-boton-fuerte inv-subir">
+                📷 Subir capturas
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  multiple
+                  onChange={escanear}
+                  disabled={Boolean(leyendo)}
+                />
+              </label>
+              <span className="inv-leyendo">
+                {leyendo || 'Sube todas las pantallas de una misma pasada; el solape se junta solo.'}
+              </span>
+            </div>
 
             <form className="inv-anadir" onSubmit={anadirLeido}>
               <input

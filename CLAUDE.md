@@ -706,6 +706,67 @@ que falta es turno de CPU. Consulta cada 300 ms.
 invitado del casino no entra. Se guardan los últimos 20 pedidos cerrados: sirven para consultar,
 no para siempre.
 
+## Inventario de la bodega
+
+**[app/inventario/](app/inventario/)** — qué hay en la bodega y cuánto, actualizado subiendo
+capturas del juego. Un artículo es `{ id, nombre, peso, cantidad, visto, vistoPor }` en
+`sunset:inventario`; cada carga queda anotada en `sunset:inventario-cargas`.
+
+Lo actualiza **cualquiera con cuenta de taller**, no solo el admin: la bodega es una sola y el
+que está delante de ella es quien puede contarla.
+
+### Una captura no es la bodega entera
+
+La bodega necesita varias pantallas y hay que bajar y subir. De ahí tres reglas:
+
+- **Cargar es un upsert, nunca un reemplazo.** Lo que no sale en la foto se queda como estaba.
+  Poner en cero lo no visto vaciaría el inventario con media captura.
+- **El solape entre pantallas se colapsa solo.** Dos fotos consecutivas repiten filas; con el
+  mismo número se callan. Con números **distintos** la fila queda `discrepa` y no se guarda: o
+  falló el lector, o las fotos son de momentos distintos, y elegir una sería inventar.
+- **`noVistos()` lista lo que la tanda no cubrió.** Solo marcando *recorrí la bodega entera* esas
+  filas bajan a 0, y aun así pasan por la tabla de confirmación con su «173 → 0» a la vista.
+
+### El nombre manda; el peso solo desempata, y por cercanía
+
+Esto empezó al revés y **la medición lo tumbó**. En la bodega los nombres largos salen cortados
+—hay dos tarjetas que se leen «KIT DE REPARACI…»—, así que la clave era el peso, que sale
+entero. Pero al medir el lector contra una rejilla de 22 artículos: **las 22 cantidades salieron
+exactas y dos pesos con errata** («36.00kg» leído «38.00kg», «560g» leído «580g»).
+
+Con el peso de clave, un dígito mal convierte un artículo conocido en uno nuevo, y el inventario
+se llena de duplicados en cada conteo. Así que `claveDe()` es el nombre, y cuando dos artículos
+se llaman igual se elige el del peso **más parecido** (`masCercano()`), no el idéntico. Probado:
+releer la misma captura dos veces deja 22 artículos, cero duplicados.
+
+Por lo mismo, `aplicar()` **no pisa el peso ni el nombre guardados**: el nombre porque alguien
+pudo escribir el completo a mano y una captura lo truncaría otra vez; el peso porque viene con
+erratas y solo sirve para desempatar. En pantalla el peso **no se muestra** salvo cuando hay dos
+artículos con el mismo nombre.
+
+### El lector: Gemini, desde el servidor
+
+**[lib/gemini.js](lib/gemini.js)** — un `fetch`, sin SDK ni dependencias, igual que Supabase o el
+webhook de Discord. Necesita `GEMINI_API_KEY`; sin ella la sección funciona igual anotando a
+mano y la API responde 503 con ese mensaje.
+
+- **La llamada va desde el route handler, nunca desde el navegador.** Si la hiciera el cliente,
+  la llave viajaría con él. Mismo motivo por el que `SUPABASE_SERVICE_ROLE_KEY` no lleva
+  `NEXT_PUBLIC_`.
+- **Hay lista de modelos de reserva.** En una misma tarde aparecieron las dos formas de caerse:
+  un modelo **retirado** para cuentas nuevas (404) y otro **saturado** (503). Con uno solo,
+  cualquiera de las dos deja la función muerta. El 429 no se reintenta: ese es el límite de la
+  cuenta y cambiar de modelo no ayuda.
+- Las instrucciones le piden **copiar el nombre cortado tal cual**. Si lo completa de memoria,
+  dos capturas de lo mismo devuelven nombres distintos y aparecen duplicados.
+- `responseSchema` obliga a JSON válido, y `temperature: 0` a que dos lecturas de la misma
+  imagen den lo mismo.
+
+Medido de punta a punta: 22 de 22 filas, 22 de 22 cantidades exactas, cero filas inventadas,
+4,1 s por captura. **Aun así nada se guarda sin que una persona mire la tabla** — el acierto es
+alto, no perfecto, y un número mal que entra en silencio se descubre en la bodega buscando una
+pieza que no está.
+
 ## Anuncios: flyers y mensajes
 
 **[lib/anuncios.js](lib/anuncios.js)** — dos colecciones separadas, `sunset:flyers` (imágenes) y
