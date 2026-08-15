@@ -17,17 +17,17 @@ async function exigirTaller() {
 }
 
 /**
- * GET /api/tunning → todos los pedidos.
+ * GET /api/tunning → los pedidos de quien pregunta, y solo los suyos.
  *
- * Los ve todo el taller a propósito: dos mecánicos pueden estar con el mismo auto, y el
- * sentido de la lista es justamente que los dos vean lo mismo.
+ * Antes eran los del taller entero. Con dos mecánicos trabajando a la vez, el segundo abría la
+ * pantalla y caía sobre el pedido del primero, y se escribían encima.
  */
 export async function GET() {
-  const { corte } = await exigirTaller();
+  const { sesion, corte } = await exigirTaller();
   if (corte) return corte;
 
   try {
-    return NextResponse.json({ pedidos: await listar() });
+    return NextResponse.json({ pedidos: await listar(sesion.usuario) });
   } catch (e) {
     return NextResponse.json({ error: `No se pudo leer: ${e.message}` }, { status: 500 });
   }

@@ -67,7 +67,9 @@ dos está tocando.
 La clave nunca se guarda: queda solo un hash PBKDF2-SHA256 con 200.000 iteraciones y sal
 propia. Ni tú puedes leer la clave de nadie. Si alguien la olvida, se le pone una nueva.
 
-La sesión dura 12 horas y va en una cookie firmada con `SUNSET_SECRETO`. Cambiar esa
+**La sesión no se cae a media tarde.** Dura 30 días y **se renueva sola cada vez que entras**,
+así que quien usa la app a diario no vuelve a escribir su clave. Quien deja de entrar la pierde
+igual al mes. Va en una cookie firmada con `SUNSET_SECRETO`. Cambiar esa
 variable cierra de inmediato todas las sesiones abiertas: es el botón de "echar a todos".
 
 Hay un solo permiso: **administrador**. Es lo que abre el registro de turnos y la gestión de

@@ -110,7 +110,8 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
     if (r.ok) setPedidos(cuerpo.pedidos);
   };
 
-  // Dos mecánicos pueden estar con el mismo auto: la lista se pone al día sola.
+  // El pedido es de quien lo abre, pero la misma persona puede tenerlo abierto en el PC y en
+  // el teléfono: la lista se pone al día sola para que las dos pantallas digan lo mismo.
   useSondeo(() => (pendientes.current ? undefined : recargar()), 15000);
 
   // Los temporizadores de escritura no pueden sobrevivir a la pantalla.

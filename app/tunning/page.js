@@ -13,7 +13,7 @@ export default async function PaginaTunning() {
   let abierto = null;
   let fallo = '';
   try {
-    pedidos = await listar();
+    pedidos = await listar(sesion.usuario);
     abierto = await turnoAbierto(sesion.usuario);
   } catch (e) {
     fallo = e.message;

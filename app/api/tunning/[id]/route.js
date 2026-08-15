@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { sesionActual } from '../../../../lib/servidor';
-import { esAdmin, soloCasino } from '../../../../lib/usuarios';
+import { soloCasino } from '../../../../lib/usuarios';
 import { agregar, borrar, cerrar, marcar, quitar } from '../../../../lib/tunning';
 
 export const runtime = 'nodejs';
@@ -24,7 +24,7 @@ async function exigirTaller() {
  *   { cerrado }                                   cierra o reabre el pedido
  */
 export async function PATCH(peticion, { params }) {
-  const { corte } = await exigirTaller();
+  const { sesion, corte } = await exigirTaller();
   if (corte) return corte;
 
   const { id } = await params;
@@ -33,10 +33,15 @@ export async function PATCH(peticion, { params }) {
   try {
     let resultado;
 
-    if (cambios.agregar) resultado = await agregar(id, cambios.agregar);
-    else if (cambios.quitar) resultado = await quitar(id, cambios.quitar);
-    else if (cambios.pieza) resultado = await marcar(id, cambios.pieza, cambios.hecha);
-    else if (typeof cambios.cerrado === 'boolean') resultado = await cerrar(id, cambios.cerrado);
+    // El usuario va en todas: un pedido solo lo toca quien lo abrió, y eso se comprueba en el
+    // servidor. Filtrar la lista no basta — el identificador se puede mandar a mano.
+    const quien = sesion.usuario;
+
+    if (cambios.agregar) resultado = await agregar(id, quien, cambios.agregar);
+    else if (cambios.quitar) resultado = await quitar(id, quien, cambios.quitar);
+    else if (cambios.pieza) resultado = await marcar(id, quien, cambios.pieza, cambios.hecha);
+    else if (typeof cambios.cerrado === 'boolean')
+      resultado = await cerrar(id, quien, cambios.cerrado);
     else return NextResponse.json({ error: 'Nada que cambiar.' }, { status: 400 });
 
     if (resultado.error) return NextResponse.json({ error: resultado.error }, { status: 400 });
@@ -53,7 +58,7 @@ export async function DELETE(peticion, { params }) {
   const { id } = await params;
 
   try {
-    const { error } = await borrar(id, sesion.usuario, await esAdmin(sesion.usuario));
+    const { error } = await borrar(id, sesion.usuario);
     if (error) return NextResponse.json({ error }, { status: 400 });
     return NextResponse.json({ ok: true });
   } catch (e) {

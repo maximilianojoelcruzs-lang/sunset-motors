@@ -105,6 +105,23 @@ Detalles que parecen accidentes pero no lo son:
   calculadora del taller y no podía volver al casino. Pasó en producción. Cualquier campo nuevo
   de la ficha se conserva solo mientras se siga escribiendo `{ ...copia[i], sal, hash }`.
 
+### La sesión dura 30 días y se renueva sola
+
+`HORAS = 24 * 30` es un **tope absoluto**, no un descuido: con 12 horas la sesión se caía a media
+tarde de un turno de rol y había que volver a escribir la clave.
+
+Lo que hace que no caduque nunca a quien la usa es la renovación, y vive en **`middleware.js`**:
+por ahí pasa cada navegación y cada llamada a la API, y firmar solo necesita `SUNSET_SECRETO`,
+no la base de datos. `hayQueRenovar()` dispara **a la mitad de la vida** de la cookie, no en cada
+petición: si no, cada sondeo de 15 segundos mandaría una cookie nueva para nada.
+
+`leerSesion()` devuelve también `exp` justamente para esto. Y `opcionesCookie()` está compartida
+entre el login y la renovación **a propósito**: con opciones distintas —otro `path`, otro
+`sameSite`— el navegador guardaría dos cookies y ganaría la que no toca.
+
+Comprobado: una cookie con 29 días por delante no se toca; con 10 días o con 12 horas se estira
+a 30; una vencida y una mal firmada van al login igual que antes.
+
 ### El rol NO se comprueba en el middleware
 
 `middleware.js` corre en Edge y **no puede leer la base** (`lib/almacen.js` usa `node:fs`).
@@ -476,6 +493,23 @@ hecha }] }` en `sunset:tunning`.
 
 El problema que resuelve: el pedido puede traer más de treinta líneas y hay que volver a mirarlo
 en la tablet cada dos piezas. Acá se marca cada una al instalarla.
+
+### Cada uno trabaja sobre su propio pedido
+
+`listar(usuario)` devuelve **solo los suyos**. Antes eran los del taller entero: con dos
+mecánicos a la vez, el segundo abría la pantalla y caía sobre el pedido del primero —`abiertoId`
+arranca en el primer abierto que haya— y los dos escribían encima del mismo auto.
+
+El `usuario` es **obligatorio** en `listar()`: con un parámetro opcional, olvidarlo en una
+llamada nueva devolvería los pedidos de todo el mundo sin que saltara nada.
+
+Y no basta con filtrar la lista: `agregar()`, `quitar()`, `marcar()`, `cerrar()` y `borrar()`
+comprueban el dueño en el servidor, porque el identificador se puede mandar a mano. Probado con
+dos sesiones de verdad: escribir en el pedido ajeno responde `400 Ese pedido no es tuyo.`
+
+**`borrar()` ya no tiene excepción para administradores.** La tenía cuando la lista era del
+taller entero y alguien podía querer hacer limpieza; ahora esa rama no se alcanza desde la
+pantalla y lo único que permite es cargarse a mano el pedido que otro está trabajando.
 
 **Un pedido no lleva patente.** Se abre, se trabaja y se cierra en el rato que el auto está en el
 elevador; escribirla era un trámite antes de empezar que después no servía para nada. Se

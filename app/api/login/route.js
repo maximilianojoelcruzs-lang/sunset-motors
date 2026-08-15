@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { COOKIE, HORAS, firmarSesion, secretoFirma } from '../../../lib/sesion';
+import { COOKIE, firmarSesion, opcionesCookie, secretoFirma } from '../../../lib/sesion';
 import { hayUsuarios, soloCasino, verificarUsuario } from '../../../lib/usuarios';
 import { dondeGuarda } from '../../../lib/almacen';
 
@@ -43,13 +43,7 @@ export async function POST(peticion) {
     const destino = (await soloCasino(verificado)) ? '/casino' : '/';
 
     const respuesta = NextResponse.json({ ok: true, destino });
-    respuesta.cookies.set(COOKIE, await firmarSesion(verificado), {
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
-      path: '/',
-      maxAge: HORAS * 3600,
-    });
+    respuesta.cookies.set(COOKIE, await firmarSesion(verificado), opcionesCookie());
     return respuesta;
   } catch (e) {
     return NextResponse.json(
