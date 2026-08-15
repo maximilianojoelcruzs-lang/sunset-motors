@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import Barra from '../barra';
 import useSondeo from '../sondeo';
 import { soloFecha, soloHora } from '../../lib/tiempo';
-import { comparar, noVistos } from '../../lib/inventario-lectura';
+import { casanNombres, comparar, noVistos, pesosParecidos } from '../../lib/inventario-lectura';
 
 const sinTildes = (texto) =>
   String(texto ?? '')
@@ -14,6 +14,15 @@ const sinTildes = (texto) =>
 
 const peso = (kg) =>
   kg == null ? '—' : kg < 1 ? `${Math.round(kg * 1000)} g` : `${kg.toFixed(2)} kg`;
+
+/** El peso de una fila leída viene como texto («28.00kg»); acá se necesita el número. */
+const normalizarPesoTexto = (valor) => {
+  if (valor == null) return null;
+  const texto = String(valor).toLowerCase().replace(',', '.');
+  const n = Number(texto.replace(/[^\d.]/g, ''));
+  if (!Number.isFinite(n) || n <= 0) return null;
+  return Math.round((!texto.includes('kg') && texto.includes('g') ? n / 1000 : n) * 100) / 100;
+};
 
 const cuando = (iso) => (iso ? `${soloFecha(iso)} ${soloHora(iso)}` : '—');
 
@@ -122,6 +131,13 @@ export default function Inventario({
   const [leidos, setLeidos] = useState(null);
   const [completo, setCompleto] = useState(false);
   const [leyendo, setLeyendo] = useState('');
+  // Cuántas casillas trajo cada captura. Se enseña porque es el número que permite darse
+  // cuenta al instante de que algo salió mal: la rejilla se ve y se cuenta.
+  const [capturas, setCapturas] = useState([]);
+  // Nombres completos propuestos para los que el juego enseña cortados. Sugerencias: no se
+  // guarda ninguno hasta que alguien pulsa.
+  const [sugerencias, setSugerencias] = useState(null);
+  const [sugiriendo, setSugiriendo] = useState(false);
   const campoNombre = useRef(null);
 
   const recargar = async () => {
@@ -218,6 +234,10 @@ export default function Inventario({
           continue;
         }
         setLeidos((antes) => [...(antes ?? []), ...cuerpo.filas]);
+        setCapturas((antes) => [
+          ...antes,
+          { nombre: imagen.name, casillas: cuerpo.filas.length, repetidas: cuerpo.repetidas ?? 0 },
+        ]);
       } catch {
         setError('Sin conexión con el servidor.');
         break;
@@ -225,6 +245,23 @@ export default function Inventario({
     }
     setLeyendo('');
   };
+
+  /**
+   * Resuelve una contradicción: el lector leyó la misma tarjeta dos veces con números
+   * distintos («140» y «40»), y se elige cuál vale.
+   *
+   * Sin esto la fila quedaba marcada y simplemente no se guardaba, y había que anotarla a mano.
+   * Adivinar cuál de los dos es el bueno no se puede —por eso no se elige solo—, pero preguntar
+   * cuesta un clic.
+   */
+  const resolver = (fila, cantidad) =>
+    setLeidos((antes) =>
+      antes.map((l) =>
+        casanNombres(l.nombre, fila.nombre) && pesosParecidos(normalizarPesoTexto(l.peso), fila.peso)
+          ? { ...l, cantidad }
+          : l
+      )
+    );
 
   const guardarConteo = async () => {
     const r = await pedir('/api/inventario', {
@@ -235,7 +272,35 @@ export default function Inventario({
     if (!r) return;
     setLeidos(null);
     setCompleto(false);
+    setCapturas([]);
     await recargar();
+  };
+
+  // ---------- Completar los nombres cortados ----------
+  //
+  // Se pide **una vez**, no en cada escaneo: si el lector completara los nombres al leer, dos
+  // capturas de lo mismo darían nombres distintos y volverían los duplicados. Como el casado es
+  // por prefijo, un nombre completo guardado sigue reconociendo las capturas cortadas.
+  const pedirNombres = async () => {
+    setSugiriendo(true);
+    setError('');
+    const r = await pedir('/api/inventario/nombres', { method: 'POST' });
+    setSugiriendo(false);
+    if (r) setSugerencias(r.sugerencias.map((s) => ({ ...s, elegido: s.completo })));
+  };
+
+  const guardarNombres = async () => {
+    const cambios = sugerencias
+      .filter((s) => s.elegido && s.elegido !== s.actual)
+      .map((s) => ({ id: s.id, nombre: s.elegido }));
+    if (!cambios.length) return setSugerencias(null);
+
+    const r = await pedir('/api/inventario/nombres', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cambios }),
+    });
+    if (r) setSugerencias(null);
   };
 
   const corregir = async (articulo, cambios) => {
@@ -260,6 +325,7 @@ export default function Inventario({
     : articulos;
 
   const totalUnidades = articulos.reduce((n, a) => n + a.cantidad, 0);
+  const cortados = articulos.filter((a) => /(\.{2,}|…)\s*$/.test(a.nombre)).length;
 
   // Los nombres que salen más de una vez. Solo esos enseñan el peso, para poder distinguirlos.
   const repetidos = useMemo(() => {
@@ -288,14 +354,21 @@ export default function Inventario({
             </p>
           </div>
           {!leidos && (
-            <button
-              type="button"
-              className="tun-boton-fuerte"
-              disabled={ocupado}
-              onClick={() => setLeidos([])}
-            >
-              Registrar conteo
-            </button>
+            <span className="fila-acciones">
+              {cortados > 0 && !sugerencias && (
+                <button type="button" className="accion" disabled={sugiriendo} onClick={pedirNombres}>
+                  {sugiriendo ? 'Pensando…' : `Completar ${cortados} nombre${cortados === 1 ? '' : 's'} cortado${cortados === 1 ? '' : 's'}`}
+                </button>
+              )}
+              <button
+                type="button"
+                className="tun-boton-fuerte"
+                disabled={ocupado}
+                onClick={() => setLeidos([])}
+              >
+                Registrar conteo
+              </button>
+            </span>
           )}
         </header>
 
@@ -326,6 +399,19 @@ export default function Inventario({
                 {leyendo || 'Sube todas las pantallas de una misma pasada; el solape se junta solo.'}
               </span>
             </div>
+
+            {/* Cuenta las casillas de la rejilla en la foto y compáralo con esto: es la forma
+                más rápida de ver que el lector se dejó algo o leyó de más. */}
+            {capturas.length > 0 && (
+              <ul className="inv-capturas-leidas">
+                {capturas.map((c, i) => (
+                  <li key={i}>
+                    <strong>{c.nombre}</strong> · {c.casillas} casillas leídas
+                    {c.repetidas > 0 && <em> · {c.repetidas} repetidas descartadas</em>}
+                  </li>
+                ))}
+              </ul>
+            )}
 
             <form className="inv-anadir" onSubmit={anadirLeido}>
               <input
@@ -370,9 +456,15 @@ export default function Inventario({
                             </em>
                           </>
                         ) : f.estado === 'discrepa' ? (
-                          <>
-                            {f.cantidad} contra {f.otra}
-                          </>
+                          <span className="inv-elegir">
+                            <button type="button" onClick={() => resolver(f, f.cantidad)}>
+                              {f.cantidad}
+                            </button>
+                            <em>o</em>
+                            <button type="button" onClick={() => resolver(f, f.otra)}>
+                              {f.otra}
+                            </button>
+                          </span>
                         ) : (
                           (f.cantidad ?? '—')
                         )}
@@ -417,8 +509,65 @@ export default function Inventario({
                 onClick={() => {
                   setLeidos(null);
                   setCompleto(false);
+                  setCapturas([]);
                 }}
               >
+                Cancelar
+              </button>
+            </div>
+          </section>
+        )}
+
+        {/* ---------- Nombres completos propuestos ---------- */}
+        {sugerencias && (
+          <section className="inv-conteo">
+            <h2 className="ref-titulo">Nombres completos</h2>
+            <p className="tun-ayuda">
+              El juego corta los nombres largos en su propia pantalla, así que esas letras no
+              están en la foto: esto es una <strong>deducción</strong>, no una lectura. Revísala
+              —lo marcado con <em>(?)</em> es donde había más de una opción— y corrige lo que
+              haga falta antes de guardar.
+            </p>
+
+            <ul className="inv-vista">
+              {sugerencias.map((s, i) => (
+                <li key={s.id} className={s.seguro ? '' : 'discrepa'}>
+                  <span className="inv-estado">{s.seguro ? 'claro' : '(?) dudoso'}</span>
+                  <span className="inv-nombre-vista">
+                    {s.actual}
+                    {/* Dos artículos pueden tener el mismo texto cortado —los dos kits— y
+                        recibir la misma propuesta. Sin esto no habría forma de saber cuál se
+                        está corrigiendo. */}
+                    <em className="inv-nota">
+                      {' '}
+                      {peso(s.peso)} · {s.cantidad} unidades
+                    </em>
+                  </span>
+                  <input
+                    className="inv-nombre"
+                    value={s.elegido}
+                    onChange={(e) =>
+                      setSugerencias((antes) =>
+                        antes.map((x, j) => (j === i ? { ...x, elegido: e.target.value } : x))
+                      )
+                    }
+                    maxLength={60}
+                    aria-label={`Nombre completo de ${s.actual}`}
+                  />
+                </li>
+              ))}
+            </ul>
+
+            <div className="fila-acciones">
+              <button
+                type="button"
+                className="tun-boton-fuerte"
+                disabled={ocupado}
+                onClick={guardarNombres}
+              >
+                Guardar los nombres
+              </button>
+              <button type="button" className="accion" onClick={() => setSugerencias(null)}>
                 Cancelar
               </button>
             </div>

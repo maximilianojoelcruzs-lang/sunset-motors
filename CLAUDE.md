@@ -767,6 +767,45 @@ Medido de punta a punta: 22 de 22 filas, 22 de 22 cantidades exactas, cero filas
 alto, no perfecto, y un número mal que entra en silencio se descubre en la bodega buscando una
 pieza que no está.
 
+### Cada casilla se lee por su posición en la rejilla
+
+La duplicación que se vio en producción —«140» en una fila y «40» en otra del mismo kit— pasaba
+**dentro de una sola captura**: el lector devolvía la misma tarjeta dos veces, una bien y otra con
+un dígito de menos, y `comparar()` las tomaba por dos artículos.
+
+Dos redes, y las dos hacen falta:
+
+- **`responseSchema` exige `fila` y `columna`.** Con la posición, repetir una casilla es
+  imposible: la segunda cae en la misma coordenada y se descarta en `leerCaptura()`. El número de
+  descartadas viaja hasta la pantalla — quien sube la foto tiene derecho a saberlo.
+- **Dentro de una tanda, mismo nombre con peso parecido es la misma tarjeta** (`pesosParecidos`,
+  20% de margen). Los dos «KIT DE REPARACI…» de verdad pesan 28 kg y 8,28 kg, así que siguen
+  separados; un «140» y un «40» de la misma tarjeta se juntan y quedan como `discrepa`.
+
+**Una contradicción no se resuelve sola** —no hay forma de saber si eran 140 o 40—, pero los dos
+números salen como botones y elegir cuesta un clic. Antes la fila quedaba fuera y había que
+anotarla a mano.
+
+La pantalla dice **cuántas casillas trajo cada captura**. Es el número que permite darse cuenta
+al instante: la rejilla de la foto se cuenta con el dedo.
+
+### Completar los nombres cortados es una acción aparte
+
+El juego trunca los nombres en su propia pantalla, así que esas letras **no están en la imagen** y
+ninguna lectura las recupera. Deducirlas sí se puede: «CABLEADO DE ALTER…» es «CABLEADO DE
+ALTERNADOR».
+
+Pero **deducir en cada escaneo es lo que causaba los duplicados**: dos capturas de lo mismo darían
+dos nombres distintos. Por eso `sugerirNombres()` va aparte, se pide una vez, y lo propuesto pasa
+por una revisión antes de guardarse. Como el casado es por prefijo, un nombre completo guardado
+sigue reconociendo las capturas cortadas — medido: tras completar, reescanear la captura da cero
+nuevos.
+
+Las sugerencias traen `seguro`, y lo dudoso sale marcado. Funciona: de doce nombres, las dos que
+marcó como dudosas eran justo las dos discutibles. Cada fila enseña **su peso y su cantidad**
+porque dos artículos pueden compartir el texto cortado y recibir la misma propuesta; sin eso no
+habría forma de saber cuál se está corrigiendo.
+
 ## Anuncios: flyers y mensajes
 
 **[lib/anuncios.js](lib/anuncios.js)** — dos colecciones separadas, `sunset:flyers` (imágenes) y

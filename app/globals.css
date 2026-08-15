@@ -5621,3 +5621,52 @@ a.accion {
   font-size: 0.76rem;
   color: #7d766a;
 }
+
+/* Cuando el lector se contradice, los dos números son botones: elegir cuesta un clic en vez de
+   dejar la fila fuera y tener que anotarla a mano. */
+.inv-elegir {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.inv-elegir button {
+  padding: 2px 9px;
+  border: 1px solid var(--bay-line);
+  border-radius: 4px;
+  background: var(--bay);
+  color: var(--ticket);
+  font-family: var(--font-data), monospace;
+  font-size: 0.86rem;
+}
+
+.inv-elegir button:hover {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+
+.inv-elegir em {
+  font-style: normal;
+  font-size: 0.7rem;
+  color: #7d766a;
+}
+
+.inv-capturas-leidas {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+  font-size: 0.74rem;
+  color: #7d766a;
+}
+
+.inv-capturas-leidas strong {
+  font-weight: 500;
+  color: #cfc6b6;
+}
+
+.inv-capturas-leidas em {
+  font-style: normal;
+  color: var(--amber);
+}

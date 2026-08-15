@@ -515,6 +515,16 @@ Un conteo **no borra** lo que no saliste a fotografiar: lo demás se queda como 
 columna *Visto* dice cuándo se contó cada cosa por última vez. Solo marcando *recorrí la bodega
 entera* lo que no apareció baja a cero — y aun así pasa por la misma tabla antes de guardarse.
 
+Después de cada captura te dice **cuántas casillas leyó**, para que lo compares con la rejilla de
+la foto de un vistazo. Si el lector se contradice —la misma tarjeta con dos números—, te muestra
+los dos y eliges con un clic; nunca elige por su cuenta.
+
+**Los nombres cortados se pueden completar.** El juego corta los nombres largos en su propia
+pantalla («CABLEADO DE ALTER…»), así que esas letras no están en la foto y no hay nada que leer.
+El botón *Completar nombres cortados* propone el nombre entero de cada uno, marca de cuáles no
+está seguro, y tú apruebas o corriges antes de guardar. Después de completarlos, las capturas
+siguen reconociéndolos igual.
+
 Cualquiera con cuenta del taller puede contar, no solo el encargado. Los nombres y las cantidades
 se corrigen a mano en la lista, y queda anotado quién hizo cada conteo.
 

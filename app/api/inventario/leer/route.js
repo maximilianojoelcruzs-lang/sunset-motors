@@ -61,7 +61,9 @@ export async function POST(peticion) {
     return NextResponse.json({ error: 'Eso no es una imagen PNG, JPG o WEBP.' }, { status: 400 });
   }
 
-  const { filas, error } = await leerCaptura(bytes, tipo);
+  const { filas, repetidas, error } = await leerCaptura(bytes, tipo);
   if (error) return NextResponse.json({ error }, { status: 502 });
-  return NextResponse.json({ filas });
+  // `repetidas` viaja para que la pantalla pueda decirlo: si el lector devolvió la misma
+  // casilla dos veces, quien sube la foto tiene derecho a enterarse.
+  return NextResponse.json({ filas, repetidas: repetidas ?? 0 });
 }
