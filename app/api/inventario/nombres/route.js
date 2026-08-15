@@ -34,20 +34,43 @@ export async function POST() {
     const cortados = articulos.filter((a) => partesNombre(a.nombre).truncado);
     if (!cortados.length) return NextResponse.json({ sugerencias: [] });
 
-    const { sugerencias, error } = await sugerirNombres(cortados.map((a) => a.nombre));
+    // Los que ya traen una deducción hecha **mirando la foto** durante el escaneo no se vuelven
+    // a preguntar: esa es mejor que adivinar solo con el texto, porque la imagen es lo que
+    // distingue dos casillas que se leen igual.
+    const sinDeducir = cortados.filter((a) => !a.sugerido);
+    const { sugerencias = [], error } = sinDeducir.length
+      ? await sugerirNombres(sinDeducir.map((a) => a.nombre))
+      : {};
     if (error) return NextResponse.json({ error }, { status: 502 });
 
     // Se devuelve atado al artículo concreto: dos artículos pueden compartir el mismo texto
     // cortado —los dos «KIT DE REPARACI…»— y cada uno se renombra por su cuenta.
     const porCortado = new Map(sugerencias.map((s) => [s.cortado, s]));
+
+    // Cuántos artículos comparten cada texto cortado. Donde hay dos, la deducción puede salir
+    // cruzada —se vio: la caja de herramientas recibió el nombre de la rueda y al revés—, así
+    // que esas se marcan para revisar aunque vengan de la foto. Es el único sitio donde
+    // aceptar sin mirar sale caro.
+    const cuantos = new Map();
+    for (const a of cortados) cuantos.set(a.nombre, (cuantos.get(a.nombre) ?? 0) + 1);
+
     return NextResponse.json({
       sugerencias: cortados.map((a) => ({
         id: a.id,
         actual: a.nombre,
         peso: a.peso,
         cantidad: a.cantidad,
-        completo: porCortado.get(a.nombre)?.completo ?? a.nombre,
-        seguro: porCortado.get(a.nombre)?.seguro ?? false,
+        completo: a.sugerido || porCortado.get(a.nombre)?.completo || a.nombre,
+        // Lo deducido de la foto se marca como claro: la imagen es mejor pista que el texto.
+        seguro:
+          cuantos.get(a.nombre) > 1
+            ? false
+            : a.sugerido
+              ? true
+              : (porCortado.get(a.nombre)?.seguro ?? false),
+        deLaFoto: Boolean(a.sugerido),
+        // Hay otro artículo que se lee igual: mira bien cuál es cuál.
+        ambiguo: cuantos.get(a.nombre) > 1,
       })),
     });
   } catch (e) {

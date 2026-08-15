@@ -524,15 +524,25 @@ export default function Inventario({
             <h2 className="ref-titulo">Nombres completos</h2>
             <p className="tun-ayuda">
               El juego corta los nombres largos en su propia pantalla, así que esas letras no
-              están en la foto: esto es una <strong>deducción</strong>, no una lectura. Revísala
-              —lo marcado con <em>(?)</em> es donde había más de una opción— y corrige lo que
-              haga falta antes de guardar.
+              están en la imagen: esto es una <strong>deducción</strong>, no una lectura. Las
+              marcadas <em>📷 de la foto</em> se dedujeron mirando el dibujo del objeto —que es
+              lo que distingue dos casillas con el mismo texto cortado—; las marcadas{' '}
+              <em>(?)</em> son donde había más de una opción. Revísalas y corrige lo que haga
+              falta antes de guardar.
             </p>
 
             <ul className="inv-vista">
               {sugerencias.map((s, i) => (
                 <li key={s.id} className={s.seguro ? '' : 'discrepa'}>
-                  <span className="inv-estado">{s.seguro ? 'claro' : '(?) dudoso'}</span>
+                  <span className="inv-estado">
+                    {s.ambiguo
+                      ? '(?) hay dos iguales'
+                      : s.deLaFoto
+                        ? '📷 de la foto'
+                        : s.seguro
+                          ? 'claro'
+                          : '(?) dudoso'}
+                  </span>
                   <span className="inv-nombre-vista">
                     {s.actual}
                     {/* Dos artículos pueden tener el mismo texto cortado —los dos kits— y
