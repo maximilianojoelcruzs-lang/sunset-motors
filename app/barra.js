@@ -156,6 +156,13 @@ export default function Barra({
                   Licencias
                 </Link>
                 <Link
+                  className={`barra-enlace ${seccion === 'inventario' ? 'activo' : ''}`}
+                  href="/inventario"
+                  aria-current={seccion === 'inventario' ? 'page' : undefined}
+                >
+                  Inventario
+                </Link>
+                <Link
                   className={`barra-enlace ${seccion === 'devoluciones' ? 'activo' : ''}`}
                   href="/devoluciones"
                   aria-current={seccion === 'devoluciones' ? 'page' : undefined}

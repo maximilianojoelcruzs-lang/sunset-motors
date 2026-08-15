@@ -1085,6 +1085,23 @@ button {
   color: #7d766a;
 }
 
+/* Cuánto va instalado, de un vistazo. Un `width` en porcentaje y nada más: sin sombras ni
+   difuminados, que es lo que en el casino tiraba los fotogramas al suelo. */
+.tun-avance {
+  height: 4px;
+  margin: 0 0 10px;
+  background: var(--bay);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.tun-avance span {
+  display: block;
+  height: 100%;
+  background: var(--amber);
+  transition: width 0.2s ease;
+}
+
 .tun-resumen-lista {
   list-style: none;
   margin: 0;
@@ -1094,15 +1111,45 @@ button {
 }
 
 .tun-resumen-lista li {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 2px 10px;
-  padding: 6px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .tun-resumen-lista li:last-child {
   border-bottom: 0;
+}
+
+/* La línea entera es el botón, no una casilla de 26 px: se marca con el pulgar y con el auto
+   en el elevador, no apuntando con el ratón. */
+.tun-resumen-fila {
+  display: grid;
+  grid-template-columns: 26px 1fr auto;
+  gap: 2px 10px;
+  align-items: center;
+  width: 100%;
+  padding: 7px 0;
+  background: none;
+  border: 0;
+  text-align: left;
+}
+
+.tun-resumen-fila:hover .tun-check {
+  border-color: var(--amber);
+}
+
+.tun-check {
+  /* `span 2` y no `1 / -1`: sin filas explícitas, `-1` es la línea 1 y la casilla se aplastaba
+     contra la etiqueta de la sección. */
+  grid-row: 1 / span 2;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--bay-line);
+  border-radius: 6px;
+  color: var(--amber);
+  font-size: 0.85rem;
+  line-height: 1;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
 /* Lo ya instalado no se saca de la lista: se apaga. Sacarlo movería todo lo de abajo cada vez
@@ -1111,12 +1158,27 @@ button {
   opacity: 0.4;
 }
 
+.tun-resumen-lista li.hecha .tun-check {
+  border-color: var(--amber);
+  background: rgba(255, 157, 46, 0.12);
+}
+
 .tun-resumen-lista li.hecha .tun-resumen-nombre {
   text-decoration: line-through;
 }
 
+/* La que toca ahora. Es la única señal de por dónde iba el trabajo cuando se levanta la vista
+   de la pantalla. */
+.tun-resumen-lista li.siguiente .tun-check {
+  border-color: var(--amber);
+}
+
+.tun-resumen-lista li.siguiente .tun-resumen-nombre {
+  color: var(--amber);
+}
+
 .tun-resumen-grupo {
-  grid-column: 1 / -1;
+  grid-column: 2 / -1;
   font-size: 0.6rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -1201,13 +1263,15 @@ button {
 }
 
 /* Está el menú entero —casi cuarenta filas—, así que son más apretadas que antes. La casilla
-   del valor va a la derecha, alineada en toda la lista: se rellena bajando con el tabulador. */
+   del valor va a la derecha, alineada en toda la lista: se rellena bajando con el tabulador.
+
+   Sin columna para el check: acá se escribe el pedido y nada más. Marcar es del resumen. */
 .tun-fila {
   display: grid;
   /* 230px y no lo justo para un número: los colores vienen como
      «METÁLICO - RGB(84,118,204)» y con la casilla estrecha se cortaban a media cifra. Una sola
      medida para toda la lista, que es lo que permite recorrerla de un vistazo. */
-  grid-template-columns: 30px 1fr 230px;
+  grid-template-columns: 1fr 230px;
   align-items: center;
   gap: 12px;
   padding: 6px 12px;
@@ -1228,44 +1292,33 @@ button {
   color: #7d766a;
 }
 
-.tun-fila.siguiente {
-  border-left-color: var(--amber);
-  background: rgba(255, 157, 46, 0.08);
-}
-
+/* Instalada se apaga, pero menos que antes: el número tiene que seguir leyéndose para poder
+   corregirlo, y con 0.45 sobre el fondo oscuro no se distinguía un 4 de un 1. */
 .tun-fila.hecha {
-  opacity: 0.45;
+  opacity: 0.6;
 }
 
-.tun-fila.hecha .tun-categoria {
+/* Tachado solo el nombre y no la caja entera: el ✓ vive dentro y la raya se lo llevaba por
+   delante. */
+.tun-fila.hecha .tun-nombre-cat {
   text-decoration: line-through;
 }
 
-.tun-marca {
-  width: 28px;
-  height: 28px;
-  border: 2px solid var(--bay-line);
-  border-radius: 6px;
-  background: transparent;
-  color: var(--amber);
-  font-size: 1rem;
-  line-height: 1;
-}
-
-.tun-fila.hecha .tun-marca {
-  border-color: var(--amber);
-}
-
-/* Sin casilla puesta no hay nada que marcar, pero el hueco se reserva igual: si no, el nombre
-   se corre a la izquierda y la lista queda en zigzag. */
-.tun-marca-hueco {
-  width: 28px;
-  height: 28px;
-}
-
 .tun-categoria {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 0.92rem;
   color: var(--ticket);
+}
+
+/* El visto del listado **no se pulsa**: solo cuenta lo que ya está puesto. El botón vive en el
+   resumen, y tenerlo en los dos sitios era dos lugares donde tocar lo mismo. */
+.tun-hecha-marca {
+  flex: none;
+  font-size: 0.8rem;
+  color: var(--amber);
+  text-decoration: none;
 }
 
 .tun-campo {
@@ -1300,7 +1353,7 @@ button {
    más. Las del catálogo no: esas se quitan vaciando el número. */
 .tun-fila.propia,
 .tun-fila.tun-nueva {
-  grid-template-columns: 30px 1fr 230px 26px;
+  grid-template-columns: 1fr 230px 26px;
 }
 
 .tun-quitar {
@@ -1331,13 +1384,6 @@ button {
   background: transparent;
   border-style: dashed;
   border-left-color: transparent;
-}
-
-.tun-nueva .tun-marca-hueco {
-  display: grid;
-  place-items: center;
-  color: #5c564c;
-  font-size: 1.1rem;
 }
 
 .tun-nombre-nuevo {
@@ -1382,7 +1428,7 @@ button {
 
 @media (max-width: 520px) {
   .tun-fila {
-    grid-template-columns: 28px 1fr 92px;
+    grid-template-columns: 1fr 92px;
     gap: 8px;
     padding: 6px 8px;
   }
@@ -1390,23 +1436,28 @@ button {
   /* En el teléfono no caben el nombre y un RGB entero en la misma línea, así que el color se
      baja a la suya. Los números siguen al lado del nombre, que es como se leen mejor. */
   .tun-fila.texto {
-    grid-template-columns: 28px 1fr;
+    grid-template-columns: 1fr;
     row-gap: 6px;
-  }
-
-  .tun-fila.texto .tun-campo {
-    grid-column: 2;
   }
 
   .tun-fila.propia,
   .tun-fila.tun-nueva {
-    grid-template-columns: 28px 1fr 26px;
+    grid-template-columns: 1fr 26px;
     row-gap: 6px;
+  }
+
+  /* Colocadas a mano y no por orden: con la equis en el flujo, el campo se bajaba a una fila
+     y la equis a otra, y quedaba una escalera de tres pisos por línea. */
+  .tun-fila.propia .tun-quitar,
+  .tun-fila.tun-nueva .tun-quitar {
+    grid-row: 1;
+    grid-column: 2;
   }
 
   .tun-fila.propia .tun-campo,
   .tun-fila.tun-nueva .tun-campo {
-    grid-column: 2 / -1;
+    grid-row: 2;
+    grid-column: 1 / -1;
   }
 }
 
@@ -5302,5 +5353,243 @@ a.accion {
   * {
     transition: none !important;
     animation: none !important;
+  }
+}
+
+/* ---------- Inventario ---------- */
+
+.inv-conteo {
+  margin-bottom: 22px;
+  padding: 16px;
+  border: 1px solid var(--bay-line);
+  border-radius: 8px;
+  background: var(--bay-2);
+}
+
+.inv-anadir {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.inv-anadir input {
+  padding: 8px 11px;
+  background: var(--bay);
+  border: 1px solid var(--bay-line);
+  border-radius: 5px;
+  color: var(--ticket);
+  font-size: 0.82rem;
+}
+
+.inv-anadir input[name='nombre'] {
+  flex: 1;
+  min-width: 200px;
+}
+
+.inv-anadir input[name='peso'],
+.inv-anadir input[name='cantidad'] {
+  width: 92px;
+  font-family: var(--font-data), monospace;
+}
+
+.inv-vista,
+.inv-lista {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.inv-vista li {
+  display: grid;
+  grid-template-columns: 96px 1fr 80px 150px;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: 5px;
+  font-size: 0.82rem;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.inv-estado {
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #7d766a;
+}
+
+.inv-vista li.nuevo .inv-estado {
+  color: var(--sun-5);
+}
+
+.inv-vista li.cambia .inv-estado {
+  color: var(--amber);
+}
+
+/* Lo que no se va a guardar tiene que verse distinto de lo que sí. */
+.inv-vista li.discrepa,
+.inv-vista li.ilegible {
+  background: rgba(224, 102, 60, 0.1);
+}
+
+.inv-vista li.discrepa .inv-estado,
+.inv-vista li.ilegible .inv-estado {
+  color: #e0663c;
+}
+
+.inv-nota {
+  font-style: normal;
+  font-size: 0.7rem;
+  color: #7d766a;
+}
+
+.inv-cambio {
+  font-family: var(--font-data), monospace;
+  text-align: right;
+  color: var(--ticket);
+}
+
+.inv-cambio em {
+  font-style: normal;
+  font-size: 0.76rem;
+}
+
+.inv-cambio em.sube {
+  color: #4fae6a;
+}
+
+.inv-cambio em.baja {
+  color: #e0663c;
+}
+
+.inv-completo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  font-size: 0.82rem;
+  color: #cfc6b6;
+}
+
+.inv-completo em {
+  font-style: normal;
+  color: #e0663c;
+}
+
+.inv-fila {
+  display: grid;
+  grid-template-columns: 1fr 90px 90px 150px 26px;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.inv-fila.cabecera {
+  border-bottom: 1px solid var(--bay-line);
+  padding-bottom: 8px;
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #7d766a;
+}
+
+.inv-nombre {
+  width: 100%;
+  padding: 5px 6px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: var(--ticket);
+  font-size: 0.88rem;
+}
+
+.inv-nombre:hover {
+  border-color: var(--bay-line);
+}
+
+.inv-nombre:focus {
+  background: var(--bay);
+  border-color: var(--amber);
+  outline: none;
+}
+
+.inv-peso,
+.inv-visto {
+  font-family: var(--font-data), monospace;
+  font-size: 0.74rem;
+  color: #7d766a;
+}
+
+.inv-cantidad {
+  width: 100%;
+  padding: 5px 8px;
+  background: var(--bay);
+  border: 1px solid var(--bay-line);
+  border-radius: 4px;
+  color: var(--amber);
+  font-family: var(--font-data), monospace;
+  font-size: 0.95rem;
+  text-align: right;
+}
+
+.inv-cantidad:focus {
+  border-color: var(--amber);
+  outline: none;
+}
+
+/* En el teléfono la fila se parte en dos alturas: arriba lo que se toca —nombre, cantidad y la
+   equis—, abajo lo que solo se mira. Con las cinco columnas en una línea, la última se salía de
+   la pantalla. */
+@media (max-width: 720px) {
+  .inv-fila {
+    grid-template-columns: minmax(0, 1fr) 68px 26px;
+    row-gap: 2px;
+    padding: 8px;
+  }
+
+  .inv-fila > .inv-nombre,
+  .inv-fila > span:first-child {
+    grid-column: 1;
+  }
+
+  .inv-fila .inv-cantidad {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .inv-fila .tun-quitar,
+  .inv-fila > span:last-child {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .inv-fila .inv-peso,
+  .inv-fila .inv-visto {
+    grid-row: 2;
+  }
+
+  .inv-fila .inv-peso {
+    grid-column: 1;
+  }
+
+  .inv-fila .inv-visto {
+    grid-column: 2 / -1;
+    text-align: right;
+  }
+
+  .inv-vista li {
+    grid-template-columns: minmax(0, 1fr) auto;
+    row-gap: 2px;
+  }
+
+  .inv-estado {
+    grid-column: 1 / -1;
+  }
+
+  .inv-nombre-vista {
+    overflow-wrap: anywhere;
   }
 }

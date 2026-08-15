@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Barra from '../barra';
 import useSondeo from '../sondeo';
 import { soloHora } from '../../lib/tiempo';
@@ -21,48 +21,84 @@ const sinTildes = (texto) =>
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase();
 
+// Un arreglo fijo para cuando no hay pedido: con `?? []` se creaba uno nuevo en cada pintado y
+// los `useMemo` que dependen de las piezas se recalculaban aunque no hubiera cambiado nada.
+const SIN_PIEZAS = [];
+
+/** ¿La lista que acaba de llegar dice lo mismo que la que ya está en pantalla? */
+const mismos = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+
 /**
  * Una fila del catálogo: el nombre fijo y una casilla para el valor.
  *
- * La casilla es lo único que se escribe. Antes había que elegir la categoría en un desplegable
- * y pulsar «Añadir» pieza por pieza; con treinta piezas eso son noventa gestos. Acá está todo
- * el menú a la vista y solo se rellena lo que el pedido trae.
+ * **Acá no se marca nada.** Esta lista es el pedido tal como lo dicta el cliente —el menú
+ * entero, para ir rellenando lo que trae—, y el trabajo de instalar se lleva en el resumen de
+ * la derecha. Con el check en las dos partes había dos sitios donde tocar lo mismo y ninguno
+ * era el que se estaba mirando.
+ *
+ * Lo tecleado vive **dentro de la fila**, no en la pantalla entera: así escribir un número no
+ * vuelve a pintar las otras treinta y siete filas en cada tecla.
  */
-function Fila({ fila, valor, siguiente, onEscribir, onCerrar, onMarcar, onQuitar }) {
+const Fila = memo(function Fila({ fila, onGuardar, onQuitar }) {
+  const externo = fila.pieza?.valor ?? '';
+  const [texto, setTexto] = useState(externo);
+  const tecleando = useRef(false);
+  const reloj = useRef(null);
+
+  // Mientras se escribe manda lo escrito; el resto del tiempo, lo que diga el servidor. Sin
+  // esto la respuesta de una escritura anterior pisaría el campo a media palabra.
+  useEffect(() => {
+    if (!tecleando.current) setTexto(externo);
+  }, [externo]);
+
+  // El temporizador de escritura no puede sobrevivir a la fila.
+  useEffect(() => () => clearTimeout(reloj.current), []);
+
+  // Se manda al parar de teclear, no en cada tecla: escribir «12» son dos escrituras completas
+  // de la colección para un solo número.
+  const escribir = (valor) => {
+    tecleando.current = true;
+    setTexto(valor);
+    clearTimeout(reloj.current);
+    reloj.current = setTimeout(() => onGuardar(fila, valor), 500);
+  };
+
+  // Al salir del campo se manda ya, sin esperar el medio segundo.
+  const cerrar = () => {
+    clearTimeout(reloj.current);
+    tecleando.current = false;
+    onGuardar(fila, texto);
+  };
+
   const puesta = Boolean(fila.pieza);
   const hecha = Boolean(fila.pieza?.hecha);
 
   return (
     <li
       className={`tun-fila ${puesta ? 'puesta' : 'vacia'} ${hecha ? 'hecha' : ''} ${
-        siguiente ? 'siguiente' : ''
-      } ${fila.texto ? 'texto' : ''} ${fila.propia ? 'propia' : ''}`}
+        fila.texto ? 'texto' : ''
+      } ${fila.propia ? 'propia' : ''}`}
     >
-      {puesta ? (
-        <button
-          type="button"
-          className="tun-marca"
-          onClick={() => onMarcar(fila.pieza, !hecha)}
-          aria-label={hecha ? 'Desmarcar' : 'Marcar como instalada'}
-        >
-          {hecha ? '✓' : ''}
-        </button>
-      ) : (
-        <span className="tun-marca-hueco" aria-hidden="true" />
-      )}
-
-      <span className="tun-categoria">{fila.nombre}</span>
+      <span className="tun-categoria">
+        <span className="tun-nombre-cat">{fila.nombre}</span>
+        {/* Instalada se ve, no se toca: el check está en el resumen. */}
+        {hecha && (
+          <span className="tun-hecha-marca" title="Ya instalada">
+            ✓
+          </span>
+        )}
+      </span>
 
       <input
         className={`tun-campo ${fila.texto ? 'ancho' : ''}`}
-        value={valor}
-        onChange={(e) => onEscribir(fila, e.target.value)}
-        onBlur={() => onCerrar(fila)}
+        value={texto}
+        onChange={(e) => escribir(e.target.value)}
+        onBlur={cerrar}
         onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), e.target.blur())}
         placeholder={fila.propia ? 'opcional' : fila.texto ? 'color' : 'nº'}
         maxLength={40}
         spellCheck={false}
-        title={valor || undefined}
+        title={texto || undefined}
         aria-label={`Valor de ${fila.nombre}`}
       />
 
@@ -81,46 +117,212 @@ function Fila({ fila, valor, siguiente, onEscribir, onCerrar, onMarcar, onQuitar
       )}
     </li>
   );
-}
+});
+
+/**
+ * La línea escrita a mano, con su propio estado.
+ *
+ * Aparte y no en la pantalla: escribiendo «revisar frenos» se repintaba todo el menú letra a
+ * letra, y eso es justamente lo que se sentía pegado.
+ */
+const FilaNueva = memo(function FilaNueva({ onAnadir }) {
+  const [nombre, setNombre] = useState('');
+  const [valor, setValor] = useState('');
+  const campo = useRef(null);
+
+  const enviar = (e) => {
+    e.preventDefault();
+    const etiqueta = nombre.trim().slice(0, 40);
+    if (!etiqueta) return;
+
+    // Se vacía antes de mandar: escribiendo una tras otra se teclea la siguiente mientras la
+    // anterior viaja, y limpiar al volver la respuesta borraría lo recién escrito.
+    setNombre('');
+    setValor('');
+    campo.current?.focus();
+    onAnadir(etiqueta, valor.trim().slice(0, 40));
+  };
+
+  return (
+    <form className="tun-fila tun-nueva" onSubmit={enviar}>
+      <input
+        ref={campo}
+        className="tun-nombre-nuevo"
+        value={nombre}
+        onChange={(e) => setNombre(e.target.value)}
+        placeholder="Escribe lo que falte: «revisar frenos», «llantas del cliente»…"
+        maxLength={40}
+        aria-label="Nombre de la línea nueva"
+      />
+      <input
+        className="tun-campo"
+        value={valor}
+        onChange={(e) => setValor(e.target.value)}
+        placeholder="opcional"
+        maxLength={40}
+        spellCheck={false}
+        aria-label="Valor de la línea nueva"
+      />
+      <button
+        type="submit"
+        className="tun-quitar anadir"
+        disabled={!nombre.trim()}
+        aria-label="Añadir la línea"
+      >
+        ↵
+      </button>
+    </form>
+  );
+});
+
+/**
+ * Una sección del menú, plegable.
+ *
+ * Memorizada: al desplegar una, o al marcar una pieza, las demás no vuelven a pintarse.
+ */
+const Grupo = memo(function Grupo({
+  grupo,
+  lista,
+  puestas,
+  hechas,
+  abierta,
+  onAlternar,
+  onGuardar,
+  onQuitar,
+  onAnadir,
+}) {
+  return (
+    <div className="tun-grupo">
+      <button
+        type="button"
+        className={`tun-grupo-cabeza ${puestas ? 'con-piezas' : ''}`}
+        onClick={() => onAlternar(grupo)}
+        aria-expanded={abierta}
+      >
+        <span className={`flecha ${abierta ? 'abierta' : ''}`} />
+        <span className="tun-grupo-titulo">{grupo}</span>
+        {/* Cerrada, el contador es lo único que dice si ahí queda trabajo. */}
+        <span className="tun-grupo-cuenta">
+          {puestas
+            ? `${hechas}/${puestas}`
+            : grupo === 'Otras'
+              ? '+ escribir'
+              : `${lista.length} sin usar`}
+        </span>
+      </button>
+
+      {abierta && (
+        <>
+          <ul className="tun-filas">
+            {lista.map((f) => (
+              <Fila key={f.clave} fila={f} onGuardar={onGuardar} onQuitar={onQuitar} />
+            ))}
+          </ul>
+
+          {/* Lo que el menú del juego no contempla se escribe acá, con sus palabras. El valor
+              es opcional: «falta pieza» ya es todo el recado. */}
+          {grupo === 'Otras' && <FilaNueva onAnadir={onAnadir} />}
+        </>
+      )}
+    </div>
+  );
+});
+
+/**
+ * El resumen: la lista corta del pedido, y **el único sitio donde se marca**.
+ *
+ * Acá está lo que hay que ir a buscar al almacén y lo que hay que instalar, sin las treinta
+ * categorías en blanco del menú. Se marca donde se lee, que es lo que evita bajar a buscar la
+ * fila del catálogo cada vez que se termina una pieza.
+ */
+const Resumen = memo(function Resumen({ lista, hechas, onMarcar }) {
+  const total = lista.length;
+  const avance = total ? Math.round((hechas / total) * 100) : 0;
+
+  return (
+    <aside className="tun-resumen">
+      <h3 className="tun-resumen-titulo">
+        Piezas del pedido{' '}
+        <span>
+          {hechas}/{total}
+        </span>
+      </h3>
+
+      {total === 0 ? (
+        <p className="tun-resumen-vacio">
+          Rellena las casillas de la izquierda y aquí queda la lista corta, sin las categorías
+          que el pedido no trae. Desde aquí se marca cada pieza al instalarla.
+        </p>
+      ) : (
+        <>
+          <div className="tun-avance" role="presentation">
+            <span style={{ width: `${avance}%` }} />
+          </div>
+
+          <ul className="tun-resumen-lista">
+            {lista.map((r) => (
+              <li
+                key={r.clave}
+                className={`${r.hecha ? 'hecha' : ''} ${r.siguiente ? 'siguiente' : ''}`}
+              >
+                <button
+                  type="button"
+                  className="tun-resumen-fila"
+                  onClick={() => onMarcar(r.id, !r.hecha)}
+                  aria-pressed={r.hecha}
+                  aria-label={`${r.nombre}${r.valor ? ` ${r.valor}` : ''} · ${
+                    r.hecha ? 'instalada' : 'pendiente'
+                  }`}
+                >
+                  <span className="tun-check" aria-hidden="true">
+                    {r.hecha ? '✓' : ''}
+                  </span>
+                  <span className="tun-resumen-grupo">{r.grupo}</span>
+                  <span className="tun-resumen-nombre">{r.nombre}</span>
+                  <span className="tun-resumen-valor">{r.valor}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+
+          <p className="tun-resumen-pie">
+            {hechas} de {total} instaladas · toca una línea para marcarla
+          </p>
+        </>
+      )}
+    </aside>
+  );
+});
 
 export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropio, fallo }) {
   const [pedidos, setPedidos] = useState(iniciales);
   const [turno, setTurno] = useState(turnoPropio);
   const [abiertoId, setAbiertoId] = useState(iniciales.find((p) => !p.cerrado)?.id ?? null);
-  // Lo que se está tecleando ahora mismo, por fila. Mientras hay borrador manda él: si no, la
-  // respuesta del servidor pisaría el campo justo mientras alguien escribe dentro.
-  const [borradores, setBorradores] = useState({});
   // Qué secciones están desplegadas. Un `Set`, igual que en la calculadora.
   const [abiertas, setAbiertas] = useState(new Set());
-  // La línea escrita a mano que se está redactando.
-  const [nombreNuevo, setNombreNuevo] = useState('');
-  const [valorNuevo, setValorNuevo] = useState('');
   const [filtro, setFiltro] = useState('');
   const [error, setError] = useState(fallo);
   const [ocupado, setOcupado] = useState(false);
 
-  const relojes = useRef({});
-  const campoNuevo = useRef(null);
   const pendientes = useRef(0);
   const cola = useRef(Promise.resolve());
 
-  const recargar = async () => {
+  const recargar = useCallback(async () => {
     const r = await fetch('/api/tunning', { cache: 'no-store' });
     const cuerpo = await r.json().catch(() => ({}));
-    if (r.ok) setPedidos(cuerpo.pedidos);
-  };
+    if (!r.ok || !cuerpo.pedidos) return;
+    // Si el servidor dice lo mismo que ya hay, no se toca el estado: cambiar la referencia
+    // cada quince segundos repinta las cuarenta filas para nada.
+    setPedidos((antes) => (mismos(antes, cuerpo.pedidos) ? antes : cuerpo.pedidos));
+  }, []);
 
   // El pedido es de quien lo abre, pero la misma persona puede tenerlo abierto en el PC y en
   // el teléfono: la lista se pone al día sola para que las dos pantallas digan lo mismo.
   useSondeo(() => (pendientes.current ? undefined : recargar()), 15000);
 
-  // Los temporizadores de escritura no pueden sobrevivir a la pantalla.
-  useEffect(() => () => Object.values(relojes.current).forEach(clearTimeout), []);
-
   const pedido = pedidos.find((p) => p.id === abiertoId) ?? null;
-  const piezas = pedido?.piezas ?? [];
+  const piezas = pedido?.piezas ?? SIN_PIEZAS;
   const hechas = piezas.filter((p) => p.hecha).length;
-  const siguiente = piezas.find((p) => !p.hecha) ?? null;
 
   const pedir = async (url, opciones) => {
     setOcupado(true);
@@ -143,10 +345,13 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
   };
 
   // ---------- Escrituras: la pantalla primero, el servidor por detrás ----------
-  const cambiarPiezas = (hacer) =>
-    setPedidos((antes) =>
-      antes.map((p) => (p.id === abiertoId ? { ...p, piezas: hacer(p.piezas) } : p))
-    );
+  const cambiarPiezas = useCallback(
+    (hacer) =>
+      setPedidos((antes) =>
+        antes.map((p) => (p.id === abiertoId ? { ...p, piezas: hacer(p.piezas) } : p))
+      ),
+    [abiertoId]
+  );
 
   /**
    * Manda un cambio sin bloquear la pantalla, y **de a uno**.
@@ -154,124 +359,103 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
    * En cola y no en paralelo porque cada escritura lee y reescribe la colección entera: dos a
    * la vez se pisan y una de las dos se pierde. Escribiendo rápido eso pasa siempre.
    */
-  const enSegundoPlano = (cambios) => {
-    pendientes.current += 1;
+  const enSegundoPlano = useCallback(
+    (cambios) => {
+      pendientes.current += 1;
 
-    const tarea = async () => {
-      try {
-        const r = await fetch(`/api/tunning/${abiertoId}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(cambios),
-        });
-        if (r.ok) return;
-        const cuerpo = await r.json().catch(() => ({}));
-        setError(cuerpo.error || 'No se pudo guardar.');
-      } catch {
-        setError('Sin conexión con el servidor.');
-      }
-      await recargar().catch(() => {});
-    };
+      const tarea = async () => {
+        try {
+          const r = await fetch(`/api/tunning/${abiertoId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(cambios),
+          });
+          if (r.ok) return;
+          const cuerpo = await r.json().catch(() => ({}));
+          setError(cuerpo.error || 'No se pudo guardar.');
+        } catch {
+          setError('Sin conexión con el servidor.');
+        }
+        await recargar().catch(() => {});
+      };
 
-    // `then(tarea, tarea)` y no `then(tarea)`: si una se cayera, la cola quedaría rota y los
-    // cambios siguientes no se mandarían nunca.
-    cola.current = cola.current.then(tarea, tarea).finally(() => {
-      pendientes.current -= 1;
-    });
-  };
+      // `then(tarea, tarea)` y no `then(tarea)`: si una se cayera, la cola quedaría rota y los
+      // cambios siguientes no se mandarían nunca.
+      cola.current = cola.current.then(tarea, tarea).finally(() => {
+        pendientes.current -= 1;
+      });
+    },
+    [abiertoId, recargar]
+  );
 
-  const marcar = (pieza, hecha) => {
-    cambiarPiezas((lista) => lista.map((x) => (x.id === pieza.id ? { ...x, hecha } : x)));
-    enSegundoPlano({ pieza: pieza.id, hecha });
-  };
+  // Marcar viene del resumen, así que lo que llega es el identificador de la pieza y no la
+  // pieza entera: la fila del resumen es una copia liviana, no el objeto guardado.
+  const marcar = useCallback(
+    (id, hecha) => {
+      cambiarPiezas((lista) => lista.map((x) => (x.id === id ? { ...x, hecha } : x)));
+      enSegundoPlano({ pieza: id, hecha });
+    },
+    [cambiarPiezas, enSegundoPlano]
+  );
+
+  const quitar = useCallback(
+    (pieza) => {
+      cambiarPiezas((lista) => lista.filter((x) => x.id !== pieza.id));
+      enSegundoPlano({ quitar: pieza.id });
+    },
+    [cambiarPiezas, enSegundoPlano]
+  );
 
   // ---------- Escribir el valor de una fila ----------
-  //
-  // Se manda al parar de teclear, no en cada tecla: escribiendo «12» son dos escrituras
-  // completas de la colección para un solo número.
-  const guardar = (fila, texto) => {
-    clearTimeout(relojes.current[fila.clave]);
-    setBorradores((b) => {
-      const copia = { ...b };
-      delete copia[fila.clave];
-      return copia;
-    });
+  const guardar = useCallback(
+    (fila, texto) => {
+      const limpio = texto.trim().slice(0, 40);
+      const antes = fila.pieza;
+      if (limpio === (antes?.valor ?? '')) return;
 
-    const limpio = texto.trim().slice(0, 40);
-    const antes = fila.pieza;
-    if (limpio === (antes?.valor ?? '')) return;
+      // Vaciar el número saca la pieza del pedido… salvo en las escritas a mano, donde el valor
+      // es opcional: «falta pieza» sin nada al lado sigue siendo un recado válido. Esas se
+      // quitan con la equis.
+      if (!limpio && !fila.propia) {
+        cambiarPiezas((lista) => lista.filter((x) => x.id !== antes.id));
+        enSegundoPlano({ quitar: antes.id });
+        return;
+      }
+      if (!limpio && !antes) return;
 
-    // Vaciar el número saca la pieza del pedido… salvo en las escritas a mano, donde el valor
-    // es opcional: «falta pieza» sin nada al lado sigue siendo un recado válido. Esas se
-    // quitan con la equis.
-    if (!limpio && !fila.propia) {
-      cambiarPiezas((lista) => lista.filter((x) => x.id !== antes.id));
-      enSegundoPlano({ quitar: antes.id });
-      return;
-    }
-    if (!limpio && !antes) return;
+      if (antes) {
+        cambiarPiezas((lista) =>
+          lista.map((x) => (x.id === antes.id ? { ...x, valor: limpio } : x))
+        );
+        // Por categoría, no por id: el servidor reconoce que ya estaba y le cambia el valor
+        // conservando el id y si estaba instalada.
+        enSegundoPlano({ agregar: { ...fila.entrada, valor: limpio } });
+        return;
+      }
 
-    if (antes) {
-      cambiarPiezas((lista) =>
-        lista.map((x) => (x.id === antes.id ? { ...x, valor: limpio } : x))
-      );
-      // Por categoría, no por id: el servidor reconoce que ya estaba y le cambia el valor
-      // conservando el id y si estaba instalada.
-      enSegundoPlano({ agregar: { ...fila.entrada, valor: limpio } });
-      return;
-    }
-
-    // El identificador lo pone el navegador y el servidor lo respeta, para que la fila pintada
-    // y la guardada sean la misma pieza y se pueda marcar sin esperar a la siguiente lectura.
-    const nueva = { id: crypto.randomUUID(), ...fila.entrada, valor: limpio, hecha: false };
-    cambiarPiezas((lista) => [...lista, nueva]);
-    enSegundoPlano({ agregar: nueva });
-  };
-
-  const escribir = (fila, texto) => {
-    setBorradores((b) => ({ ...b, [fila.clave]: texto }));
-    clearTimeout(relojes.current[fila.clave]);
-    relojes.current[fila.clave] = setTimeout(() => guardar(fila, texto), 500);
-  };
-
-  // Al salir del campo se manda ya, sin esperar el medio segundo.
-  const cerrar = (fila) => {
-    const texto = borradores[fila.clave];
-    if (texto !== undefined) guardar(fila, texto);
-  };
-
-  const quitar = (pieza) => {
-    cambiarPiezas((lista) => lista.filter((x) => x.id !== pieza.id));
-    enSegundoPlano({ quitar: pieza.id });
-  };
+      // El identificador lo pone el navegador y el servidor lo respeta, para que la fila
+      // pintada y la guardada sean la misma pieza y se pueda marcar sin esperar a la
+      // siguiente lectura.
+      const nueva = { id: crypto.randomUUID(), ...fila.entrada, valor: limpio, hecha: false };
+      cambiarPiezas((lista) => [...lista, nueva]);
+      enSegundoPlano({ agregar: nueva });
+    },
+    [cambiarPiezas, enSegundoPlano]
+  );
 
   // ---------- Una línea escrita a mano ----------
   //
   // El menú del juego no lo contempla todo, y hay cosas del pedido que no son un número de
   // submenú: «llevar a la ITV», «falta la pieza, avisar al cliente». Sin esto no había dónde
   // anotarlas y terminaban en un papel aparte, que es justo lo que esta pantalla evita.
-  const anadirPropia = (e) => {
-    e.preventDefault();
-    const etiqueta = nombreNuevo.trim().slice(0, 40);
-    if (!etiqueta) return;
-
-    const nueva = {
-      id: crypto.randomUUID(),
-      categoria: null,
-      etiqueta,
-      valor: valorNuevo.trim().slice(0, 40),
-      hecha: false,
-    };
-
-    // Se vacía antes de mandar: escribiendo una tras otra se teclea la siguiente mientras la
-    // anterior viaja, y limpiar al volver la respuesta borraría lo recién escrito.
-    setNombreNuevo('');
-    setValorNuevo('');
-    campoNuevo.current?.focus();
-
-    cambiarPiezas((lista) => [...lista.filter((x) => claveDe(x) !== claveDe(nueva)), nueva]);
-    enSegundoPlano({ agregar: nueva });
-  };
+  const anadirPropia = useCallback(
+    (etiqueta, valor) => {
+      const nueva = { id: crypto.randomUUID(), categoria: null, etiqueta, valor, hecha: false };
+      cambiarPiezas((lista) => [...lista.filter((x) => claveDe(x) !== claveDe(nueva)), nueva]);
+      enSegundoPlano({ agregar: nueva });
+    },
+    [cambiarPiezas, enSegundoPlano]
+  );
 
   const nuevoPedido = async () => {
     const r = await pedir('/api/tunning', {
@@ -292,6 +476,9 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
     const delCatalogo = CATEGORIAS.map((c) => ({
       clave: c.id,
       nombre: c.nombre,
+      // Normalizado una sola vez, no en cada tecla del buscador: son 38 nombres y el filtro
+      // corre entero con cada letra que se escribe.
+      buscable: sinTildes(c.nombre),
       grupo: c.grupo,
       texto: Boolean(c.texto),
       entrada: { categoria: c.id, etiqueta: null },
@@ -305,6 +492,7 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
       .map((p) => ({
         clave: claveDe(p),
         nombre: p.etiqueta ?? p.categoria,
+        buscable: sinTildes(p.etiqueta ?? p.categoria),
         grupo: 'Otras',
         texto: true,
         propia: true,
@@ -323,7 +511,7 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
   const porGrupo = useMemo(() => {
     const grupos = new Map([...GRUPOS, 'Otras'].map((g) => [g, []]));
     for (const f of filas) {
-      if (busqueda && !sinTildes(f.nombre).includes(busqueda)) continue;
+      if (busqueda && !f.buscable.includes(busqueda)) continue;
       grupos.get(f.grupo)?.push(f);
     }
     return [...grupos.entries()]
@@ -339,35 +527,48 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
       }));
   }, [filas, busqueda]);
 
+  const coincidencias = useMemo(
+    () => porGrupo.reduce((n, g) => n + g.lista.length, 0),
+    [porGrupo]
+  );
+
   // ---------- El resumen de la derecha ----------
   //
-  // Lo que hay que ir a buscar al almacén, y nada más. La lista de la izquierda es el menú
-  // entero —hay que verlo para rellenarlo—, pero para juntar las piezas solo importan las que
-  // el pedido trae, y ahí sobran treinta filas en blanco.
-  const resumen = useMemo(
-    () =>
-      filas
-        .filter((f) => f.pieza)
-        .map((f) => ({
+  // Lo que hay que ir a buscar al almacén y lo que hay que ir marcando. La lista de la
+  // izquierda es el menú entero —hay que verlo para rellenarlo—, pero para trabajar solo
+  // importan las piezas que el pedido trae, y ahí sobran treinta filas en blanco.
+  const resumen = useMemo(() => {
+    let primeraPendiente = true;
+    return filas
+      .filter((f) => f.pieza)
+      .map((f) => {
+        const siguiente = !f.pieza.hecha && primeraPendiente;
+        if (siguiente) primeraPendiente = false;
+        return {
           clave: f.clave,
+          id: f.pieza.id,
           nombre: f.nombre,
           valor: f.pieza.valor,
-          hecha: f.pieza.hecha,
+          hecha: Boolean(f.pieza.hecha),
           grupo: f.grupo,
-        })),
-    [filas]
-  );
+          siguiente,
+        };
+      });
+  }, [filas]);
 
   // ---------- El acordeón ----------
   //
   // Con el menú entero son seis secciones y casi cuarenta filas: plegado se llega a cualquiera
   // sin recorrer la página. Es el mismo acordeón de la calculadora, incluido el `Set`.
-  const alternar = (grupo) =>
-    setAbiertas((prev) => {
-      const siguiente = new Set(prev);
-      siguiente.has(grupo) ? siguiente.delete(grupo) : siguiente.add(grupo);
-      return siguiente;
-    });
+  const alternar = useCallback(
+    (grupo) =>
+      setAbiertas((prev) => {
+        const siguiente = new Set(prev);
+        siguiente.has(grupo) ? siguiente.delete(grupo) : siguiente.add(grupo);
+        return siguiente;
+      }),
+    []
+  );
 
   const todoAbierto = porGrupo.length > 0 && porGrupo.every(({ grupo }) => abiertas.has(grupo));
 
@@ -405,7 +606,9 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
         <header className="titulo">
           <div>
             <h1 className="titulo-texto">Tunning</h1>
-            <p className="titulo-bajada">El menú entero: solo se rellena lo que trae el pedido</p>
+            <p className="titulo-bajada">
+              A la izquierda el pedido; a la derecha se marca lo instalado
+            </p>
           </div>
           <button
             type="button"
@@ -488,125 +691,32 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
               />
               {busqueda && (
                 <span className="tun-buscar-cuenta">
-                  {porGrupo.reduce((n, g) => n + g.lista.length, 0)} coincidencia
-                  {porGrupo.reduce((n, g) => n + g.lista.length, 0) === 1 ? '' : 's'}
+                  {coincidencias} coincidencia{coincidencias === 1 ? '' : 's'}
                 </span>
               )}
             </div>
 
             <div className="tun-columnas">
               <div className="tun-menu">
-            {porGrupo.map(({ grupo, lista, puestas, hechas: hechasGrupo }) => {
-              // Buscando se abren todas: esconder un resultado detrás de una cabecera plegada
-              // es exactamente lo contrario de buscar. Igual que en la calculadora.
-              const abierta = abiertas.has(grupo) || Boolean(busqueda);
-              return (
-                <div className="tun-grupo" key={grupo}>
-                  <button
-                    type="button"
-                    className={`tun-grupo-cabeza ${puestas ? 'con-piezas' : ''}`}
-                    onClick={() => alternar(grupo)}
-                    aria-expanded={abierta}
-                  >
-                    <span className={`flecha ${abierta ? 'abierta' : ''}`} />
-                    <span className="tun-grupo-titulo">{grupo}</span>
-                    {/* Cerrada, el contador es lo único que dice si ahí queda trabajo. */}
-                    <span className="tun-grupo-cuenta">
-                      {puestas
-                        ? `${hechasGrupo}/${puestas}`
-                        : grupo === 'Otras'
-                          ? '+ escribir'
-                          : `${lista.length} sin usar`}
-                    </span>
-                  </button>
-
-                  {abierta && (
-                    <>
-                      <ul className="tun-filas">
-                        {lista.map((f) => (
-                          <Fila
-                            key={f.clave}
-                            fila={f}
-                            valor={borradores[f.clave] ?? f.pieza?.valor ?? ''}
-                            siguiente={Boolean(f.pieza) && siguiente?.id === f.pieza.id}
-                            onEscribir={escribir}
-                            onCerrar={cerrar}
-                            onMarcar={marcar}
-                            onQuitar={quitar}
-                          />
-                        ))}
-                      </ul>
-
-                      {/* Lo que el menú del juego no contempla se escribe acá, con sus
-                          palabras. El valor es opcional: «falta pieza» ya es todo el recado. */}
-                      {grupo === 'Otras' && (
-                        <form className="tun-fila tun-nueva" onSubmit={anadirPropia}>
-                          <span className="tun-marca-hueco" aria-hidden="true">
-                            +
-                          </span>
-                          <input
-                            ref={campoNuevo}
-                            className="tun-nombre-nuevo"
-                            value={nombreNuevo}
-                            onChange={(e) => setNombreNuevo(e.target.value)}
-                            placeholder="Escribe lo que falte: «revisar frenos», «llantas del cliente»…"
-                            maxLength={40}
-                            aria-label="Nombre de la línea nueva"
-                          />
-                          <input
-                            className="tun-campo"
-                            value={valorNuevo}
-                            onChange={(e) => setValorNuevo(e.target.value)}
-                            placeholder="opcional"
-                            maxLength={40}
-                            spellCheck={false}
-                            aria-label="Valor de la línea nueva"
-                          />
-                          <button
-                            type="submit"
-                            className="tun-quitar anadir"
-                            disabled={!nombreNuevo.trim()}
-                            aria-label="Añadir la línea"
-                          >
-                            ↵
-                          </button>
-                        </form>
-                      )}
-                    </>
-                  )}
-                </div>
-              );
-            })}
+                {porGrupo.map(({ grupo, lista, puestas, hechas: hechasGrupo }) => (
+                  <Grupo
+                    key={grupo}
+                    grupo={grupo}
+                    lista={lista}
+                    puestas={puestas}
+                    hechas={hechasGrupo}
+                    // Buscando se abren todas: esconder un resultado detrás de una cabecera
+                    // plegada es exactamente lo contrario de buscar. Igual que en la calculadora.
+                    abierta={abiertas.has(grupo) || Boolean(busqueda)}
+                    onAlternar={alternar}
+                    onGuardar={guardar}
+                    onQuitar={quitar}
+                    onAnadir={anadirPropia}
+                  />
+                ))}
               </div>
 
-              {/* ---------- El resumen: lo que hay que ir a buscar ---------- */}
-              <aside className="tun-resumen">
-                <h3 className="tun-resumen-titulo">
-                  Piezas a sacar <span>{resumen.length}</span>
-                </h3>
-
-                {resumen.length === 0 ? (
-                  <p className="tun-resumen-vacio">
-                    Rellena las casillas de la izquierda y aquí queda la lista corta, sin las
-                    categorías que el pedido no trae.
-                  </p>
-                ) : (
-                  <>
-                    <ul className="tun-resumen-lista">
-                      {resumen.map((r) => (
-                        <li key={r.clave} className={r.hecha ? 'hecha' : ''}>
-                          <span className="tun-resumen-grupo">{r.grupo}</span>
-                          <span className="tun-resumen-nombre">{r.nombre}</span>
-                          <span className="tun-resumen-valor">{r.valor}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    <p className="tun-resumen-pie">
-                      {hechas} de {resumen.length} instaladas
-                    </p>
-                  </>
-                )}
-              </aside>
+              <Resumen lista={resumen} hechas={hechas} onMarcar={marcar} />
             </div>
           </section>
         )}
@@ -643,12 +753,13 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
         )}
 
         <p className="pie">
-          Está el menú completo, en el mismo orden que en el juego: se baja una vez por sección
-          rellenando lo que el pedido trae y las demás quedan en blanco. Vaciar una casilla saca
-          esa pieza del pedido. En <strong>Otras</strong> se escribe con tus palabras lo que el
-          menú no contempla —«revisar frenos», «las llantas las trae el cliente»—, con número o
-          sin él; esas se quitan con la ×. Se marca cada pieza al instalarla; volver a pulsar la
-          desmarca.
+          A la izquierda está el menú completo, en el mismo orden que en el juego: se baja una
+          vez por sección rellenando lo que el pedido trae y las demás quedan en blanco. Vaciar
+          una casilla saca esa pieza del pedido. En <strong>Otras</strong> se escribe con tus
+          palabras lo que el menú no contempla —«revisar frenos», «las llantas las trae el
+          cliente»—, con número o sin él; esas se quitan con la ×. <strong>Se marca en la
+          lista de la derecha</strong>, que es el pedido ya resumido: se toca una línea al
+          instalarla y volver a tocarla la desmarca.
         </p>
       </main>
     </>

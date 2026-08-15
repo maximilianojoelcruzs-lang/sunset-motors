@@ -492,7 +492,8 @@ Un pedido es `{ id, creadoPor, creado, cerrado, piezas: [{ id, categoria, etique
 hecha }] }` en `sunset:tunning`.
 
 El problema que resuelve: el pedido puede traer más de treinta líneas y hay que volver a mirarlo
-en la tablet cada dos piezas. Acá se marca cada una al instalarla.
+en la tablet cada dos piezas. Acá se escribe una vez —en el listado de la izquierda— y se marca
+cada pieza al instalarla, en el resumen de la derecha.
 
 ### Cada uno trabaja sobre su propio pedido
 
@@ -557,19 +558,37 @@ donde anotarlas terminaban en un papel aparte, que es justo lo que esta pantalla
 El nombre no se edita: para cambiarlo se quita y se vuelve a escribir. Renombrar cambiaría la
 `claveDe()` y el servidor lo tomaría por una línea nueva, dejando las dos.
 
-### El resumen de la derecha y el buscador
+### El check está en el resumen, y solo ahí
 
-Son las dos formas de no recorrer las 38 filas:
+Las dos mitades de la pantalla hacen dos cosas distintas y no se pisan:
 
-- **`resumen`** es `filas.filter(f => f.pieza)` — solo lo que el pedido trae, que es lo que hay
-  que ir a buscar al almacén. Va pegado (`position: sticky`) para que siga a la vista mientras
-  se baja por el menú. **Lo instalado se apaga, no se saca**: sacarlo movería todo lo de abajo
-  justo mientras alguien lo está leyendo. Por debajo de 1000 px se va abajo del todo.
-- **El buscador** filtra por nombre con `sinTildes()`, porque nadie escribe «Faldón» con acento
-  cuando va con prisa. Mientras hay búsqueda **las secciones se abren solas** —igual que en la
-  calculadora, `abiertas.has(grupo) || Boolean(busqueda)`—: esconder un resultado detrás de una
-  cabecera plegada es lo contrario de buscar. Y *Otras* se oculta mientras se busca; su fila de
-  escribir entre los resultados solo estorba.
+- **El listado de la izquierda es el pedido**: el menú entero, para ir rellenando lo que el
+  cliente pide. Ahí no se marca nada — no tiene botón. Una pieza instalada se ve (se apaga, se
+  tacha el nombre y le sale un ✓ **que no se pulsa**), pero el número sigue legible para poder
+  corregirlo.
+- **El resumen de la derecha es el trabajo**: la lista corta de lo que el pedido trae, y el
+  único sitio donde se marca.
+
+Estuvo en los dos lados y era peor: dos botones para lo mismo, y el que se estaba mirando nunca
+era el que tocaba. Marcando desde el resumen se marca donde se lee, sin bajar a buscar la fila
+del catálogo cada vez que se termina una pieza. **No devuelvas el check al listado.**
+
+En el resumen, la línea entera es el botón y no una casilla de 26 px: se marca con el pulgar,
+con el auto en el elevador. Va pegado (`position: sticky`) para que siga a la vista mientras se
+baja por el menú, con una barra de avance arriba; por debajo de 1000 px se va arriba del todo.
+**Lo instalado se apaga, no se saca**: sacarlo movería todo lo de abajo justo mientras alguien
+lo está leyendo. La primera pendiente lleva `siguiente` —el borde de la casilla en ámbar—, que
+es lo único que dice por dónde iba el trabajo al levantar la vista de la pantalla.
+
+`resumen` es `filas.filter(f => f.pieza)` — solo lo que el pedido trae, en el orden del menú.
+
+### El buscador
+
+Es la otra forma de no recorrer las 38 filas. Filtra por nombre con `sinTildes()`, porque nadie
+escribe «Faldón» con acento cuando va con prisa. Mientras hay búsqueda **las secciones se abren
+solas** —igual que en la calculadora, `abiertas.has(grupo) || Boolean(busqueda)`—: esconder un
+resultado detrás de una cabecera plegada es lo contrario de buscar. Y *Otras* se oculta mientras
+se busca; su fila de escribir entre los resultados solo estorba.
 
 Se puede escribir el valor desde el resultado del filtro: las filas son las mismas, no una copia.
 
@@ -646,13 +665,30 @@ inventa uno). Sin eso, la fila pintada y la guardada serían piezas distintas, y
 recién escrita no encontraría nada que marcar y no haría nada **en silencio**, hasta la
 siguiente lectura.
 
-**Lo tecleado se manda al parar de escribir, no en cada tecla** (`borradores` + `relojes`, medio
-segundo, y de inmediato al salir del campo). Escribir «12» son dos teclas y sería reescribir la
-colección entera dos veces para un solo número. Mientras hay borrador **manda el borrador**: si
-no, la respuesta de una escritura anterior pisaría el campo justo mientras alguien escribe
-dentro.
+**Lo tecleado se manda al parar de escribir, no en cada tecla** (medio segundo, y de inmediato
+al salir del campo). Escribir «12» son dos teclas y sería reescribir la colección entera dos
+veces para un solo número. Mientras se teclea **manda lo tecleado**: si no, la respuesta de una
+escritura anterior pisaría el campo justo mientras alguien escribe dentro.
 
-Tres piezas que no son adorno:
+**Lo tecleado vive dentro de la fila, no en la pantalla.** Antes era un mapa `borradores` en el
+componente de arriba, y entonces cada tecla volvía a pintar las 38 filas, el resumen y el
+acordeón enteros: eso es lo que se sentía pegado escribiendo. Ahora cada `Fila` guarda su texto
+(`useState` local + su propio temporizador) y se sincroniza con el servidor solo cuando no se
+está escribiendo dentro (`tecleando`, un `ref`). Si vuelves a subir ese estado, vuelve el tirón.
+
+De ahí salen las otras tres piezas del mismo rompecabezas, y sin ellas subir el estado se cuela
+solo:
+
+- `Fila`, `FilaNueva`, `Grupo` y `Resumen` van envueltos en `memo()`, y los `onGuardar`,
+  `onMarcar`, `onQuitar`, `onAnadir` y `alternar` en `useCallback`. Un callback nuevo en cada
+  pintado hace que `memo()` no sirva de nada.
+- **La línea escrita a mano tiene su propio estado** (`FilaNueva`). Estaba en la pantalla, y
+  escribir «revisar frenos» repintaba el menú entero letra a letra.
+- **`recargar()` no toca el estado si el servidor dice lo mismo** (`mismos()`, comparando el
+  JSON). El sondeo es cada 15 s y cambiar la referencia repinta las 38 filas para nada.
+- Los nombres se normalizan una sola vez (`buscable` en `filas`), no en cada tecla del buscador.
+
+Tres piezas más que no son adorno:
 
 - **Las escrituras van en cola, no en paralelo** (`cola` en `tunning.js`). Cada una lee y
   reescribe la colección entera: dos a la vez se pisan y una marca se pierde. Marcando rápido
