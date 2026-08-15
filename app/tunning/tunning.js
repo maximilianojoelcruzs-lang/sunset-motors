@@ -14,6 +14,13 @@ const rotulo = (p) => p?.patente || `Pedido · ${soloHora(p.creado)}`;
 // la misma clave que usa el servidor para decidir si una línea suma o actualiza.
 const claveDe = (p) => p.categoria ?? `otra:${String(p.etiqueta ?? '').toLowerCase()}`;
 
+/** Para buscar: «faldon» tiene que encontrar «Faldón». */
+const sinTildes = (texto) =>
+  String(texto ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+
 /**
  * Una fila del catálogo: el nombre fijo y una casilla para el valor.
  *
@@ -88,6 +95,7 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
   // La línea escrita a mano que se está redactando.
   const [nombreNuevo, setNombreNuevo] = useState('');
   const [valorNuevo, setValorNuevo] = useState('');
+  const [filtro, setFiltro] = useState('');
   const [error, setError] = useState(fallo);
   const [ocupado, setOcupado] = useState(false);
 
@@ -306,20 +314,48 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
     return [...delCatalogo, ...propias];
   }, [piezas]);
 
+  // Buscar por nombre. Con casi cuarenta filas repartidas en siete secciones, escribir «tech»
+  // llega antes que bajar buscando con el ojo. Sin tildes ni mayúsculas: nadie escribe «Faldón»
+  // con acento cuando va con prisa.
+  const busqueda = sinTildes(filtro.trim());
+
   const porGrupo = useMemo(() => {
     const grupos = new Map([...GRUPOS, 'Otras'].map((g) => [g, []]));
-    for (const f of filas) grupos.get(f.grupo)?.push(f);
+    for (const f of filas) {
+      if (busqueda && !sinTildes(f.nombre).includes(busqueda)) continue;
+      grupos.get(f.grupo)?.push(f);
+    }
     return [...grupos.entries()]
       // «Otras» está siempre, aunque no tenga nada: es donde se escribe lo que el menú del
       // juego no contempla, y si desapareciera al quedarse vacía no habría dónde empezar.
-      .filter(([grupo, lista]) => lista.length || grupo === 'Otras')
+      // Buscando sí se esconde: una sección vacía entre los resultados solo estorba.
+      .filter(([grupo, lista]) => lista.length || (grupo === 'Otras' && !busqueda))
       .map(([grupo, lista]) => ({
         grupo,
         lista,
         puestas: lista.filter((f) => f.pieza).length,
         hechas: lista.filter((f) => f.pieza?.hecha).length,
       }));
-  }, [filas]);
+  }, [filas, busqueda]);
+
+  // ---------- El resumen de la derecha ----------
+  //
+  // Lo que hay que ir a buscar al almacén, y nada más. La lista de la izquierda es el menú
+  // entero —hay que verlo para rellenarlo—, pero para juntar las piezas solo importan las que
+  // el pedido trae, y ahí sobran treinta filas en blanco.
+  const resumen = useMemo(
+    () =>
+      filas
+        .filter((f) => f.pieza)
+        .map((f) => ({
+          clave: f.clave,
+          nombre: f.nombre,
+          valor: f.pieza.valor,
+          hecha: f.pieza.hecha,
+          grupo: f.grupo,
+        })),
+    [filas]
+  );
 
   // ---------- El acordeón ----------
   //
@@ -441,8 +477,28 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
               </span>
             </div>
 
+            <div className="tun-buscar">
+              <input
+                type="search"
+                value={filtro}
+                onChange={(e) => setFiltro(e.target.value)}
+                placeholder="Buscar pieza por nombre…"
+                aria-label="Buscar pieza por nombre"
+              />
+              {busqueda && (
+                <span className="tun-buscar-cuenta">
+                  {porGrupo.reduce((n, g) => n + g.lista.length, 0)} coincidencia
+                  {porGrupo.reduce((n, g) => n + g.lista.length, 0) === 1 ? '' : 's'}
+                </span>
+              )}
+            </div>
+
+            <div className="tun-columnas">
+              <div className="tun-menu">
             {porGrupo.map(({ grupo, lista, puestas, hechas: hechasGrupo }) => {
-              const abierta = abiertas.has(grupo);
+              // Buscando se abren todas: esconder un resultado detrás de una cabecera plegada
+              // es exactamente lo contrario de buscar. Igual que en la calculadora.
+              const abierta = abiertas.has(grupo) || Boolean(busqueda);
               return (
                 <div className="tun-grupo" key={grupo}>
                   <button
@@ -520,6 +576,37 @@ export default function Tunning({ usuario, admin, accesos, iniciales, turnoPropi
                 </div>
               );
             })}
+              </div>
+
+              {/* ---------- El resumen: lo que hay que ir a buscar ---------- */}
+              <aside className="tun-resumen">
+                <h3 className="tun-resumen-titulo">
+                  Piezas a sacar <span>{resumen.length}</span>
+                </h3>
+
+                {resumen.length === 0 ? (
+                  <p className="tun-resumen-vacio">
+                    Rellena las casillas de la izquierda y aquí queda la lista corta, sin las
+                    categorías que el pedido no trae.
+                  </p>
+                ) : (
+                  <>
+                    <ul className="tun-resumen-lista">
+                      {resumen.map((r) => (
+                        <li key={r.clave} className={r.hecha ? 'hecha' : ''}>
+                          <span className="tun-resumen-grupo">{r.grupo}</span>
+                          <span className="tun-resumen-nombre">{r.nombre}</span>
+                          <span className="tun-resumen-valor">{r.valor}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="tun-resumen-pie">
+                      {hechas} de {resumen.length} instaladas
+                    </p>
+                  </>
+                )}
+              </aside>
+            </div>
           </section>
         )}
 

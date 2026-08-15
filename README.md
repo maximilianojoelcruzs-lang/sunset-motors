@@ -87,17 +87,17 @@ estando en el registro. Los dos muestran siempre lo mismo.
 Marcar entrada dos veces no duplica nada: el turno abierto se respeta. Marcar salida sin
 turno abierto avisa y no hace nada.
 
-### El turno se cierra solo a las 2 horas
+### El turno se cierra solo a las 3 horas
 
 La app no está conectada al juego, así que no puede saber si alguien sigue realmente
-trabajando. Por eso **un turno abierto se cierra automáticamente al cumplir 2 horas**, y quien
+trabajando. Por eso **un turno abierto se cierra automáticamente al cumplir 3 horas**, y quien
 siga en el taller vuelve a marcar entrada. Así las horas del registro son siempre horas que
 alguien confirmó.
 
 La barra muestra cuánto falta (*«se cierra solo en 34 min»*) y se pone roja en los últimos 15
 minutos, para que no pille a nadie de sorpresa.
 
-Cuando se cierra, la salida queda anotada en la hora exacta en que se cumplieron las 2 horas —
+Cuando se cierra, la salida queda anotada en la hora exacta en que se cumplieron las 3 horas —
 no cuando alguien abrió la página. Y le llega un aviso a la persona: en la campanita, y en
 Discord si está configurado.
 
@@ -470,6 +470,14 @@ tablet toma menos de un segundo en total: se escribe y se guarda solo, sin pulsa
 Cada categoría aparece **una sola vez**, como en el juego: volver a poner «Techo» cambia el
 número en vez de dejar dos filas que se contradicen, y corregir un número no desmarca lo que ya
 estaba instalado. Vaciar la casilla saca esa pieza del pedido.
+
+**A la derecha aparece el resumen: solo las piezas que hay que sacar**, con su número, sin las
+treinta categorías que el pedido no trae. Es la lista corta con la que se camina al almacén, y
+se queda a la vista mientras bajas por el menú. Lo que ya instalaste queda tachado en vez de
+desaparecer, para que la lista no se mueva bajo tus ojos.
+
+Arriba hay un **buscador por nombre**: escribe `faldon` —con o sin tilde— y queda esa sola fila.
+Se puede rellenar el valor directamente desde el resultado.
 
 **Las secciones se abren y se cierran**, igual que en la calculadora: se pulsa el título y la
 sección se pliega. Al abrir el pedido ya vienen abiertas las secciones que tiene que trabajar y

@@ -988,6 +988,161 @@ button {
   margin-bottom: 12px;
 }
 
+.tun-buscar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.tun-buscar input {
+  flex: 1;
+  padding: 9px 12px;
+  background: var(--bay-2);
+  border: 1px solid var(--bay-line);
+  border-radius: 5px;
+  color: var(--ticket);
+  font-size: 0.84rem;
+}
+
+.tun-buscar input:focus {
+  border-color: var(--amber);
+  outline: none;
+}
+
+.tun-buscar-cuenta {
+  font-family: var(--font-data), monospace;
+  font-size: 0.72rem;
+  color: #7d766a;
+  white-space: nowrap;
+}
+
+/* El menú a la izquierda y el resumen a la derecha. Debajo de 1000 px no caben lado a lado, y
+   el resumen se va abajo: apretarlo en dos columnas estrechas no ayuda a nadie. */
+.tun-columnas {
+  display: grid;
+  gap: 24px;
+}
+
+/* En una sola columna el resumen va **arriba**, no al final. Debajo de las 38 filas del menú
+   habría que bajar la página entera cada vez que se quiere mirar qué falta, que es justo lo
+   que este panel viene a evitar. */
+.tun-columnas .tun-resumen {
+  order: -1;
+}
+
+@media (min-width: 1000px) {
+  .tun-columnas {
+    grid-template-columns: 1fr 290px;
+    align-items: start;
+  }
+
+  /* Con dos columnas vuelve a su sitio, a la derecha del menú. */
+  .tun-columnas .tun-resumen {
+    order: 0;
+  }
+
+  /* Se queda a la vista mientras se baja por las cuarenta filas: es la lista con la que se
+     camina al almacén. */
+  .tun-resumen {
+    position: sticky;
+    top: 16px;
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+  }
+}
+
+.tun-resumen {
+  padding: 14px 16px;
+  background: var(--bay-2);
+  border: 1px solid var(--bay-line);
+  border-radius: 8px;
+}
+
+.tun-resumen-titulo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 10px;
+  font-size: 0.66rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--amber);
+}
+
+.tun-resumen-titulo span {
+  font-family: var(--font-data), monospace;
+  font-size: 0.8rem;
+  letter-spacing: 0;
+  color: var(--ticket);
+}
+
+.tun-resumen-vacio {
+  margin: 0;
+  font-size: 0.76rem;
+  line-height: 1.6;
+  color: #7d766a;
+}
+
+.tun-resumen-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.tun-resumen-lista li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.tun-resumen-lista li:last-child {
+  border-bottom: 0;
+}
+
+/* Lo ya instalado no se saca de la lista: se apaga. Sacarlo movería todo lo de abajo cada vez
+   que alguien marca una casilla, justo mientras la está leyendo. */
+.tun-resumen-lista li.hecha {
+  opacity: 0.4;
+}
+
+.tun-resumen-lista li.hecha .tun-resumen-nombre {
+  text-decoration: line-through;
+}
+
+.tun-resumen-grupo {
+  grid-column: 1 / -1;
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #5c564c;
+}
+
+.tun-resumen-nombre {
+  font-size: 0.84rem;
+  color: var(--ticket);
+}
+
+.tun-resumen-valor {
+  font-family: var(--font-data), monospace;
+  font-size: 0.9rem;
+  color: var(--amber);
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.tun-resumen-pie {
+  margin: 10px 0 0;
+  font-family: var(--font-data), monospace;
+  font-size: 0.72rem;
+  color: #7d766a;
+}
+
 /* Cabecera plegable de cada sección, como el acordeón de la calculadora. Con el menú entero
    son seis secciones y casi cuarenta filas: plegadas se llega a cualquiera sin recorrer la
    página. Cerrada, el contador de la derecha es lo único que dice si ahí queda trabajo. */

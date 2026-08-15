@@ -523,6 +523,22 @@ donde anotarlas terminaban en un papel aparte, que es justo lo que esta pantalla
 El nombre no se edita: para cambiarlo se quita y se vuelve a escribir. Renombrar cambiaría la
 `claveDe()` y el servidor lo tomaría por una línea nueva, dejando las dos.
 
+### El resumen de la derecha y el buscador
+
+Son las dos formas de no recorrer las 38 filas:
+
+- **`resumen`** es `filas.filter(f => f.pieza)` — solo lo que el pedido trae, que es lo que hay
+  que ir a buscar al almacén. Va pegado (`position: sticky`) para que siga a la vista mientras
+  se baja por el menú. **Lo instalado se apaga, no se saca**: sacarlo movería todo lo de abajo
+  justo mientras alguien lo está leyendo. Por debajo de 1000 px se va abajo del todo.
+- **El buscador** filtra por nombre con `sinTildes()`, porque nadie escribe «Faldón» con acento
+  cuando va con prisa. Mientras hay búsqueda **las secciones se abren solas** —igual que en la
+  calculadora, `abiertas.has(grupo) || Boolean(busqueda)`—: esconder un resultado detrás de una
+  cabecera plegada es lo contrario de buscar. Y *Otras* se oculta mientras se busca; su fila de
+  escribir entre los resultados solo estorba.
+
+Se puede escribir el valor desde el resultado del filtro: las filas son las mismas, no una copia.
+
 ### Las secciones se pliegan, con el mismo acordeón de la calculadora
 
 Con el menú entero son siete secciones y 37 filas. `abiertas` es un `Set` y `alternar()` es el
@@ -718,7 +734,7 @@ si no, el mismo turno se leería distinto según quién lo mire. `desdeInput()`/
 `lib/tiempo.js` hacen la conversión para los `<input type="datetime-local">` del panel; sin ellas
 un admin en otra zona horaria correría cada turno que tocara.
 
-### Un turno se cierra solo a las 2 horas
+### Un turno se cierra solo a las 3 horas
 
 Regla de negocio, no detalle técnico: **no hay conexión con FiveM**, así que un turno abierto no
 prueba que la persona siga en el taller. A las `HORAS_MAXIMAS` horas se cierra y quien siga
@@ -728,9 +744,9 @@ trabajando vuelve a marcar entrada. Así las horas registradas nunca son inventa
 cierra lo vencido y **todo lo que consulte turnos debe pasar por ahí**; si alguna ruta lee la
 lista cruda, mostrará abiertos turnos que ya deberían estar cerrados.
 
-La salida no se pone en «ahora» sino en **`entrada + 2h` exactas**. Es lo que hace que el
+La salida no se pone en «ahora» sino en **`entrada + 3h` exactas**. Es lo que hace que el
 resultado no dependa de cuándo alguien abra la app: si nadie entra en tres días, el turno igual
-queda cerrado a las dos horas, no a los tres días.
+queda cerrado a las tres horas, no a los tres días.
 
 `avisarCierres()` avisa por campanita y por Discord, y va **envuelto en `try`**: el turno ya se
 guardó antes de llegar ahí, y un aviso que falla no puede tumbar el registro de horas.

@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { diaCorto, duracionMs, enHoras, soloFecha, soloHora } from '../lib/tiempo';
+// El tope sale de la constante y no escrito a mano: si se cambia, este texto mentía.
+import { HORAS_MAXIMAS } from '../lib/turnos-limites';
 
 /** Los turnos propios. El registro completo del taller sigue siendo solo del admin. */
 export default function MisTurnos() {
@@ -77,7 +79,7 @@ export default function MisTurnos() {
             <span className="mis-horas">{enHoras(duracionMs(t))}</span>
             {t.cerradoAuto && (
               <span className="mis-motivo">
-                Se cerró solo al cumplir las 2 horas abiertas.
+                Se cerró solo al cumplir las {HORAS_MAXIMAS} horas abiertas.
               </span>
             )}
             {/* Si al mecánico le corrigieron las horas, tiene derecho a saber por qué. */}
