@@ -25,8 +25,15 @@ const ROTULOS = {
   ilegible: 'ilegible',
 };
 
-/** Una fila del inventario. El nombre y la cantidad se corrigen en el sitio. */
-function Articulo({ articulo, onCorregir, onBorrar }) {
+/**
+ * Una fila del inventario. El nombre y la cantidad se corrigen en el sitio.
+ *
+ * **El peso no se muestra.** No sirve para trabajar: lo que se busca es «cuántos frenos hay».
+ * Se sigue guardando porque es lo único que distingue dos artículos que el juego enseña con el
+ * mismo nombre cortado —«KIT DE REPARACI…» de 28 kg y de 8,28 kg—, pero solo sale a la vista
+ * cuando hay dos que se llaman igual, que es cuando hace falta para no confundirse.
+ */
+function Articulo({ articulo, desempate, onCorregir, onBorrar }) {
   const [nombre, setNombre] = useState(articulo.nombre);
   const [cantidad, setCantidad] = useState(String(articulo.cantidad));
   const tocando = useRef(false);
@@ -63,7 +70,11 @@ function Articulo({ articulo, onCorregir, onBorrar }) {
         maxLength={60}
         aria-label={`Nombre de ${articulo.nombre}`}
       />
-      <span className="inv-peso">{peso(articulo.peso)}</span>
+      {desempate && (
+        <span className="inv-desempate" title="Hay otro artículo con este mismo nombre">
+          {peso(articulo.peso)}
+        </span>
+      )}
       <input
         className="inv-cantidad"
         value={cantidad}
@@ -173,7 +184,9 @@ export default function Inventario({
 
     setLeidos((antes) => [
       ...(antes ?? []),
-      { nombre, peso: String(datos.get('peso') ?? ''), cantidad: String(datos.get('cantidad') ?? '') },
+      // Sin peso: anotando a mano el nombre es la clave. El peso lo pone el escáner, que sí lo
+      // ve en la tarjeta.
+      { nombre, cantidad: String(datos.get('cantidad') ?? '') },
     ]);
     e.target.reset();
     campoNombre.current?.focus();
@@ -213,6 +226,13 @@ export default function Inventario({
     : articulos;
 
   const totalUnidades = articulos.reduce((n, a) => n + a.cantidad, 0);
+
+  // Los nombres que salen más de una vez. Solo esos enseñan el peso, para poder distinguirlos.
+  const repetidos = useMemo(() => {
+    const cuenta = new Map();
+    for (const a of articulos) cuenta.set(a.nombre, (cuenta.get(a.nombre) ?? 0) + 1);
+    return new Set([...cuenta].filter(([, n]) => n > 1).map(([nombre]) => nombre));
+  }, [articulos]);
 
   return (
     <>
@@ -266,7 +286,6 @@ export default function Inventario({
                 autoFocus
                 aria-label="Nombre"
               />
-              <input name="peso" placeholder="28.00kg" maxLength={12} aria-label="Peso" />
               <input name="cantidad" placeholder="140x" maxLength={7} aria-label="Cantidad" />
               <button type="submit" className="accion">
                 Anotar
@@ -291,7 +310,6 @@ export default function Inventario({
                         {f.nombre || <em>sin nombre</em>}
                         {f.noVisto && <em className="inv-nota"> no salió en el conteo</em>}
                       </span>
-                      <span className="inv-peso">{peso(f.peso)}</span>
                       <span className="inv-cambio">
                         {f.estado === 'cambia' ? (
                           <>
@@ -377,13 +395,18 @@ export default function Inventario({
           <ul className="inv-lista">
             <li className="inv-fila cabecera">
               <span>Artículo</span>
-              <span className="inv-peso">Peso</span>
               <span className="inv-cantidad">Cantidad</span>
               <span className="inv-visto">Visto</span>
               <span />
             </li>
             {vista.map((a) => (
-              <Articulo key={a.id} articulo={a} onCorregir={corregir} onBorrar={borrar} />
+              <Articulo
+                key={a.id}
+                articulo={a}
+                desempate={repetidos.has(a.nombre)}
+                onCorregir={corregir}
+                onBorrar={borrar}
+              />
             ))}
           </ul>
         )}

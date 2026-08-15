@@ -5404,7 +5404,7 @@ a.accion {
 
 .inv-vista li {
   display: grid;
-  grid-template-columns: 96px 1fr 80px 150px;
+  grid-template-columns: 96px 1fr 150px;
   align-items: center;
   gap: 10px;
   padding: 7px 10px;
@@ -5480,7 +5480,7 @@ a.accion {
 
 .inv-fila {
   display: grid;
-  grid-template-columns: 1fr 90px 90px 150px 26px;
+  grid-template-columns: minmax(0, 1fr) 90px 150px 26px;
   align-items: center;
   gap: 10px;
   padding: 5px 10px;
@@ -5516,11 +5516,24 @@ a.accion {
   outline: none;
 }
 
-.inv-peso,
 .inv-visto {
   font-family: var(--font-data), monospace;
   font-size: 0.74rem;
   color: #7d766a;
+}
+
+/* El peso solo aparece cuando dos artículos comparten el nombre cortado del juego: es lo único
+   que los separa. El resto del tiempo estorba — lo que se busca es «cuántos frenos hay». */
+.inv-desempate {
+  padding: 1px 6px;
+  border: 1px solid var(--bay-line);
+  border-radius: 999px;
+  font-family: var(--font-data), monospace;
+  font-size: 0.66rem;
+  color: #948c7d;
+  justify-self: start;
+  grid-column: 1;
+  grid-row: 2;
 }
 
 .inv-cantidad {
@@ -5566,17 +5579,9 @@ a.accion {
     grid-row: 1;
   }
 
-  .inv-fila .inv-peso,
-  .inv-fila .inv-visto {
-    grid-row: 2;
-  }
-
-  .inv-fila .inv-peso {
-    grid-column: 1;
-  }
-
   .inv-fila .inv-visto {
     grid-column: 2 / -1;
+    grid-row: 2;
     text-align: right;
   }
 
