@@ -445,6 +445,11 @@ export default function Inventario({
                       <span className="inv-nombre-vista">
                         {f.nombre || <em>sin nombre</em>}
                         {f.noVisto && <em className="inv-nota"> no salió en el conteo</em>}
+                        {/* Dos casillas se leían igual y el nombre lo puso la foto: es el único
+                            sitio donde puede haberse cambiado uno por otro. */}
+                        {f.revisar && (
+                          <em className="inv-revisar"> 📷 de la foto · revisa que no esté cambiado</em>
+                        )}
                       </span>
                       <span className="inv-cambio">
                         {f.estado === 'cambia' ? (

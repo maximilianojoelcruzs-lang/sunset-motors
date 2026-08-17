@@ -8,6 +8,7 @@ import { duracionMs, enHoras, soloHora } from '../lib/tiempo';
 import { marcarTurno } from './marcar';
 import { restanMinutos } from './marcaje';
 import Campana from './campana';
+import { BotonAvisos, useAvisoTurno } from './aviso-escritorio';
 import Dialogo from './dialogo';
 import CambiarClave from './perfil-clave';
 import MisTurnos from './perfil-turnos';
@@ -54,6 +55,10 @@ export default function Barra({
   const [aviso, setAviso] = useState('');
   const [ventana, setVentana] = useState(null); // 'clave' | 'turnos'
   const [ahora, setAhora] = useState(() => Date.now());
+
+  // Los avisos del escritorio viven acá porque la barra está en todas las páginas del taller:
+  // así saltan estés donde estés, no solo en la calculadora.
+  useAvisoTurno(turno);
 
   const caja = useRef(null);
   const boton = useRef(null);
@@ -279,6 +284,9 @@ export default function Barra({
                     >
                       {marcando ? '…' : turno ? 'Marcar salida' : 'Marcar entrada'}
                     </button>
+                    {/* Solo aparece si aún no se han concedido: pedirlos sin que nadie los
+                        busque es lo que hace que la gente los bloquee por reflejo. */}
+                    <BotonAvisos />
                   </div>
                 )}
 

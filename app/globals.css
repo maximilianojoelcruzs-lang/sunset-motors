@@ -5670,3 +5670,21 @@ a.accion {
   font-style: normal;
   color: var(--amber);
 }
+
+.inv-revisar {
+  font-style: normal;
+  font-size: 0.7rem;
+  color: var(--amber);
+}
+
+.aviso-permiso {
+  margin: 6px 0 0;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: #948c7d;
+}
+
+.aviso-permiso em {
+  font-style: normal;
+  color: var(--ticket);
+}

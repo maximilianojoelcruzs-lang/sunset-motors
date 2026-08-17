@@ -99,6 +99,15 @@ alguien confirmó.
 La barra muestra cuánto falta (*«se cierra solo en 34 min»*) y se pone roja en los últimos 15
 minutos, para que no pille a nadie de sorpresa.
 
+**Y puede avisarte en el escritorio.** Pulsa *🔔 Avisarme antes de que se cierre* —está en el menú
+de perfil, y también en la barra cuando quedan menos de 15 minutos— y el navegador te pedirá
+permiso una vez. A partir de ahí te salta una notificación de Windows a los 15 y a los 5 minutos,
+y otra cuando el turno se cierra.
+
+Con una condición que conviene saber: **la pestaña tiene que seguir abierta**, aunque esté detrás
+del juego o minimizada. Con el navegador cerrado del todo no hay aviso — para eso haría falta
+contratar un servicio de notificaciones aparte.
+
 Cuando se cierra, la salida queda anotada en la hora exacta en que se cumplieron las 3 horas —
 no cuando alguien abrió la página. Y le llega un aviso a la persona: en la campanita, y en
 Discord si está configurado.

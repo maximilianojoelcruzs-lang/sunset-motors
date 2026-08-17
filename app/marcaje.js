@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { duracionMs, enHoras, soloHora } from '../lib/tiempo';
 import { HORAS_MAXIMAS } from '../lib/turnos-limites';
 import { marcarTurno } from './marcar';
+import { BotonAvisos } from './aviso-escritorio';
 
 /** Minutos que faltan para que el turno se cierre solo. */
 export const restanMinutos = (turno, ahora) =>
@@ -61,6 +62,9 @@ export default function Marcaje({ turno, onCambio }) {
       </span>
 
       {error && <span className="marcaje-error">{error}</span>}
+
+      {/* Cuando ya queda poco es cuando a alguien le importa que le avisen. */}
+      {porTerminar && <BotonAvisos />}
 
       <button type="button" className="accion" onClick={marcar} disabled={ocupado}>
         {ocupado ? '…' : turno ? 'Marcar salida' : 'Marcar entrada'}

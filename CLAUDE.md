@@ -893,9 +893,55 @@ intencional — no lo quites pensando que es ruido. Cuando agregues un backend, 
 las tres etiquetas: el panel, el aviso y el rótulo de `scripts/usuarios.mjs`. Un rótulo que miente
 sobre en qué base estás escribiendo es peor que no tenerlo.
 
-Cada colección es un JSON que se lee y reescribe entero. A la escala de un taller sobra, pero dos
-escrituras simultáneas pueden pisarse. Si el registro creciera de verdad, la salida es pasar los
-turnos a una tabla propia en Postgres en vez de un documento.
+### Las escrituras simultáneas ya no se pisan
+
+Cada colección es un JSON que se lee y se reescribe entero. Eso significa que dos operaciones a
+la vez leen lo mismo y **la segunda en guardar borra a la primera**. No era teórico: al empezar
+el turno marcan todos juntos, y medido con seis marcajes simultáneos **quedaba uno**, con la app
+diciéndoles a los seis que sí. Llegaron reclamos de gente que marcaba y no le marcaba.
+
+Lo guardado va envuelto: `{ rev, datos }`. `rev` es un testigo que cambia en cada escritura, y
+**`guardarSi(clave, rev, datos)` escribe solo si el testigo sigue siendo el que se leyó**:
+
+- **Supabase** lo resuelve en una sola sentencia: `PATCH …&valor->>rev=eq.<rev>` con
+  `Prefer: return=representation`; cero filas devueltas significa que otro se adelantó. Si la
+  fila no existe se crea con un `POST` **sin** `on_conflict`, y el 409 por clave duplicada es
+  justo la señal de que alguien la creó primero.
+- **Archivo** compara el testigo dentro de la misma cola de escritura, que en un solo proceso es
+  atómico.
+- **Redis** mira el testigo justo antes; la ventana es mínima y es el backend secundario.
+
+`modificar(clave, aplicar)` es lo que se usa desde arriba: lee, aplica, escribe condicional, y si
+pierde la carrera **rehace el cambio sobre lo que hay ahora** — no sobre lo que había—. Diez
+intentos con espera creciente, y si aun así no entra **devuelve error en vez de decir que sí**.
+
+Lo viejo se sigue leyendo: una colección guardada como arreglo pelado se entiende igual y queda
+envuelta en la primera escritura. No hay que migrar nada a mano — comprobado contra la Supabase
+de producción, con datos en el formato viejo y diez escrituras simultáneas: 10 de 10 guardadas,
+cero perdidas, el registro viejo intacto.
+
+**`marcarEntrada()` y `marcarSalida()` van por ahí, y también el cierre automático**: cerrar un
+turno vencido al abrir una página podía llevarse por delante el marcaje que otro estaba haciendo
+en ese instante.
+
+### Avisos en el escritorio antes de que se cierre el turno
+
+**[app/aviso-escritorio.js](app/aviso-escritorio.js)** — notificaciones del sistema (las de
+Windows) a los 15 y a los 5 minutos del cierre, y otra al cerrarse.
+
+**No son push y no hay que fingir que lo son.** Push necesita service worker, suscripción y un
+servicio de envío; esta app no tiene proceso de fondo. El aviso salta mientras la pestaña siga
+abierta —aunque esté detrás del juego o minimizada—, y con el navegador cerrado no. La pantalla
+lo dice con esas palabras.
+
+- **Se mira el reloj cada 20 s en vez de programar un `setTimeout` a tres horas vista.** Si el
+  equipo se suspende o el navegador congela la pestaña, el temporizador exacto no dispara cuando
+  debía; mirando el reloj, al volver el aviso sale enseguida.
+- **Lo ya avisado se anota en `localStorage`** por turno y umbral: si no, recargar la página
+  vuelve a avisar de lo mismo.
+- **El permiso no se pide al cargar.** Un navegador que pregunta sin que nadie lo haya pedido es
+  lo que hace que la gente pulse «bloquear» por reflejo, y de ahí no se vuelve. El botón sale en
+  el menú de perfil, y en la barra de marcaje cuando ya quedan menos de 15 minutos.
 
 ### Zona horaria
 
