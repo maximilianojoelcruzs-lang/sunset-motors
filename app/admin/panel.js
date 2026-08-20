@@ -6,7 +6,6 @@ import useSondeo from '../sondeo';
 import Mecanicos from './mecanicos';
 import Discord from './discord';
 import Fichas from './fichas';
-import Retiros from './retiros';
 import {
   diaCorto,
   diaISO,
@@ -330,7 +329,15 @@ export default function Panel({
               : 'Ningún turno cae dentro de esos filtros.'}
           </p>
         ) : (
-          <div className="tabla-envoltura">
+          <>
+            {/* Con la tabla dentro de su propia barra ya no se ve dónde acaba: el número dice
+                cuántas filas hay que recorrer, y si los filtros están recortando algo. */}
+            <p className="tabla-cuenta">
+              {filtrados.length} turno{filtrados.length === 1 ? '' : 's'}
+              {filtrados.length !== turnos.length && ` de ${turnos.length}`}
+            </p>
+
+            <div className="tabla-envoltura">
             <table className="tabla">
               <thead>
                 <tr>
@@ -357,7 +364,8 @@ export default function Panel({
                 ))}
               </tbody>
             </table>
-          </div>
+            </div>
+          </>
         )}
 
         <div className="surtidor">
@@ -378,7 +386,6 @@ export default function Panel({
 
         <Discord inicial={configInicial} />
 
-        <Retiros />
         <Fichas />
 
         <p className="pie">

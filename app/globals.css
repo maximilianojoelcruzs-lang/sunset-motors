@@ -4500,10 +4500,34 @@ a.accion {
   color: #5d5a53;
 }
 
+/* El registro crece sin tope: con un año de turnos son cientos de filas y la página se hacía
+   interminable. Se le pone alto máximo y barra propia, con la cabecera pegada arriba — sin eso,
+   al bajar tres pantallas ya no se sabe qué columna es cuál.
+
+   `70vh` y no una altura fija en píxeles: en un portátil de 768 px de alto, 600 px de tabla no
+   dejan ver ni los filtros. */
 .tabla-envoltura {
-  overflow-x: auto;
+  overflow: auto;
+  max-height: 70vh;
   background: var(--ticket);
   border-radius: 3px;
+  /* Ancla para la cabecera pegada: sin esto el `sticky` no tiene contra qué pegarse. */
+  position: relative;
+}
+
+.tabla-envoltura thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  /* Opaca a propósito: el fondo de la envoltura es papel y las filas pasarían por debajo. */
+  background: var(--ticket);
+}
+
+/* En pantallas bajas el tope en vh deja la tabla muy corta; mejor una altura mínima usable. */
+@media (max-height: 700px) {
+  .tabla-envoltura {
+    max-height: 420px;
+  }
 }
 
 .tabla {
@@ -5687,4 +5711,402 @@ a.accion {
 .aviso-permiso em {
   font-style: normal;
   color: var(--ticket);
+}
+
+/* ---------- Casino: top de wager ---------- */
+
+.top-premios {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.top-premio {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 14px 10px;
+  border: 1px solid var(--linea);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.top-premio strong {
+  font-family: var(--font-data), monospace;
+  font-size: 1.5rem;
+  color: var(--oro);
+}
+
+.top-premio em {
+  font-style: normal;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #8f96b8;
+}
+
+.top-medalla {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.top-explica {
+  margin: 0 0 18px;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: #a7aecd;
+}
+
+.top-explica strong {
+  color: var(--neon);
+}
+
+.top-aviso {
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--neon);
+  background: rgba(34, 230, 208, 0.08);
+  font-size: 0.84rem;
+  color: var(--tinta);
+}
+
+.top-lista {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+  counter-reset: puesto;
+}
+
+.top-lista li {
+  display: grid;
+  grid-template-columns: 44px 1fr auto 110px 90px;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--linea);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* El podio se ve de lejos: es lo que la tabla viene a decir. */
+.top-lista li.premiado {
+  border-color: rgba(255, 207, 92, 0.45);
+  background: rgba(255, 207, 92, 0.07);
+}
+
+.top-lista li.tu {
+  box-shadow: inset 3px 0 0 var(--neon);
+}
+
+.top-puesto {
+  font-size: 1.15rem;
+  text-align: center;
+}
+
+.top-usuario {
+  font-size: 0.95rem;
+  overflow-wrap: anywhere;
+}
+
+.top-usuario em {
+  font-style: normal;
+  font-size: 0.72rem;
+  color: var(--neon);
+}
+
+.top-jugadas {
+  font-family: var(--font-data), monospace;
+  font-size: 0.72rem;
+  color: #7d84a6;
+}
+
+.top-wager {
+  font-family: var(--font-data), monospace;
+  font-size: 1.05rem;
+  text-align: right;
+  color: var(--tinta);
+}
+
+.top-gana {
+  font-family: var(--font-data), monospace;
+  font-size: 0.9rem;
+  text-align: right;
+  color: var(--oro);
+}
+
+.top-falta {
+  margin: 0 0 18px;
+  font-size: 0.84rem;
+  color: #a7aecd;
+}
+
+.top-falta strong {
+  font-family: var(--font-data), monospace;
+  color: var(--neon);
+}
+
+.top-ciclos {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.top-ciclos li {
+  display: grid;
+  grid-template-columns: 100px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.82rem;
+}
+
+.top-ciclos em {
+  font-style: normal;
+  font-size: 0.7rem;
+  color: #7d84a6;
+}
+
+@media (max-width: 640px) {
+  .top-lista li {
+    grid-template-columns: 34px 1fr 90px;
+    row-gap: 2px;
+  }
+
+  .top-jugadas {
+    grid-column: 2;
+  }
+
+  .top-gana {
+    grid-column: 3;
+  }
+
+  .top-ciclos li {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- Casino: las reglas del top ---------- */
+
+/* Un botón que se lee como enlace: está dentro de una frase, y ahí un botón con marco corta
+   la lectura. */
+.top-enlace {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  font: inherit;
+  color: var(--neon);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.top-enlace:hover {
+  color: var(--oro);
+}
+
+.reglas {
+  margin: 0 0 22px;
+  padding: 18px;
+  border: 1px solid var(--linea);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.reglas-entrada {
+  margin: 0 0 18px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--tinta);
+}
+
+.reglas-entrada strong {
+  color: var(--oro);
+}
+
+.reglas-bloque {
+  margin-bottom: 20px;
+}
+
+.reglas-titulo {
+  margin: 0 0 8px;
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--neon);
+}
+
+.reglas-texto {
+  margin: 0 0 8px;
+  font-size: 0.84rem;
+  line-height: 1.65;
+  color: #a7aecd;
+  max-width: 62ch;
+}
+
+/* La tabla del ejemplo se lleva su propia barra: en un teléfono son cuatro columnas y el
+   cuerpo de la página no debe moverse de lado. */
+.reglas-tabla-caja {
+  overflow-x: auto;
+  margin: 10px 0 12px;
+}
+
+.reglas-tabla {
+  width: 100%;
+  min-width: 380px;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.reglas-tabla th {
+  padding: 6px 10px;
+  text-align: left;
+  font-size: 0.64rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #7d84a6;
+  border-bottom: 1px solid var(--linea);
+}
+
+.reglas-tabla td {
+  padding: 7px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: var(--tinta);
+}
+
+.reglas-tabla .cifra {
+  font-family: var(--font-data), monospace;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.reglas-tabla .gana {
+  color: var(--neon);
+}
+
+.reglas-tabla .pierde {
+  color: #8f96b8;
+}
+
+/* Las dos últimas filas son el resumen de la tarde, no una jugada más. */
+.reglas-tabla .reglas-total td {
+  border-top: 1px solid var(--linea);
+  border-bottom: 0;
+  background: rgba(255, 207, 92, 0.05);
+  font-weight: 600;
+}
+
+.reglas-pasos,
+.reglas-lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+
+.reglas-pasos {
+  counter-reset: paso;
+}
+
+.reglas-pasos li,
+.reglas-lista li {
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--linea);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* El número es información: los pasos del ciclo ocurren en ese orden. */
+.reglas-pasos li {
+  padding-left: 44px;
+  position: relative;
+  counter-increment: paso;
+}
+
+.reglas-pasos li::before {
+  content: counter(paso);
+  position: absolute;
+  left: 12px;
+  top: 10px;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 207, 92, 0.4);
+  font-family: var(--font-data), monospace;
+  font-size: 0.72rem;
+  color: var(--oro);
+}
+
+.reglas-pasos strong,
+.reglas-lista strong {
+  font-size: 0.88rem;
+  color: var(--tinta);
+}
+
+.reglas-pasos span,
+.reglas-lista span {
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: #a7aecd;
+}
+
+/* En un teléfono la columna del wager es justo la que se quedaba fuera de la caja — y es la
+   que cuenta el chiste. Con la tabla más apretada entran las cuatro sin barra. */
+@media (max-width: 640px) {
+  .reglas-tabla {
+    min-width: 0;
+    font-size: 0.74rem;
+  }
+
+  .reglas-tabla th,
+  .reglas-tabla td {
+    padding: 6px 5px;
+  }
+
+  .reglas-tabla th {
+    font-size: 0.58rem;
+    letter-spacing: 0.08em;
+  }
+}
+
+.reglas-pie {
+  margin: 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--linea);
+  font-size: 0.74rem;
+  line-height: 1.65;
+  color: #7d84a6;
+}
+
+/* `.vacio` es del taller y viene con fondo de papel: en la sala se veía una tarjeta blanca. */
+.casino .vacio {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--linea);
+  color: #a7aecd;
+}
+
+.casino .pie {
+  color: #6f7699;
+}
+
+.casino .ref-titulo {
+  color: var(--neon);
+}
+
+.tabla-cuenta {
+  margin: 0 0 6px;
+  font-family: var(--font-data), monospace;
+  font-size: 0.72rem;
+  color: #7d766a;
 }

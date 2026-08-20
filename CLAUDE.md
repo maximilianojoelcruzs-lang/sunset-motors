@@ -383,6 +383,76 @@ seguro no es un olvido — es la peor apuesta de la mesa, con casi un 7% para la
 sería empeorar el juego a propósito. Medido con 200 000 manos jugadas con estrategia básica: la
 casa se queda con el 0,6%, dentro del ruido del 0,43% teórico.
 
+### Top de wager
+
+**[lib/wager.js](lib/wager.js)** — el ranking del casino por fichas apostadas, con premio para el
+podio (`PREMIOS` en [lib/wager-limites.js](lib/wager-limites.js): 30.000 · 20.000 · 5.000).
+
+**Wager es lo apostado, no lo ganado.** Es lo que hace justa la tabla: quien apuesta 100 diez
+veces suma 1.000 aunque acabe igual que empezó. Premiar la ganancia neta premiaría la suerte.
+
+**Se acumula; no se deduce de `sunset:jugadas`.** Ése guarda solo las 500 últimas
+(`MAX_JUGADAS`), así que un ranking calculado sobre él perdería historial en silencio en cuanto
+el casino se usara de verdad — y nadie lo notaría hasta que alguien reclamara su puesto. `sumar()`
+se llama desde `resolver()`, el único sitio por donde pasan todas las apuestas de todas las mesas,
+y va envuelto en `try`: el top es un adorno y el saldo no.
+
+- Una recarga del admin **no** cuenta: llega con `apuesta: 0`.
+- Empate a wager: primero quien lo hizo en **menos jugadas**, que apostó más fuerte.
+- **`cerrarCiclo()` guarda el ciclo antes de pagar.** Si pagara primero y fallara al guardar, el
+  siguiente cierre volvería a pagar a los mismos — es exactamente el fallo del bingo. Si un pago
+  falla, el ciclo queda `pagado: false` y la pantalla dice a quién hay que pagar a mano.
+- `lib/fichas.js` importa `sumar` de `wager.js`, así que `wager.js` importa `fichas.js`
+  **dentro de las funciones**: al revés sería un ciclo de módulos.
+
+`sembrarDesdeJugadas()` arranca el contador con el registro que haya. Es de una sola vez y
+**parcial**, por el tope de 500 — la pantalla solo ofrece el botón con el contador vacío.
+
+### Las reglas están dentro de la pantalla
+
+**[app/casino/top/reglas.js](app/casino/top/reglas.js)** — el panel que se abre con *Cómo
+funciona*. Estaban solo en una página publicada aparte, así que había que tener el enlace a mano
+para entender lo que se estaba mirando.
+
+- **Va en la propia pantalla del top, no en un `Dialogo`.** Se leen las reglas mirando el ranking
+  del que hablan, y en una ventana de 440 px el ejemplo de dos personas no cabe.
+- **El botón es de cualquiera que juegue**, no del admin: va fuera del `admin && …` y antes de
+  *Cerrar ciclo*. Se abre también desde un enlace dentro de la frase de arriba.
+- **`PREMIOS.length` decide si dice «los 3 primeros».** Escrito a mano, el día que alguien agregue
+  un cuarto premio las reglas mienten.
+- La sección *Qué es el wager* **no repite `QUE_ES_WAGER`**: esa frase ya está dos dedos más
+  arriba. Acá va la versión larga.
+- **La tabla del ejemplo (Ana y Bruno) es lo que explica el juego en tres segundos.** Sin ella,
+  «cuenta lo apostado, no lo ganado» se lee y no se entiende: Ana va primera habiendo perdido y
+  Bruno último habiendo ganado las dos manos. En pantalla angosta la tabla se aprieta en vez de
+  llevarse su propia barra — la columna del wager es justo la que quedaba fuera, y es la que
+  cuenta el chiste.
+- Los pasos del ciclo van **numerados** porque son una secuencia de verdad (se abre, se juega, se
+  cierra, se paga). Las otras dos listas no lo están.
+
+`.casino .vacio` y `.casino .pie` existen porque esas clases son del taller y traen fondo de
+papel: dentro de la sala se veía una tarjeta blanca.
+
+Las mismas reglas están además en un artifact publicado desde el chat, para compartir por fuera
+de la app.
+
+### Se quitó la solicitud de retiro
+
+Existía `lib/retiros.js` con una pantalla en el casino y otra en el panel. **Se quitó a pedido
+del usuario.** La colección `sunset:retiros` se queda en la base con lo que hubiera; si algún día
+hay que consultarla, está en el historial de git.
+
+### El registro de turnos tiene su propia barra
+
+`.tabla-envoltura` lleva `max-height: 70vh` y `overflow: auto`, con la cabecera en `sticky`. Con
+un año de turnos son cientos de filas y la página se hacía interminable; y sin la cabecera pegada,
+al bajar tres pantallas ya no se sabe qué columna es cuál. La cabecera va con fondo **opaco** a
+propósito: si no, las filas se ven por debajo.
+
+Encima de la tabla va el contador de filas (`.tabla-cuenta`), que es lo que dice cuánto hay que
+recorrer y si los filtros están recortando algo — con la tabla dentro de su propia barra ya no se
+ve dónde acaba.
+
 ### El saldo lo reparte el admin, y queda registrado
 
 `ajustarSaldo()` anota cada recarga como una jugada de tipo `ajuste` con el nombre de quien la

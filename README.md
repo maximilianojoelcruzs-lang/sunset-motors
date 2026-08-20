@@ -180,6 +180,26 @@ Son las tablas de pago de un casino real, comprobadas con cientos de miles de ti
 dados, cada apuesta muestra su ventaja en pantalla: las sencillas son las buenas y las de
 triple pagan mucho pero valen poco, igual que en una mesa de verdad.
 
+### Top de wager
+
+Pestaña **Top de wager** dentro del casino. Es un ranking por **fichas apostadas**: cada apuesta
+que haces suma, ganes o pierdas. Los tres primeros al cerrar el ciclo se llevan **30.000, 20.000 y
+5.000 fichas**.
+
+Cuenta igual en las once mesas. Las recargas del encargado no suman. Si dos empatan, queda por
+delante quien lo hizo en menos jugadas. Y si estás fuera del podio, debajo de la tabla te dice
+cuántas fichas de wager te faltan para entrar.
+
+Dentro de la misma pantalla, el botón **Cómo funciona** abre las reglas completas: qué cuenta y
+qué no, un ejemplo de una tarde de dos personas —donde la que perdió fichas va primera y el que
+ganó va último—, los cuatro pasos del ciclo y los desempates. Está para cualquiera que juegue, no
+solo para el encargado.
+
+El ciclo **lo cierra el encargado** cuando quiera, no hay fecha automática. Al cerrarlo los
+premios entran solos a la cuenta de los tres primeros, los contadores vuelven a cero y el podio
+queda guardado en *Ciclos cerrados*. Si algún premio no se pudiera pagar, la pantalla dice a quién
+hay que pagarle a mano.
+
 ### Fichas
 
 Cada persona parte con 5.000 fichas. El administrador reparte o quita desde el **panel**,

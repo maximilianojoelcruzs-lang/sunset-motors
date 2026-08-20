@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Barra from '../barra';
-import Retiro from './retiro';
 
 /**
  * La sala. Cada mesa con `ruta` ya funciona; las demás siguen siendo tarjetas.
@@ -202,6 +201,7 @@ export default function Casino({ usuario, admin, accesos, saldo: saldoInicial })
         accesos={accesos}
         seccion="casino"
         variante="casino"
+        seccion="sala"
         turno={turno}
         onTurnoCambio={setTurno}
       />
@@ -232,7 +232,6 @@ export default function Casino({ usuario, admin, accesos, saldo: saldoInicial })
             </span>
           </div>
 
-          <Retiro saldo={saldo} onSaldo={setSaldo} />
         </header>
 
         <section className="casino-mesas">

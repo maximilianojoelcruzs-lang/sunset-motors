@@ -135,6 +135,27 @@ export default function Barra({
           </Link>
 
           <nav className="barra-nav" aria-label="Secciones">
+            {/* En el casino la barra estaba sin enlaces: se entraba a la sala y no había forma
+                de ir al top ni de volver sin usar la marca. */}
+            {enCasino && (
+              <>
+                <Link
+                  className={`barra-enlace ${seccion === 'sala' ? 'activo' : ''}`}
+                  href="/casino"
+                  aria-current={seccion === 'sala' ? 'page' : undefined}
+                >
+                  Mesas
+                </Link>
+                <Link
+                  className={`barra-enlace ${seccion === 'top' ? 'activo' : ''}`}
+                  href="/casino/top"
+                  aria-current={seccion === 'top' ? 'page' : undefined}
+                >
+                  Top de wager
+                </Link>
+              </>
+            )}
+
             {!enCasino && (
               <>
                 <Link

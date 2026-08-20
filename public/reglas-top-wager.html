@@ -1,0 +1,608 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Top de Wager Sunset Royale</title>
+<meta name="description" content="Cómo funciona el ranking por fichas apostadas del casino Sunset Royale: qué es el wager, cómo va el ciclo y qué se paga al podio.">
+<meta name="color-scheme" content="dark">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8F%86%3C/text%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;900&family=Karla:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
+
+<style>
+  /* La paleta es la del casino de la app (.casino en globals.css): mismo local, misma luz.
+     Un solo tema a propósito — una sala de casino es oscura, y así se ve igual en cualquier
+     dispositivo. Por eso todos los colores se pintan explícitos, sin depender del tema
+     del navegador. */
+  :root {
+    --fondo: #05060f;
+    --sala: #0d1024;
+    --sala-alta: #141834;
+    --linea: #262c4d;
+    --tinta: #e6ebff;
+    --tinta-suave: #8f96b8;
+    --tinta-tenue: #666e94;
+    --oro: #ffcf5c;
+    --neon: #22e6d0;
+    --morado: #b14cff;
+
+    --display: 'Big Shoulders Display', 'Arial Narrow', sans-serif;
+    --texto: 'Karla', 'Helvetica Neue', Arial, sans-serif;
+    --datos: 'IBM Plex Mono', ui-monospace, 'Courier New', monospace;
+
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { background: var(--fondo); }
+
+  body {
+    margin: 0;
+    background: var(--fondo);
+    color: var(--tinta);
+    font-family: var(--texto);
+    font-size: 17px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Un resplandor de sala, con gradientes y no con blur: en la app un `filter: blur` sobre
+     elementos grandes bajó el casino de 60 a 15 fps. */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(70% 45% at 78% -5%, rgba(177, 76, 255, 0.16), transparent 70%),
+      radial-gradient(55% 40% at 8% 5%, rgba(34, 230, 208, 0.1), transparent 70%);
+  }
+
+  .hoja {
+    position: relative;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 56px 24px 96px;
+    display: flex;
+    flex-direction: column;
+    gap: 56px;
+  }
+
+  /* ---------- Marquesina ---------- */
+
+  .marca {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--tinta-suave);
+  }
+
+  .marca span { color: var(--oro); }
+
+  .marca::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--linea), transparent);
+  }
+
+  h1 {
+    margin: 18px 0 0;
+    font-family: var(--display);
+    font-weight: 900;
+    font-size: clamp(3.4rem, 13vw, 6.5rem);
+    line-height: 0.86;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+    text-wrap: balance;
+  }
+
+  h1 em {
+    display: block;
+    font-style: normal;
+    color: var(--oro);
+  }
+
+  .entrada {
+    margin: 22px 0 0;
+    max-width: 54ch;
+    font-size: 1.12rem;
+    color: var(--tinta-suave);
+  }
+
+  .entrada strong { color: var(--tinta); font-weight: 600; }
+
+  /* ---------- El podio: la tesis de la página ---------- */
+
+  .podio {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    align-items: end;
+  }
+
+  .puesto {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 20px 10px 18px;
+    border: 1px solid var(--linea);
+    border-radius: 14px;
+    background: linear-gradient(180deg, var(--sala-alta), var(--sala));
+    text-align: center;
+  }
+
+  /* El primero se levanta: el podio ordena por sí mismo, sin ponerle números encima. */
+  .puesto.uno {
+    padding-top: 34px;
+    padding-bottom: 26px;
+    border-color: rgba(255, 207, 92, 0.45);
+    box-shadow: 0 0 0 1px rgba(255, 207, 92, 0.12), 0 18px 50px -28px rgba(255, 207, 92, 0.5);
+  }
+
+  .medalla { font-size: 1.9rem; line-height: 1; }
+  .puesto.uno .medalla { font-size: 2.5rem; }
+
+  .cifra {
+    font-family: var(--datos);
+    font-weight: 600;
+    font-size: 1.5rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--oro);
+  }
+
+  .puesto.uno .cifra { font-size: 1.9rem; }
+
+  .rotulo {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 0.78rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--tinta-tenue);
+  }
+
+  /* ---------- Bloques de texto ---------- */
+
+  h2 {
+    margin: 0 0 14px;
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 2rem;
+    line-height: 1.05;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+    text-wrap: balance;
+  }
+
+  h2 .cuenta {
+    font-family: var(--datos);
+    font-size: 0.9rem;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--neon);
+    vertical-align: 0.55em;
+    margin-right: 8px;
+  }
+
+  p { margin: 0 0 14px; }
+  p:last-child { margin-bottom: 0; }
+
+  .clave {
+    font-family: var(--datos);
+    font-size: 0.94em;
+    color: var(--neon);
+  }
+
+  /* ---------- El ejemplo, como un libro de cuentas ---------- */
+
+  .cuadro {
+    border: 1px solid var(--linea);
+    border-radius: 14px;
+    background: var(--sala);
+    overflow: hidden;
+  }
+
+  .cuadro-cabeza {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--linea);
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 0.82rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--tinta-suave);
+  }
+
+  .barrido { overflow-x: auto; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--datos);
+    font-size: 0.9rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  th {
+    padding: 12px 18px;
+    text-align: right;
+    font-family: var(--texto);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--tinta-tenue);
+    border-bottom: 1px solid var(--linea);
+    white-space: nowrap;
+  }
+
+  th:first-child, td:first-child { text-align: left; }
+
+  td {
+    padding: 11px 18px;
+    text-align: right;
+    border-bottom: 1px solid rgba(38, 44, 77, 0.55);
+    color: var(--tinta-suave);
+    white-space: nowrap;
+  }
+
+  tr:last-child td { border-bottom: 0; }
+
+  .gana { color: var(--neon); }
+  .pierde { color: var(--morado); }
+  .suma { color: var(--oro); font-weight: 600; }
+
+  tfoot td {
+    border-top: 1px solid var(--linea);
+    background: rgba(255, 207, 92, 0.05);
+    color: var(--tinta);
+    font-weight: 600;
+  }
+
+  .remate {
+    padding: 16px 18px;
+    border-top: 1px solid var(--linea);
+    font-size: 0.95rem;
+    color: var(--tinta-suave);
+  }
+
+  .remate strong { color: var(--tinta); font-weight: 600; }
+
+  /* ---------- El ciclo: esto sí es una secuencia, por eso va numerado ---------- */
+
+  .ciclo {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    counter-reset: paso;
+  }
+
+  .ciclo li {
+    display: grid;
+    grid-template-columns: 52px 1fr;
+    gap: 18px;
+    padding: 18px 0;
+    border-top: 1px solid var(--linea);
+    counter-increment: paso;
+  }
+
+  .ciclo li::before {
+    content: counter(paso, decimal-leading-zero);
+    font-family: var(--datos);
+    font-size: 1.05rem;
+    color: var(--oro);
+    padding-top: 2px;
+  }
+
+  .ciclo h3 {
+    margin: 0 0 4px;
+    font-family: var(--texto);
+    font-size: 1.02rem;
+    font-weight: 600;
+    color: var(--tinta);
+  }
+
+  .ciclo p {
+    margin: 0;
+    font-size: 0.96rem;
+    color: var(--tinta-suave);
+  }
+
+  /* ---------- Reglas ---------- */
+
+  .reglas {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin: 0;
+  }
+
+  .reglas > div {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .reglas dt {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 1.05rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--neon);
+  }
+
+  .reglas dd {
+    margin: 0;
+    color: var(--tinta-suave);
+  }
+
+  /* ---------- Letra pequeña ---------- */
+
+  .letra-chica {
+    padding: 22px;
+    border: 1px dashed var(--linea);
+    border-radius: 14px;
+    font-size: 0.88rem;
+    color: var(--tinta-tenue);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .letra-chica strong { color: var(--tinta-suave); font-weight: 600; }
+
+  .cierre {
+    padding-top: 26px;
+    border-top: 1px solid var(--linea);
+    font-family: var(--display);
+    font-weight: 500;
+    font-size: 1.15rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--tinta-tenue);
+  }
+
+  @media (max-width: 560px) {
+    .hoja { padding: 40px 18px 72px; gap: 44px; }
+    .podio { grid-template-columns: 1fr; align-items: stretch; }
+    .puesto, .puesto.uno { padding: 16px 14px; flex-direction: row; justify-content: space-between; }
+    .puesto.uno .cifra, .cifra { font-size: 1.4rem; }
+    .medalla, .puesto.uno .medalla { font-size: 1.6rem; }
+    .ciclo li { grid-template-columns: 34px 1fr; gap: 12px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hoja">
+
+  <header>
+    <p class="marca">Sunset <span>Royale</span></p>
+    <h1>Top de<em>Wager</em></h1>
+    <p class="entrada">
+      Cada ficha que apuestas en la sala cuenta para el ranking. No importa si ganas o si
+      pierdes: importa <strong>cuánto has jugado</strong>. Los tres primeros al cerrar el ciclo
+      se reparten fichas.
+    </p>
+  </header>
+
+  <section aria-label="Premios">
+    <div class="podio">
+      <div class="puesto">
+        <span class="medalla" aria-hidden="true">🥈</span>
+        <span class="cifra">20.000</span>
+        <span class="rotulo">2º puesto</span>
+      </div>
+      <div class="puesto uno">
+        <span class="medalla" aria-hidden="true">🥇</span>
+        <span class="cifra">30.000</span>
+        <span class="rotulo">1º puesto</span>
+      </div>
+      <div class="puesto">
+        <span class="medalla" aria-hidden="true">🥉</span>
+        <span class="cifra">5.000</span>
+        <span class="rotulo">3º puesto</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Qué es el wager</h2>
+    <p>
+      Wager es <strong>la suma de todo lo que apuestas</strong>. Pones 100 en el rojo: tu wager
+      sube 100, tanto si sale rojo como si sale negro. Vuelves a poner 100: van 200. Y así.
+    </p>
+    <p>
+      Se cuenta por igual en las once mesas — ruleta, blackjack, póker, dados, tragamonedas,
+      plinko, mines, rasca, surf, duelo y la ruleta de la suerte. Da lo mismo dónde juegues.
+    </p>
+  </section>
+
+  <section>
+    <h2>Ganar no sube el wager</h2>
+    <div class="cuadro">
+      <p class="cuadro-cabeza">Una tarde de dos personas</p>
+      <div class="barrido">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Jugada</th>
+              <th scope="col">Apuesta</th>
+              <th scope="col">Resultado</th>
+              <th scope="col">Wager</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Ana · ruleta</td>
+              <td>500</td>
+              <td class="pierde">pierde</td>
+              <td class="suma">500</td>
+            </tr>
+            <tr>
+              <td>Ana · ruleta</td>
+              <td>500</td>
+              <td class="gana">+1.000</td>
+              <td class="suma">1.000</td>
+            </tr>
+            <tr>
+              <td>Ana · dados</td>
+              <td>1.000</td>
+              <td class="pierde">pierde</td>
+              <td class="suma">2.000</td>
+            </tr>
+            <tr>
+              <td>Bruno · blackjack</td>
+              <td>100</td>
+              <td class="gana">+200</td>
+              <td class="suma">100</td>
+            </tr>
+            <tr>
+              <td>Bruno · blackjack</td>
+              <td>100</td>
+              <td class="gana">+200</td>
+              <td class="suma">200</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td>Ana</td>
+              <td>—</td>
+              <td>perdió fichas</td>
+              <td class="suma">2.000</td>
+            </tr>
+            <tr>
+              <td>Bruno</td>
+              <td>—</td>
+              <td>ganó fichas</td>
+              <td class="suma">200</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <p class="remate">
+        Ana va primera aunque acabó la tarde perdiendo, y Bruno último aunque ganó las dos manos.
+        <strong>El ranking premia jugar, no acertar.</strong>
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Cómo va el ciclo</h2>
+    <ol class="ciclo">
+      <li>
+        <div>
+          <h3>Se abre</h3>
+          <p>
+            Todos los contadores en cero. La fecha de apertura sale arriba de la tabla, en
+            <span class="clave">Top de wager</span>.
+          </p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <h3>Se juega</h3>
+          <p>
+            Cada apuesta suma en el momento. La tabla se actualiza sola cada veinte segundos: no
+            hay que recargar nada para ver cómo te mueves.
+          </p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <h3>Lo cierra el encargado</h3>
+          <p>
+            No hay fecha automática. El ciclo se cierra a mano, y hasta que se cierre todo lo que
+            juegues sigue contando.
+          </p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <h3>Se pagan los premios</h3>
+          <p>
+            Las fichas entran solas a la cuenta de los tres primeros al cerrar, y los contadores
+            vuelven a cero para el ciclo siguiente. El podio queda guardado en
+            <span class="clave">Ciclos cerrados</span>.
+          </p>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Reglas que conviene saber</h2>
+    <dl class="reglas">
+      <div>
+        <dt>Las recargas no cuentan</dt>
+        <dd>
+          Que el encargado te dé fichas no sube tu wager ni un punto. Solo cuenta lo que pones
+          en una mesa.
+        </dd>
+      </div>
+      <div>
+        <dt>Empate: gana quien apostó más fuerte</dt>
+        <dd>
+          Con el mismo wager queda por delante quien lo hizo en menos jugadas. Dos apuestas de
+          1.000 le ganan a veinte de 100.
+        </dd>
+      </div>
+      <div>
+        <dt>El puesto no se reserva</dt>
+        <dd>
+          Cuenta lo que tengas en el instante en que se cierra el ciclo. Ir primero toda la
+          semana no sirve de nada si te pasan la última noche.
+        </dd>
+      </div>
+      <div>
+        <dt>Te dice cuánto te falta</dt>
+        <dd>
+          Si estás fuera del podio, debajo de la tabla aparece exactamente cuántas fichas de
+          wager necesitas para entrar.
+        </dd>
+      </div>
+    </dl>
+  </section>
+
+  <section class="letra-chica">
+    <p>
+      <strong>Las fichas son de rol.</strong> No se compran, no valen dinero y no se convierten
+      en dinero. Las reparte el encargado y se quedan dentro del juego.
+    </p>
+    <p>
+      <strong>El contador arrancó al encender esta función.</strong> El casino guarda las últimas
+      500 jugadas, así que lo jugado antes de eso no se puede recuperar entero: el primer ciclo
+      empieza con lo que había en ese registro.
+    </p>
+    <p>
+      <strong>El resultado de cada mesa lo sortea el servidor</strong>, nunca el navegador. Y los
+      premios del podio quedan anotados con el nombre de quien cerró el ciclo.
+    </p>
+  </section>
+
+  <p class="cierre">La casa siempre paga el podio</p>
+
+</div>
+
+</body>
+</html>
