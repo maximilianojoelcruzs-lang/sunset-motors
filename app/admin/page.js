@@ -21,13 +21,16 @@ export default async function PaginaAdmin() {
   try {
     turnos = await listar();
     // Nunca la sal ni el hash: solo lo que el panel necesita enseñar.
-    usuarios = (await listarUsuarios()).map(({ usuario, admin, casino, taller, discord }) => ({
-      usuario,
-      admin: Boolean(admin),
-      casino: Boolean(casino),
-      taller: !casino || Boolean(taller),
-      discord: discord ?? null,
-    }));
+    usuarios = (await listarUsuarios()).map(
+      ({ usuario, admin, casino, taller, discord, suspendida }) => ({
+        usuario,
+        admin: Boolean(admin),
+        casino: Boolean(casino),
+        taller: !casino || Boolean(taller),
+        discord: discord ?? null,
+        suspendida: Boolean(suspendida),
+      })
+    );
     // El menú de perfil de la barra también deja marcar desde acá. Sale de la lista que ya
     // se leyó arriba: pedir `turnoAbierto()` era volver a leer el registro entero.
     abierto = abiertoEn(turnos, sesion.usuario);

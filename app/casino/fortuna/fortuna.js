@@ -64,6 +64,7 @@ export default function Fortuna({ usuario, admin, accesos, saldoInicial }) {
       titulo="Ruleta de la suerte"
       sub={`40 gajos · retorno al jugador ${RETORNO}%`}
       saldo={saldo}
+      onSaldo={setSaldo}
       aviso="Acá no se elige dónde apostar: se gira y se cobra lo que marque el gajo. La ventaja
              de la casa son los gajos vacíos, no un pago recortado — cada gajo paga exactamente
              lo que dice. El gajo lo sortea el servidor. Fichas de rol — no valen dinero."

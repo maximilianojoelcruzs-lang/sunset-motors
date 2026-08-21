@@ -79,6 +79,7 @@ export default function Campo({ usuario, admin, accesos, saldoInicial, partida }
       titulo="Mines"
       sub={`25 casillas · cobra cuando quieras · retorno al jugador 97%`}
       saldo={saldo}
+      onSaldo={setSaldo}
       aviso="Las minas se siembran antes de la primera casilla y no salen del servidor hasta que
              termina la partida: no se deciden sobre la marcha. Da igual dónde te plantes — en
              la primera casilla o en la vigésima, el retorno es el mismo. Fichas de rol."

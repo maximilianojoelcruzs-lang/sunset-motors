@@ -6,6 +6,7 @@ import {
   cambiarClave,
   cambiarDiscord,
   cambiarRol,
+  cambiarSuspension,
   cambiarTaller,
   esAdmin,
 } from '../../../../lib/usuarios';
@@ -13,7 +14,7 @@ import {
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-/** PATCH body: { admin } · { casino } · { taller } · { clave } · { discord } */
+/** PATCH body: { admin } · { casino } · { taller } · { suspendida } · { clave } · { discord } */
 export async function PATCH(peticion, { params }) {
   const { sesion, corte } = await exigirAdmin();
   if (corte) return corte;
@@ -63,6 +64,20 @@ export async function PATCH(peticion, { params }) {
         );
       }
       const { error } = await cambiarTaller(usuario, cambios.taller);
+      if (error) return NextResponse.json({ error }, { status: 400 });
+      return NextResponse.json({ ok: true });
+    }
+
+    if (typeof cambios.suspendida === 'boolean') {
+      // Suspenderse a uno mismo es quedarse fuera en el siguiente clic, sin nadie que lo
+      // deshaga si además era el único administrador.
+      if (cambios.suspendida && usuario.toLowerCase() === sesion.usuario.toLowerCase()) {
+        return NextResponse.json(
+          { error: 'No puedes suspender tu propia cuenta.' },
+          { status: 400 }
+        );
+      }
+      const { error } = await cambiarSuspension(usuario, cambios.suspendida);
       if (error) return NextResponse.json({ error }, { status: 400 });
       return NextResponse.json({ ok: true });
     }

@@ -4855,6 +4855,16 @@ a.accion {
   color: #b98cff;
 }
 
+.etiqueta-suspendida {
+  background: rgba(255, 99, 71, 0.16);
+  color: var(--sun-3);
+}
+
+/* La fila apagada: se ve que esa cuenta no está entrando, sin tener que leer la etiqueta. */
+.mecanicos-lista li.suspendida .mecanicos-nombre {
+  opacity: 0.55;
+}
+
 .etiqueta-yo {
   border: 1px solid var(--bay-line);
   color: #5d5a53;

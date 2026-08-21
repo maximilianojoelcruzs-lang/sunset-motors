@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Barra from '../barra';
+import useFichasAlDia from './fichas-al-dia';
 
 /**
  * La sala. Cada mesa con `ruta` ya funciona; las demás siguen siendo tarjetas.
@@ -193,13 +194,16 @@ export default function Casino({ usuario, admin, accesos, saldo: saldoInicial })
   const [turno, setTurno] = useState(null);
   const [saldo, setSaldo] = useState(saldoInicial);
 
+  // Es la pantalla donde se espera una recarga mirando la cifra: acá el saldo era del todo
+  // estático — venía del servidor al cargar y no volvía a moverse hasta un F5.
+  useFichasAlDia(saldo, setSaldo);
+
   return (
     <div className="casino">
       <Barra
         usuario={usuario}
         admin={admin}
         accesos={accesos}
-        seccion="casino"
         variante="casino"
         seccion="sala"
         turno={turno}

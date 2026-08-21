@@ -152,6 +152,7 @@ export default function Carrera({ usuario, admin, accesos, saldoInicial }) {
       titulo="Carrera de surf"
       sub={`Seis tablas, una ola · retorno al jugador ${Math.round(RETORNO * 100)}%`}
       saldo={saldo}
+      onSaldo={setSaldo}
       aviso="Las cuotas se calculan desde la probabilidad de cada surfista, así que los seis
              dejan la misma ventaja a la casa: apostar al favorito o al que nadie mira da lo
              mismo a la larga. El orden de llegada lo sortea el servidor. Fichas de rol."

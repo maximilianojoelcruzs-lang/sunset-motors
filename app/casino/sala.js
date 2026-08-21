@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Barra from '../barra';
+import useFichasAlDia from './fichas-al-dia';
 import { FICHAS } from '../../lib/fichas-limites';
 
 export const fmt = new Intl.NumberFormat('es-CL');
@@ -11,9 +12,15 @@ export const fichas = (n) => fmt.format(n);
 /**
  * Lo que rodea a cualquier mesa: barra, fondo, cabecera con el saldo y el aviso legal.
  * Cada juego pone dentro solo lo suyo.
+ *
+ * `onSaldo` es el `setSaldo` de la mesa. Con él, la cabecera se pone al día sola cuando las
+ * fichas cambian por fuera —una recarga del encargado, el pago del top— sin recargar la página.
+ * Una mesa que no lo pase sigue funcionando igual, solo que su cifra no se refresca.
  */
-export default function Sala({ usuario, admin, accesos, titulo, sub, saldo, aviso, children }) {
+export default function Sala({ usuario, admin, accesos, titulo, sub, saldo, onSaldo, aviso, children }) {
   const [turno, setTurno] = useState(null);
+
+  useFichasAlDia(saldo, onSaldo);
 
   return (
     <div className="casino">

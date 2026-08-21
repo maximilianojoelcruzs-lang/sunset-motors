@@ -72,6 +72,12 @@ así que quien usa la app a diario no vuelve a escribir su clave. Quien deja de 
 igual al mes. Va en una cookie firmada con `SUNSET_SECRETO`. Cambiar esa
 variable cierra de inmediato todas las sesiones abiertas: es el botón de "echar a todos".
 
+**Suspender una cuenta** (en *Mecánicos con cuenta*) es el punto medio entre dejar entrar y
+borrar: la cuenta se queda con su historial y su clave, y no entra a ninguna parte — ni al
+taller ni al casino—. Si tiene la app abierta, se queda fuera en el siguiente clic, y al
+intentar entrar el login le dice que está suspendida. Se reactiva con el mismo botón y vuelve
+a ser lo que era. No puedes suspenderte a ti mismo ni al único administrador activo.
+
 Hay un solo permiso: **administrador**. Es lo que abre el registro de turnos y la gestión de
 cuentas. Se da y se quita desde el mismo panel.
 
@@ -163,6 +169,14 @@ cambian sin explicación a la vista.
 
 Pestaña **Casino**: una sala aparte, con su propia identidad. Es entretención de rol para el
 servidor — **no se juega con dinero real ni se puede convertir en dinero real**.
+
+**Tus fichas se actualizan solas.** La cifra de arriba se pone al día cada veinte segundos —y
+al instante cuando vuelves a la pestaña—, así que si el encargado te recarga mientras tienes el
+casino abierto, lo ves sin recargar la página.
+
+> **Cerrado a los jugadores.** Hoy solo lo ven los administradores: todas las cuentas quedaron
+> sin acceso y con el saldo en 0. Para reabrirlo, dale *Dar casino* a quien corresponda desde
+> *Registro* → *Mecánicos con cuenta*, y repárteles fichas.
 
 **Las once mesas están abiertas.**
 

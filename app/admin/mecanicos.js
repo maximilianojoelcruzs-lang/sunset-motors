@@ -109,6 +109,30 @@ export default function Mecanicos({ iniciales, quienSoy }) {
         : `"${u.usuario}" ahora también entra al taller.`
     );
 
+  /**
+   * Suspender: la cuenta se queda con su historial y no entra a ninguna parte.
+   *
+   * Es el punto medio que faltaba entre dejar entrar y borrar. Se usó al cerrar el casino: las
+   * cuentas de solo casino no tenían dónde ir, y quitarles la bandera las habría convertido en
+   * mecánicos con acceso a la calculadora y a la bodega.
+   */
+  const alternarSuspension = (u) => {
+    if (!u.suspendida && !window.confirm(`¿Suspender a ${u.usuario}? No podrá entrar hasta que lo reactives. La cuenta y su historial se quedan.`)) {
+      return;
+    }
+    pedir(
+      `/api/usuarios/${u.usuario}`,
+      {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ suspendida: !u.suspendida }),
+      },
+      u.suspendida
+        ? `"${u.usuario}" vuelve a entrar.`
+        : `"${u.usuario}" queda suspendido: no entra a ninguna parte.`
+    );
+  };
+
   const nuevaClave = (nombre) => {
     const valor = window.prompt(`Clave nueva para ${nombre} (mínimo 8 caracteres):`);
     if (!valor) return;
@@ -143,9 +167,10 @@ export default function Mecanicos({ iniciales, quienSoy }) {
 
           <ul className="mecanicos-lista">
             {usuarios.map((u) => (
-              <li key={u.usuario}>
+              <li key={u.usuario} className={u.suspendida ? 'suspendida' : ''}>
                 <span className="mecanicos-nombre">
                   {u.usuario}
+                  {u.suspendida && <span className="etiqueta-suspendida">suspendida</span>}
                   {u.admin && <span className="etiqueta-admin">admin</span>}
                   {!u.admin && u.casino && (
                     <span className="etiqueta-casino">
@@ -217,6 +242,14 @@ export default function Mecanicos({ iniciales, quienSoy }) {
                     onClick={() => alternarAdmin(u)}
                   >
                     {u.admin ? 'Quitar admin' : 'Hacer admin'}
+                  </button>
+                  <button
+                    type="button"
+                    className="accion"
+                    disabled={ocupado || u.usuario === quienSoy}
+                    onClick={() => alternarSuspension(u)}
+                  >
+                    {u.suspendida ? 'Reactivar' : 'Suspender'}
                   </button>
                   <button
                     type="button"

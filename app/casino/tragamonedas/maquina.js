@@ -108,6 +108,7 @@ export default function Maquina({ usuario, admin, accesos, saldoInicial }) {
       titulo="Tragamonedas"
       sub={`Tres rodillos, una línea · retorno al jugador ${RETORNO}%`}
       saldo={saldo}
+      onSaldo={setSaldo}
       aviso="Los rodillos llevan pesos, como una máquina real: el 7 es raro porque hay pocos
              sietes en la cinta, no porque el programa haga trampa al final. Los símbolos los
              sortea el servidor. Fichas de rol — no valen dinero."

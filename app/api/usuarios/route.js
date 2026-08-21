@@ -6,13 +6,14 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /** Nunca devuelve sal ni hash: el panel no los necesita y no tienen por qué viajar. */
-const publico = ({ usuario, admin, casino, taller, discord }) => ({
+const publico = ({ usuario, admin, casino, taller, discord, suspendida }) => ({
   usuario,
   admin: Boolean(admin),
   casino: Boolean(casino),
   // Sin `casino` la bandera no significa nada: un mecánico normal siempre está en el taller.
   taller: !casino || Boolean(taller),
   discord: discord ?? null,
+  suspendida: Boolean(suspendida),
 });
 
 export async function GET() {

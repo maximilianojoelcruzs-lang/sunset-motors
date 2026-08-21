@@ -138,6 +138,7 @@ export default function Mesa({ usuario, admin, accesos, saldoInicial }) {
       titulo="Ruleta"
       sub="Europea, un solo cero · ventaja de la casa 2,70% en todas las apuestas"
       saldo={saldo}
+      onSaldo={setSaldo}
       aviso="El número lo sortea el servidor, no tu navegador. Los pagos son los de una ruleta
              europea real: la casa gana un 2,70% a la larga, en todas las apuestas por igual.
              Fichas de rol — no valen dinero ni se convierten en dinero."

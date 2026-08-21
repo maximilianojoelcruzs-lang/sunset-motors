@@ -133,6 +133,7 @@ export default function Duelo({ usuario, admin, accesos, saldoInicial }) {
       titulo="Duelo de cartas"
       sub="Una carta por bando, gana la más alta · el as vale 1"
       saldo={saldo}
+      onSaldo={setSaldo}
       aviso="Si sale empate, quien apostó a un bando pierde la mitad: de ahí sale la ventaja de
              la casa en este juego, y es la misma regla de un Dragon Tiger de verdad. Las dos
              cartas las reparte el servidor. Fichas de rol — no valen dinero."

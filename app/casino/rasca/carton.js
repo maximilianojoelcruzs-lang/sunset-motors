@@ -66,6 +66,7 @@ export default function Carton({ usuario, admin, accesos, saldoInicial }) {
       titulo="Rasca y gana"
       sub="Tres símbolos iguales · retorno al jugador 92%"
       saldo={saldo}
+      onSaldo={setSaldo}
       aviso="El cartón viene resuelto del servidor desde que lo compras: raspar rápido o lento
              no cambia nada, igual que un raspadito de papel. Fichas de rol — no valen dinero."
     >

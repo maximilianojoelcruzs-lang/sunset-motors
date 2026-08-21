@@ -82,6 +82,7 @@ export default function Mesa({ usuario, admin, accesos, saldoInicial, partida })
       titulo="Blackjack"
       sub="6 mazos · el crupier se planta en 17 · el blackjack paga 3 a 2"
       saldo={saldo}
+      onSaldo={setSaldo}
       aviso="El zapato se baraja entero en el servidor antes de repartir, y la carta tapada del
              crupier se queda ahí hasta que terminas: no viaja al navegador. Fichas de rol — no
              valen dinero."

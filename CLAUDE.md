@@ -180,6 +180,16 @@ sigue siendo solo del casino, exactamente como antes. Nadie gana ni pierde acces
 - `soloCasino()` — casino sin admin y sin taller: no tiene nada que hacer en el taller.
 - `accesosDe()` — las tres puertas de una sola lectura del almacén. Es lo que usan las páginas.
 
+**El casino está cerrado a los jugadores** desde el 21 de agosto de 2026, a pedido del usuario:
+todas las cuentas quedaron con la bandera `casino` en false y **el saldo en 0**, así que solo lo
+ven los administradores (que entran por ser admin, no por la bandera). Las dos cuentas que eran
+solo casino quedaron **suspendidas**, no borradas. Para volver a abrirlo basta con dar la
+bandera desde el panel; las fichas las reparte el encargado como siempre.
+
+Ojo con el saldo: `saldoDe()` devuelve `SALDO_INICIAL` (5.000) cuando alguien **no tiene entrada
+guardada**, así que dejar todo en cero fue escribir un `0` explícito por cuenta. Vaciar la
+colección le habría regalado 5.000 fichas a todo el mundo.
+
 **`cambiarCasino(u, true)` deja también el taller** a quien lo tenía. Si no, dar el casino a un
 mecánico lo echaría de la calculadora sin que nadie lo pidiera. Para dejar a alguien solo de
 casino está `cambiarTaller(u, false)`, que es explícito.
@@ -192,6 +202,27 @@ página del taller y usas `sesionActual()` en su lugar, un invitado del casino l
 
 El chequeo va ahí y no en el middleware por lo de siempre: el rol se consulta contra la base y el
 middleware corre en Edge.
+
+### Una cuenta suspendida no entra a ninguna parte
+
+`suspendida: true` en la ficha. `puertasDe()` devuelve las tres puertas en **false** y
+`suspendida: true`, así que ninguna comprobación de más arriba puede dejarla pasar por
+descuido, y el portero de `lib/servidor.js` responde **401 «Esta cuenta está suspendida.»** en
+la API y manda al login en las páginas.
+
+Es el punto medio que faltaba entre dejar entrar y borrar, y salió de cerrar el casino a los
+jugadores: las cuentas que eran **solo casino** no tenían dónde ir. Quitarles la bandera las
+habría convertido en mecánicos con acceso a la calculadora y a la bodega —que nadie pidió—,
+porque `taller` se calcula como `!casino`. Borrarlas era perder la cuenta por un cierre que
+puede ser temporal.
+
+- **El login lo dice con esas palabras** (403), no «usuario o clave incorrectos»: con el
+  mensaje genérico la persona se queda probando claves que sí funcionan.
+- No se puede **suspender la propia cuenta** ni al **único administrador activo**, por lo mismo
+  que no se puede borrar al último admin: al panel no volvería a entrar nadie.
+- Al reactivarla vuelve exactamente a lo que era: la ficha no se toca en nada más.
+- El panel la marca (`etiqueta-suspendida`) y apaga la fila, y el botón alterna
+  *Suspender* / *Reactivar*.
 
 ### El botón de cambiar de vista, y por qué los accesos bajan por props
 
@@ -482,6 +513,25 @@ propósito: si no, las filas se ven por debajo.
 Encima de la tabla va el contador de filas (`.tabla-cuenta`), que es lo que dice cuánto hay que
 recorrer y si los filtros están recortando algo — con la tabla dentro de su propia barra ya no se
 ve dónde acaba.
+
+### Las fichas en pantalla se ponen al día solas
+
+**[app/casino/fichas-al-dia.js](app/casino/fichas-al-dia.js)** — la cifra de la cabecera
+consulta `/api/casino/saldo` cada 20 segundos, en la sala y en las once mesas (una sola línea
+en `sala.js`, que es el envoltorio de todas).
+
+El número que muestra una mesa sale de su propia jugada, y eso está bien. Lo que no se enteraba
+era de lo que pasa **fuera**: una recarga del encargado, el pago del podio, o la misma cuenta
+jugando en otra pestaña. Había que recargar la página para ver las fichas de verdad.
+
+- **La mesa sigue mandando.** Si el saldo cambió mientras la consulta viajaba, esa consulta se
+  descarta: su respuesta es anterior a la jugada y aplicarla haría saltar la cifra hacia atrás.
+- `GET /api/casino/saldo` devuelve **solo el saldo**. Traía además las últimas 20 jugadas, que
+  nadie usaba y costaban una lectura entera del registro en cada consulta: 3 idas al almacén
+  por sondeo, ahora 2.
+- Se detiene con la pestaña escondida y consulta al volver a ella, que es cuando a alguien le
+  importa. Medido forzando el estado (en headless la pestaña nunca queda escondida de verdad):
+  0 consultas en 24 s escondida, 1 en menos de 1,2 s al volver, y 2 en 45 s visible.
 
 ### El saldo lo reparte el admin, y queda registrado
 

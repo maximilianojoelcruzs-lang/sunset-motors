@@ -88,6 +88,7 @@ export default function Mesa({ usuario, admin, accesos, saldoInicial }) {
       titulo="Dados"
       sub="Sic Bo, tres dados · las apuestas sencillas pagan 1:1 con 2,78% de ventaja"
       saldo={saldo}
+      onSaldo={setSaldo}
       aviso="Los dados los tira el servidor. Cada apuesta muestra su ventaja de la casa real:
              las sencillas son las buenas, las de triple pagan mucho y valen poco — igual que
              en una mesa de verdad. Fichas de rol, no valen dinero."

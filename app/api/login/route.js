@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { COOKIE, firmarSesion, opcionesCookie, secretoFirma } from '../../../lib/sesion';
-import { hayUsuarios, soloCasino, verificarUsuario } from '../../../lib/usuarios';
+import { hayUsuarios, puertasDe, soloCasino, verificarUsuario } from '../../../lib/usuarios';
 import { anotarFallo, equipoDe, olvidarFallos, puedeIntentar } from '../../../lib/intentos';
 import { dondeGuarda } from '../../../lib/almacen';
 
@@ -54,6 +54,17 @@ export async function POST(peticion) {
 
     // Entró: su contador vuelve a cero. El del equipo no, a propósito (ver lib/intentos.js).
     await olvidarFallos(verificado, equipo);
+
+    // La clave era buena, pero la cuenta está suspendida. Se dice con esas palabras: un
+    // «usuario o clave incorrectos» mandaría a la persona a probar claves que sí funcionan, y
+    // a preguntarle al encargado por qué no entra.
+    const puertas = await puertasDe(verificado);
+    if (puertas.suspendida) {
+      return NextResponse.json(
+        { error: 'Esta cuenta está suspendida. Habla con el encargado del taller.' },
+        { status: 403 }
+      );
+    }
 
     // Cada categoría entra por su puerta: a quien solo tiene casino, la calculadora del
     // taller no le sirve de nada.

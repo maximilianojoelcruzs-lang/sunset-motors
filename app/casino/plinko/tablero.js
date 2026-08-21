@@ -125,6 +125,7 @@ export default function Tablero({ usuario, admin, accesos, saldoInicial }) {
       titulo="Plinko"
       sub={`12 filas de clavos · retorno al jugador ${retorno}%`}
       saldo={saldo}
+      onSaldo={setSaldo}
       aviso="Cada rebote es una moneda al aire que sortea el servidor, y por eso el centro se
              llena y las puntas casi nunca salen. Cada bolita es independiente de las demás.
              Elegir riesgo cambia cómo se gana, no cuánto. Fichas de rol — no valen dinero."

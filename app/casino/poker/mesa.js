@@ -111,6 +111,7 @@ export default function Mesa({ usuario, admin, accesos, saldoInicial, pendiente 
       titulo="Vídeo póker"
       sub="Jacks or Better · tabla 9/6 · hasta 99,5% de retorno con juego perfecto"
       saldo={saldo}
+      onSaldo={setSaldo}
       aviso="Se reparten cinco cartas, tú eliges cuáles te quedas y las demás se cambian. El
              mazo se baraja entero en el servidor antes de que elijas, así que las cartas que
              vienen ya estaban decididas. Fichas de rol — no valen dinero."
