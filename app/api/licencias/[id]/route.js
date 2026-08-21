@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { sesionActual } from '../../../../lib/servidor';
-import { esAdmin } from '../../../../lib/usuarios';
+import { exigirTaller } from '../../../../lib/servidor';
 import { borrar, editar, enviar, resolver } from '../../../../lib/licencias';
 import { crearAviso, ADMINS } from '../../../../lib/avisos';
 
@@ -15,12 +14,12 @@ export const dynamic = 'force-dynamic';
  *   { accion: 'aprobar' | 'rechazar', respuesta } el administrador decide
  */
 export async function PATCH(peticion, { params }) {
-  const sesion = await sesionActual();
-  if (!sesion) return NextResponse.json({ error: 'Sin sesión.' }, { status: 401 });
+  const { sesion, accesos, corte } = await exigirTaller();
+  if (corte) return corte;
 
   const { id } = await params;
   const cuerpo = await peticion.json().catch(() => ({}));
-  const admin = await esAdmin(sesion.usuario);
+  const { admin } = accesos;
 
   try {
     // --- Decisión del administrador ---
@@ -67,11 +66,11 @@ export async function PATCH(peticion, { params }) {
 }
 
 export async function DELETE(peticion, { params }) {
-  const sesion = await sesionActual();
-  if (!sesion) return NextResponse.json({ error: 'Sin sesión.' }, { status: 401 });
+  const { sesion, accesos, corte } = await exigirTaller();
+  if (corte) return corte;
 
   const { id } = await params;
-  const admin = await esAdmin(sesion.usuario);
+  const { admin } = accesos;
 
   try {
     const { error, solicitud } = await borrar(id, sesion.usuario, admin);

@@ -1,5 +1,4 @@
-import { redirect } from 'next/navigation';
-import { accesosDe, sesionActual } from '../../../lib/servidor';
+import { sesionDeCasino } from '../../../lib/servidor';
 import { saldoDe } from '../../../lib/fichas';
 import { maximasDe, pagoDe } from '../../../lib/mines';
 import { partidaDe } from '../../../lib/mines-partida';
@@ -8,10 +7,8 @@ import Campo from './campo';
 export const dynamic = 'force-dynamic';
 
 export default async function Pagina() {
-  const sesion = await sesionActual();
-  if (!sesion) redirect('/login');
-  const accesos = await accesosDe(sesion.usuario);
-  if (!accesos.casino) redirect('/');
+  const sesion = await sesionDeCasino();
+  const { accesos } = sesion;
 
   // Una partida a medias se retoma: la apuesta ya está cobrada, así que abandonarla sería
   // quedarse con las fichas. **Las minas no viajan** — solo lo que ya está destapado.

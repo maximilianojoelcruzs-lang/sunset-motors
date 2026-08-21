@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { sesionActual } from '../../../lib/servidor';
-import { esAdmin } from '../../../lib/usuarios';
+import { exigirAdmin, exigirTaller } from '../../../lib/servidor';
 import { crearMensaje, listarMensajes } from '../../../lib/anuncios';
 
 export const runtime = 'nodejs';
@@ -8,8 +7,8 @@ export const dynamic = 'force-dynamic';
 
 /** GET /api/anuncios → los mensajes guardados. Todo el taller los usa para copiar. */
 export async function GET() {
-  const sesion = await sesionActual();
-  if (!sesion) return NextResponse.json({ error: 'Sin sesión.' }, { status: 401 });
+  const { sesion, corte } = await exigirTaller();
+  if (corte) return corte;
 
   try {
     return NextResponse.json({ mensajes: await listarMensajes() });
@@ -20,11 +19,8 @@ export async function GET() {
 
 /** POST /api/anuncios  body: { titulo, texto }. Solo administradores. */
 export async function POST(peticion) {
-  const sesion = await sesionActual();
-  if (!sesion) return NextResponse.json({ error: 'Sin sesión.' }, { status: 401 });
-  if (!(await esAdmin(sesion.usuario))) {
-    return NextResponse.json({ error: 'No autorizado.' }, { status: 403 });
-  }
+  const { sesion, corte } = await exigirAdmin();
+  if (corte) return corte;
 
   const datos = await peticion.json().catch(() => ({}));
 

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { sesionActual } from '../../../../lib/servidor';
+import { exigirSesion } from '../../../../lib/servidor';
 import { cambiarClavePropia } from '../../../../lib/usuarios';
 
 export const runtime = 'nodejs';
@@ -13,8 +13,8 @@ export const dynamic = 'force-dynamic';
  * cambiarle la clave a otro.
  */
 export async function POST(peticion) {
-  const sesion = await sesionActual();
-  if (!sesion) return NextResponse.json({ error: 'Sin sesión.' }, { status: 401 });
+  const { sesion, corte } = await exigirSesion();
+  if (corte) return corte;
 
   const { actual, nueva } = await peticion.json().catch(() => ({}));
   if (!actual || !nueva) {

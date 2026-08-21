@@ -1,4 +1,4 @@
-import { accesosDe, sesionDeTaller } from '../../lib/servidor';
+import { sesionDeTaller } from '../../lib/servidor';
 import { listar, listarCargas } from '../../lib/inventario';
 import { turnoAbierto } from '../../lib/turnos';
 import Inventario from './inventario';
@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function PaginaInventario() {
   const sesion = await sesionDeTaller();
-  const accesos = await accesosDe(sesion.usuario);
+  const { accesos } = sesion;
 
   let articulos = [];
   let cargas = [];

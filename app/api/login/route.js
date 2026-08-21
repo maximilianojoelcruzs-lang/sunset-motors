@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { COOKIE, firmarSesion, opcionesCookie, secretoFirma } from '../../../lib/sesion';
 import { hayUsuarios, soloCasino, verificarUsuario } from '../../../lib/usuarios';
+import { anotarFallo, equipoDe, olvidarFallos, puedeIntentar } from '../../../lib/intentos';
 import { dondeGuarda } from '../../../lib/almacen';
 
 export const runtime = 'nodejs';
@@ -32,11 +33,27 @@ export async function POST(peticion) {
       );
     }
 
+    // Antes de mirar la clave: quien viene de fallar varias veces espera. Sin esto se podían
+    // probar claves sin ningún límite, que es lo único que necesita un script.
+    const equipo = equipoDe(peticion);
+    const paso = await puedeIntentar(usuario, equipo);
+    if (!paso.ok) {
+      return NextResponse.json(
+        { error: `Demasiados intentos fallidos. Espera ${paso.segundos} segundos.` },
+        { status: 429, headers: { 'Retry-After': String(paso.segundos) } }
+      );
+    }
+
     const verificado = await verificarUsuario(usuario, clave);
     if (!verificado) {
+      // El fallo se anota antes de responder: si no, no habría nada que contar.
+      await anotarFallo(usuario, equipo);
       // Un solo mensaje para usuario inexistente y clave mala: no regalamos qué falló.
       return NextResponse.json({ error: 'Usuario o clave incorrectos.' }, { status: 401 });
     }
+
+    // Entró: su contador vuelve a cero. El del equipo no, a propósito (ver lib/intentos.js).
+    await olvidarFallos(verificado, equipo);
 
     // Cada categoría entra por su puerta: a quien solo tiene casino, la calculadora del
     // taller no le sirve de nada.

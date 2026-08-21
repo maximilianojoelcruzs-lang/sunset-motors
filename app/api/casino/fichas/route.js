@@ -1,20 +1,11 @@
 import { NextResponse } from 'next/server';
-import { sesionActual } from '../../../../lib/servidor';
-import { esAdmin, nombres } from '../../../../lib/usuarios';
+import { exigirAdmin } from '../../../../lib/servidor';
+import { nombres } from '../../../../lib/usuarios';
 import { ajustarSaldo, jugadasDe, todosLosSaldos } from '../../../../lib/fichas';
 import { SALDO_INICIAL } from '../../../../lib/fichas-limites';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-
-async function exigirAdmin() {
-  const sesion = await sesionActual();
-  if (!sesion) return { corte: NextResponse.json({ error: 'Sin sesión.' }, { status: 401 }) };
-  if (!(await esAdmin(sesion.usuario))) {
-    return { corte: NextResponse.json({ error: 'No autorizado.' }, { status: 403 }) };
-  }
-  return { sesion };
-}
 
 /** GET /api/casino/fichas → saldo de cada persona y últimas jugadas del casino. */
 export async function GET() {

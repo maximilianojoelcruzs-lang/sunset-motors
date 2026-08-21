@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { sesionActual } from '../../../../../lib/servidor';
+import { exigirTaller } from '../../../../../lib/servidor';
 import { flyerPorId } from '../../../../../lib/anuncios';
 import { urlFirmada } from '../../../../../lib/imagenes';
 
@@ -14,8 +14,8 @@ export const dynamic = 'force-dynamic';
  * el bucket es privado y estos flyers son material interno del taller, no de internet.
  */
 export async function GET(peticion, { params }) {
-  const sesion = await sesionActual();
-  if (!sesion) return NextResponse.json({ error: 'Sin sesión.' }, { status: 401 });
+  const { sesion, corte } = await exigirTaller();
+  if (corte) return corte;
 
   const { id } = await params;
   const flyer = await flyerPorId(id);

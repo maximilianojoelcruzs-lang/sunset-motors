@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { sesionActual } from '../../../../lib/servidor';
-import { esCasino } from '../../../../lib/usuarios';
+import { exigirCasino } from '../../../../lib/servidor';
 import { cobrar, pagar, saldoDe, validarApuesta } from '../../../../lib/fichas';
 import {
   acciones,
@@ -13,10 +12,9 @@ import {
   vista,
 } from '../../../../lib/blackjack';
 import {
-  conPartida,
-  escribirPartidas,
+  guardarPartidaDe,
   leerPartidas,
-  sinPartida,
+  olvidarPartidaDe,
 } from '../../../../lib/blackjack-partida';
 
 export const runtime = 'nodejs';
@@ -73,7 +71,7 @@ async function cerrar(usuario, partida, todas) {
   const premio = resultados.reduce((s, r) => s + r.premio, 0);
   const apuesta = partida.manos.reduce((s, m) => s + m.apuesta, 0);
 
-  await escribirPartidas(sinPartida(todas, usuario));
+  await olvidarPartidaDe(usuario);
   const { saldo, neto } = await pagar({
     usuario,
     juego: 'blackjack',
@@ -90,9 +88,8 @@ async function cerrar(usuario, partida, todas) {
 
 /** POST /api/casino/blackjack  body: { accion, apuesta } */
 export async function POST(peticion) {
-  const sesion = await sesionActual();
-  if (!sesion) return no('Sin sesión.', 401);
-  if (!(await esCasino(sesion.usuario))) return no('No autorizado.', 403);
+  const { sesion, corte } = await exigirCasino();
+  if (corte) return corte;
 
   const usuario = sesion.usuario;
   const { accion, apuesta } = await peticion.json().catch(() => ({}));
@@ -143,7 +140,7 @@ export async function POST(peticion) {
         return NextResponse.json(vista(cierre.partida, { saldo: cierre.saldo, cierre }));
       }
 
-      await escribirPartidas(conPartida(todas, usuario, nueva));
+      await guardarPartidaDe(usuario, nueva);
       return NextResponse.json(vista(nueva, { saldo, cierre: null }));
     }
 
@@ -186,7 +183,7 @@ export async function POST(peticion) {
       return NextResponse.json(vista(cierre.partida, { saldo: cierre.saldo, cierre }));
     }
 
-    await escribirPartidas(conPartida(todas, usuario, partida));
+    await guardarPartidaDe(usuario, partida);
     return NextResponse.json(vista(partida, { saldo, cierre: null }));
   } catch (e) {
     return no(`No se pudo jugar: ${e.message}`, 500);

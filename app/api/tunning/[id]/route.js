@@ -1,19 +1,9 @@
 import { NextResponse } from 'next/server';
-import { sesionActual } from '../../../../lib/servidor';
-import { soloCasino } from '../../../../lib/usuarios';
+import { exigirTaller } from '../../../../lib/servidor';
 import { agregar, borrar, cerrar, marcar, quitar } from '../../../../lib/tunning';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-
-async function exigirTaller() {
-  const sesion = await sesionActual();
-  if (!sesion) return { corte: NextResponse.json({ error: 'Sin sesión.' }, { status: 401 }) };
-  if (await soloCasino(sesion.usuario)) {
-    return { corte: NextResponse.json({ error: 'No autorizado.' }, { status: 403 }) };
-  }
-  return { sesion };
-}
 
 /**
  * PATCH /api/tunning/:id

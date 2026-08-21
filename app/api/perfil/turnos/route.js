@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { sesionActual } from '../../../../lib/servidor';
+import { exigirSesion } from '../../../../lib/servidor';
 import { listar } from '../../../../lib/turnos';
 
 export const runtime = 'nodejs';
@@ -13,8 +13,8 @@ export const dynamic = 'force-dynamic';
  * parámetro: no hay forma de pedir los turnos de otra persona.
  */
 export async function GET() {
-  const sesion = await sesionActual();
-  if (!sesion) return NextResponse.json({ error: 'Sin sesión.' }, { status: 401 });
+  const { sesion, corte } = await exigirSesion();
+  if (corte) return corte;
 
   try {
     return NextResponse.json({ turnos: await listar(sesion.usuario) });

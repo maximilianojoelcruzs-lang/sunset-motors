@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { sesionActual } from '../../../lib/servidor';
-import { esAdmin } from '../../../lib/usuarios';
+import { exigirTaller } from '../../../lib/servidor';
 import { crear, listar, listarEnviadas } from '../../../lib/devoluciones';
 import { guardarImagen } from '../../../lib/imagenes';
 import { crearAviso, ADMINS } from '../../../lib/avisos';
@@ -15,11 +14,11 @@ const pesos = new Intl.NumberFormat('es-CL');
  * GET /api/devoluciones?todas=1 → todas las enviadas, solo administradores
  */
 export async function GET(peticion) {
-  const sesion = await sesionActual();
-  if (!sesion) return NextResponse.json({ error: 'Sin sesión.' }, { status: 401 });
+  const { sesion, accesos, corte } = await exigirTaller();
+  if (corte) return corte;
 
   const quiereTodas = peticion.nextUrl.searchParams.get('todas') === '1';
-  const admin = await esAdmin(sesion.usuario);
+  const { admin } = accesos;
 
   if (quiereTodas && !admin) {
     return NextResponse.json({ error: 'No autorizado.' }, { status: 403 });
@@ -43,8 +42,8 @@ export async function GET(peticion) {
  * falla, no se crea una solicitud sin prueba.
  */
 export async function POST(peticion) {
-  const sesion = await sesionActual();
-  if (!sesion) return NextResponse.json({ error: 'Sin sesión.' }, { status: 401 });
+  const { sesion, corte } = await exigirTaller();
+  if (corte) return corte;
 
   try {
     const forma = await peticion.formData();

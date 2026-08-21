@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { sesionActual } from '../../../../lib/servidor';
-import { esCasino } from '../../../../lib/usuarios';
+import { exigirCasino } from '../../../../lib/servidor';
 import { jugadasDe, saldoDe } from '../../../../lib/fichas';
 
 export const runtime = 'nodejs';
@@ -8,11 +7,8 @@ export const dynamic = 'force-dynamic';
 
 /** GET /api/casino/saldo → fichas y últimas jugadas de quien pregunta. */
 export async function GET() {
-  const sesion = await sesionActual();
-  if (!sesion) return NextResponse.json({ error: 'Sin sesión.' }, { status: 401 });
-  if (!(await esCasino(sesion.usuario))) {
-    return NextResponse.json({ error: 'No autorizado.' }, { status: 403 });
-  }
+  const { sesion, corte } = await exigirCasino();
+  if (corte) return corte;
 
   try {
     return NextResponse.json({

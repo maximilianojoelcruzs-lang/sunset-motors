@@ -1,20 +1,10 @@
 import { NextResponse } from 'next/server';
-import { sesionActual } from '../../../lib/servidor';
-import { esAdmin } from '../../../lib/usuarios';
+import { exigirAdmin } from '../../../lib/servidor';
 import { guardarWebhook, publica } from '../../../lib/config';
 import { avisarDiscord } from '../../../lib/discord';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-
-async function exigirAdmin() {
-  const sesion = await sesionActual();
-  if (!sesion) return { corte: NextResponse.json({ error: 'Sin sesión.' }, { status: 401 }) };
-  if (!(await esAdmin(sesion.usuario))) {
-    return { corte: NextResponse.json({ error: 'No autorizado.' }, { status: 403 }) };
-  }
-  return { sesion };
-}
 
 /** GET /api/config → si hay webhook, sin devolver la URL. */
 export async function GET() {

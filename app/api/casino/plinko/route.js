@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { sesionActual } from '../../../../lib/servidor';
-import { esCasino } from '../../../../lib/usuarios';
+import { exigirCasino } from '../../../../lib/servidor';
 import { resolver, saldoDe, validarApuesta } from '../../../../lib/fichas';
 import { TABLAS, soltarVarias } from '../../../../lib/plinko';
 
@@ -9,11 +8,8 @@ export const dynamic = 'force-dynamic';
 
 /** POST /api/casino/plinko  body: { apuesta, riesgo, bolitas } */
 export async function POST(peticion) {
-  const sesion = await sesionActual();
-  if (!sesion) return NextResponse.json({ error: 'Sin sesión.' }, { status: 401 });
-  if (!(await esCasino(sesion.usuario))) {
-    return NextResponse.json({ error: 'No autorizado.' }, { status: 403 });
-  }
+  const { sesion, corte } = await exigirCasino();
+  if (corte) return corte;
 
   const { apuesta, riesgo, bolitas } = await peticion.json().catch(() => ({}));
 

@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { sesionActual } from '../../../../../lib/servidor';
-import { esAdmin } from '../../../../../lib/usuarios';
+import { exigirTaller } from '../../../../../lib/servidor';
 import { porId } from '../../../../../lib/devoluciones';
 import { urlFirmada } from '../../../../../lib/imagenes';
 
@@ -16,8 +15,8 @@ export const dynamic = 'force-dynamic';
  * internet para cualquiera que adivine la dirección.
  */
 export async function GET(peticion, { params }) {
-  const sesion = await sesionActual();
-  if (!sesion) return NextResponse.json({ error: 'Sin sesión.' }, { status: 401 });
+  const { sesion, accesos, corte } = await exigirTaller();
+  if (corte) return corte;
 
   const { id } = await params;
   const devolucion = await porId(id);
@@ -26,7 +25,7 @@ export async function GET(peticion, { params }) {
   }
 
   const propia = devolucion.usuario === sesion.usuario;
-  if (!propia && !(await esAdmin(sesion.usuario))) {
+  if (!propia && !accesos.admin) {
     return NextResponse.json({ error: 'No autorizado.' }, { status: 403 });
   }
 

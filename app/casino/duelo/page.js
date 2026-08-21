@@ -1,15 +1,12 @@
-import { redirect } from 'next/navigation';
-import { accesosDe, sesionActual } from '../../../lib/servidor';
+import { sesionDeCasino } from '../../../lib/servidor';
 import { saldoDe } from '../../../lib/fichas';
 import Duelo from './duelo';
 
 export const dynamic = 'force-dynamic';
 
 export default async function Pagina() {
-  const sesion = await sesionActual();
-  if (!sesion) redirect('/login');
-  const accesos = await accesosDe(sesion.usuario);
-  if (!accesos.casino) redirect('/');
+  const sesion = await sesionDeCasino();
+  const { accesos } = sesion;
 
   return (
     <Duelo

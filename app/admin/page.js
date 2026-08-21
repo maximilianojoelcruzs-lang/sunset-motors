@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation';
-import { accesosDe, sesionDeTaller } from '../../lib/servidor';
+import { sesionDeTaller } from '../../lib/servidor';
 import { listarUsuarios } from '../../lib/usuarios';
 import { dondeGuarda } from '../../lib/almacen';
-import { listar, turnoAbierto } from '../../lib/turnos';
+import { abiertoEn, listar } from '../../lib/turnos';
 import { publica } from '../../lib/config';
 import Panel from './panel';
 
@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 // El rol se comprueba acá, no en el middleware: Edge no puede leer la base de datos.
 export default async function PaginaAdmin() {
   const sesion = await sesionDeTaller();
-  const accesos = await accesosDe(sesion.usuario);
+  const { accesos } = sesion;
   if (!accesos.admin) redirect('/');
 
   let turnos = [];
@@ -28,8 +28,9 @@ export default async function PaginaAdmin() {
       taller: !casino || Boolean(taller),
       discord: discord ?? null,
     }));
-    // El menú de perfil de la barra también deja marcar desde acá.
-    abierto = await turnoAbierto(sesion.usuario);
+    // El menú de perfil de la barra también deja marcar desde acá. Sale de la lista que ya
+    // se leyó arriba: pedir `turnoAbierto()` era volver a leer el registro entero.
+    abierto = abiertoEn(turnos, sesion.usuario);
   } catch (e) {
     fallo = e.message;
   }

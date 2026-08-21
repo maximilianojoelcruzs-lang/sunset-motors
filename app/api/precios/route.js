@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { sesionActual } from '../../../lib/servidor';
-import { esAdmin } from '../../../lib/usuarios';
+import { exigirAdmin, exigirTaller } from '../../../lib/servidor';
 import { obtener, reemplazar, restaurarSemilla } from '../../../lib/precios';
 
 export const runtime = 'nodejs';
@@ -8,8 +7,8 @@ export const dynamic = 'force-dynamic';
 
 /** GET /api/precios → el catálogo. Lo necesita cualquiera para calcular. */
 export async function GET() {
-  const sesion = await sesionActual();
-  if (!sesion) return NextResponse.json({ error: 'Sin sesión.' }, { status: 401 });
+  const { sesion, corte } = await exigirTaller();
+  if (corte) return corte;
 
   try {
     return NextResponse.json({ catalogo: await obtener() });
@@ -20,11 +19,8 @@ export async function GET() {
 
 /** PUT /api/precios  body: { secciones }. Solo administradores. */
 export async function PUT(peticion) {
-  const sesion = await sesionActual();
-  if (!sesion) return NextResponse.json({ error: 'Sin sesión.' }, { status: 401 });
-  if (!(await esAdmin(sesion.usuario))) {
-    return NextResponse.json({ error: 'No autorizado.' }, { status: 403 });
-  }
+  const { sesion, corte } = await exigirAdmin();
+  if (corte) return corte;
 
   const { secciones } = await peticion.json().catch(() => ({}));
 
@@ -39,11 +35,8 @@ export async function PUT(peticion) {
 
 /** POST /api/precios → volver al catálogo original del código. Solo administradores. */
 export async function POST() {
-  const sesion = await sesionActual();
-  if (!sesion) return NextResponse.json({ error: 'Sin sesión.' }, { status: 401 });
-  if (!(await esAdmin(sesion.usuario))) {
-    return NextResponse.json({ error: 'No autorizado.' }, { status: 403 });
-  }
+  const { sesion, corte } = await exigirAdmin();
+  if (corte) return corte;
 
   try {
     const { catalogo } = await restaurarSemilla(sesion.usuario);

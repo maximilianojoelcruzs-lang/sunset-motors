@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { sesionActual } from '../../../lib/servidor';
-import { esAdmin } from '../../../lib/usuarios';
+import { exigirTaller } from '../../../lib/servidor';
 import { crear, listar, listarEnviadas } from '../../../lib/licencias';
 import { crearAviso, ADMINS } from '../../../lib/avisos';
 
@@ -14,11 +13,11 @@ export const dynamic = 'force-dynamic';
  * Los borradores ajenos no salen nunca: son de quien los escribe hasta que los envía.
  */
 export async function GET(peticion) {
-  const sesion = await sesionActual();
-  if (!sesion) return NextResponse.json({ error: 'Sin sesión.' }, { status: 401 });
+  const { sesion, accesos, corte } = await exigirTaller();
+  if (corte) return corte;
 
   const quiereTodas = peticion.nextUrl.searchParams.get('todas') === '1';
-  const admin = await esAdmin(sesion.usuario);
+  const { admin } = accesos;
 
   if (quiereTodas && !admin) {
     return NextResponse.json({ error: 'No autorizado.' }, { status: 403 });
@@ -37,8 +36,8 @@ export async function GET(peticion) {
 
 /** POST /api/licencias  body: { tipo, inicio, fin, motivo, enviar } */
 export async function POST(peticion) {
-  const sesion = await sesionActual();
-  if (!sesion) return NextResponse.json({ error: 'Sin sesión.' }, { status: 401 });
+  const { sesion, corte } = await exigirTaller();
+  if (corte) return corte;
 
   const datos = await peticion.json().catch(() => ({}));
 

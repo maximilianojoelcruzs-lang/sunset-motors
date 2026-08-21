@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { sesionActual } from '../../../../lib/servidor';
-import { esCasino } from '../../../../lib/usuarios';
+import { exigirCasino } from '../../../../lib/servidor';
 import { cobrar, pagar, validarApuesta, saldoDe } from '../../../../lib/fichas';
 import { cambiar, evaluar, repartir } from '../../../../lib/poker';
 import { borrarMano, guardarMano, manoPendiente } from '../../../../lib/poker-mano';
@@ -12,9 +11,8 @@ const no = (mensaje, estado) => NextResponse.json({ error: mensaje }, { status: 
 
 /** POST /api/casino/poker  body: { accion: 'repartir'|'cambiar', apuesta, seQueda } */
 export async function POST(peticion) {
-  const sesion = await sesionActual();
-  if (!sesion) return no('Sin sesión.', 401);
-  if (!(await esCasino(sesion.usuario))) return no('No autorizado.', 403);
+  const { sesion, corte } = await exigirCasino();
+  if (corte) return corte;
 
   const { accion, apuesta, seQueda } = await peticion.json().catch(() => ({}));
 

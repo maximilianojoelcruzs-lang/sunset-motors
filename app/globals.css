@@ -288,12 +288,53 @@ button {
 }
 
 .campana-cabeza {
-  padding: 11px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 10px 9px 14px;
   border-bottom: 1px solid var(--bay-line);
   font-size: 0.66rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--sun-5);
+}
+
+/* Cuántos hay. Es el número que dice si vale la pena vaciar la lista. */
+.campana-cuenta {
+  margin-left: 7px;
+  font-family: var(--font-data), monospace;
+  font-style: normal;
+  letter-spacing: 0;
+  color: var(--ink-soft);
+}
+
+.campana-limpiar {
+  flex-shrink: 0;
+  border: 1px solid var(--bay-line);
+  border-radius: 3px;
+  padding: 4px 8px;
+  background: transparent;
+  font-family: inherit;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.campana-limpiar:hover {
+  color: var(--sun-3);
+  border-color: var(--sun-3);
+}
+
+.campana-error {
+  margin: 0;
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--bay-line);
+  font-size: 0.72rem;
+  color: var(--sun-3);
 }
 
 .campana-vacio {
@@ -313,11 +354,47 @@ button {
 }
 
 .campana-lista li {
-  padding: 11px 14px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  gap: 6px;
+  padding: 11px 8px 11px 14px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   font-size: 0.78rem;
   line-height: 1.45;
   color: #948c7d;
+}
+
+/* La × va apagada y se enciende al pasar por encima de la fila: con veinte avisos, veinte
+   cruces encendidas es lo único que se ve. */
+.campana-quitar {
+  border: 0;
+  border-radius: 3px;
+  padding: 0 5px;
+  background: transparent;
+  font-size: 1.05rem;
+  line-height: 1.2;
+  color: transparent;
+  cursor: pointer;
+  transition: color 0.12s, background 0.12s;
+}
+
+.campana-lista li:hover .campana-quitar,
+.campana-quitar:focus-visible {
+  color: var(--ink-soft);
+}
+
+.campana-quitar:hover {
+  color: var(--sun-3);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* En un teléfono no hay «pasar por encima»: ahí la × se ve siempre, o no habría cómo borrar. */
+@media (hover: none) {
+  .campana-quitar {
+    color: var(--ink-soft);
+    padding: 0 8px;
+  }
 }
 
 .campana-lista li.nuevo {

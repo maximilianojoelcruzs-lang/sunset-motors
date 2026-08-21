@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { sesionActual } from '../../../../lib/servidor';
-import { esCasino } from '../../../../lib/usuarios';
+import { exigirCasino } from '../../../../lib/servidor';
 import { resolver, validarApuesta } from '../../../../lib/fichas';
 import { rascar } from '../../../../lib/rasca';
 
@@ -14,11 +13,8 @@ export const dynamic = 'force-dynamic';
  * rápido o más lento no cambia nada, igual que con un raspadito de papel.
  */
 export async function POST(peticion) {
-  const sesion = await sesionActual();
-  if (!sesion) return NextResponse.json({ error: 'Sin sesión.' }, { status: 401 });
-  if (!(await esCasino(sesion.usuario))) {
-    return NextResponse.json({ error: 'No autorizado.' }, { status: 403 });
-  }
+  const { sesion, corte } = await exigirCasino();
+  if (corte) return corte;
 
   const { apuesta } = await peticion.json().catch(() => ({}));
 

@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { sesionActual } from '../../../../lib/servidor';
-import { soloCasino } from '../../../../lib/usuarios';
+import { exigirTaller } from '../../../../lib/servidor';
 import { hayLector, leerCaptura } from '../../../../lib/gemini';
 
 export const runtime = 'nodejs';
@@ -30,11 +29,8 @@ function tipoReal(bytes) {
  * viajaría con él y quedaría a la vista de cualquiera.
  */
 export async function POST(peticion) {
-  const sesion = await sesionActual();
-  if (!sesion) return NextResponse.json({ error: 'Sin sesión.' }, { status: 401 });
-  if (await soloCasino(sesion.usuario)) {
-    return NextResponse.json({ error: 'No autorizado.' }, { status: 403 });
-  }
+  const { sesion, corte } = await exigirTaller();
+  if (corte) return corte;
   if (!hayLector()) {
     return NextResponse.json(
       { error: 'No hay lector de capturas configurado. Anota el conteo a mano.' },

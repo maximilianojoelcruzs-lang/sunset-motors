@@ -1,18 +1,14 @@
-import { redirect } from 'next/navigation';
-import { accesosDe, sesionActual } from '../../lib/servidor';
+import { sesionDeCasino } from '../../lib/servidor';
 import { saldoDe } from '../../lib/fichas';
 import Casino from './casino';
 
 export const dynamic = 'force-dynamic';
 
 export default async function PaginaCasino() {
-  const sesion = await sesionActual();
-  if (!sesion) redirect('/login');
-
   // Entran los invitados del casino, los mecánicos con casino y los administradores.
   // Un mecánico común, no.
-  const accesos = await accesosDe(sesion.usuario);
-  if (!accesos.casino) redirect('/');
+  const sesion = await sesionDeCasino();
+  const { accesos } = sesion;
 
   return (
     <Casino

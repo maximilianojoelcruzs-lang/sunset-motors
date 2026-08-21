@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { sesionActual } from '../../../../lib/servidor';
+import { exigirSesion } from '../../../../lib/servidor';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -19,8 +19,8 @@ const TIPOS = {
  * "../../" en la URL dejaría leer cualquier archivo del servidor.
  */
 export async function GET(peticion, { params }) {
-  const sesion = await sesionActual();
-  if (!sesion) return NextResponse.json({ error: 'Sin sesión.' }, { status: 401 });
+  const { sesion, corte } = await exigirSesion();
+  if (corte) return corte;
 
   const { ruta } = await params;
   const relativa = (ruta ?? []).join('/');

@@ -1,13 +1,11 @@
 import { NextResponse } from 'next/server';
-import { sesionActual } from '../../../../lib/servidor';
-import { esCasino } from '../../../../lib/usuarios';
+import { exigirCasino } from '../../../../lib/servidor';
 import { cobrar, pagar, saldoDe, validarApuesta } from '../../../../lib/fichas';
 import { CASILLAS, esValido, maximasDe, pagoDe, sembrar } from '../../../../lib/mines';
 import {
-  conPartida,
-  escribirPartidas,
+  guardarPartidaDe,
   leerPartidas,
-  sinPartida,
+  olvidarPartidaDe,
 } from '../../../../lib/mines-partida';
 
 export const runtime = 'nodejs';
@@ -29,9 +27,8 @@ const enJuego = (partida, saldo) => ({
 
 /** POST /api/casino/mines  body: { accion: 'empezar'|'destapar'|'cobrar', apuesta, minas, casilla } */
 export async function POST(peticion) {
-  const sesion = await sesionActual();
-  if (!sesion) return no('Sin sesión.', 401);
-  if (!(await esCasino(sesion.usuario))) return no('No autorizado.', 403);
+  const { sesion, corte } = await exigirCasino();
+  if (corte) return corte;
 
   const usuario = sesion.usuario;
   const { accion, apuesta, minas, casilla } = await peticion.json().catch(() => ({}));
@@ -57,7 +54,7 @@ export async function POST(peticion) {
         destapadas: [],
       };
 
-      await escribirPartidas(conPartida(todas, usuario, nueva));
+      await guardarPartidaDe(usuario, nueva);
       const saldo = await cobrar(usuario, validada.apuesta);
       return NextResponse.json(enJuego(nueva, saldo));
     }
@@ -71,7 +68,7 @@ export async function POST(peticion) {
 
       if (partida.sembradas.includes(i)) {
         // Se acabó. Recién ahora se enseñan las minas, y no antes.
-        await escribirPartidas(sinPartida(todas, usuario));
+        await olvidarPartidaDe(usuario);
         const { saldo, neto } = await pagar({
           usuario,
           juego: 'mines',
@@ -102,7 +99,7 @@ export async function POST(peticion) {
         return cerrar(usuario, seguida, todas, 'llegó al tope');
       }
 
-      await escribirPartidas(conPartida(todas, usuario, seguida));
+      await guardarPartidaDe(usuario, seguida);
       return NextResponse.json(enJuego(seguida, await saldoDe(usuario)));
     }
 
@@ -122,7 +119,7 @@ async function cerrar(usuario, partida, todas, porque) {
   const multiplicador = pagoDe(partida.minas, partida.destapadas.length);
   const premio = Math.round(partida.apuesta * multiplicador);
 
-  await escribirPartidas(sinPartida(todas, usuario));
+  await olvidarPartidaDe(usuario);
   const { saldo, neto } = await pagar({
     usuario,
     juego: 'mines',

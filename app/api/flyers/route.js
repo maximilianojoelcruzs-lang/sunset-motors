@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { sesionActual } from '../../../lib/servidor';
-import { esAdmin, nombres } from '../../../lib/usuarios';
+import { exigirAdmin, exigirTaller } from '../../../lib/servidor';
+import { nombres } from '../../../lib/usuarios';
 import { crearFlyer, listarFlyers } from '../../../lib/anuncios';
 import { guardarImagen } from '../../../lib/imagenes';
 import { crearAvisos } from '../../../lib/avisos';
@@ -10,8 +10,8 @@ export const dynamic = 'force-dynamic';
 
 /** GET /api/flyers → todos los flyers. Cualquiera con sesión: son para todo el taller. */
 export async function GET() {
-  const sesion = await sesionActual();
-  if (!sesion) return NextResponse.json({ error: 'Sin sesión.' }, { status: 401 });
+  const { sesion, corte } = await exigirTaller();
+  if (corte) return corte;
 
   try {
     return NextResponse.json({ flyers: await listarFlyers() });
@@ -22,11 +22,8 @@ export async function GET() {
 
 /** POST /api/flyers — multipart: titulo, imagen. Solo administradores publican. */
 export async function POST(peticion) {
-  const sesion = await sesionActual();
-  if (!sesion) return NextResponse.json({ error: 'Sin sesión.' }, { status: 401 });
-  if (!(await esAdmin(sesion.usuario))) {
-    return NextResponse.json({ error: 'No autorizado.' }, { status: 403 });
-  }
+  const { sesion, corte } = await exigirAdmin();
+  if (corte) return corte;
 
   try {
     const forma = await peticion.formData();

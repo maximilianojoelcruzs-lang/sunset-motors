@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { sesionActual } from '../../../../lib/servidor';
-import { esCasino } from '../../../../lib/usuarios';
+import { exigirCasino } from '../../../../lib/servidor';
 import {
   resolver,
   saldoDe,
@@ -30,11 +29,8 @@ const no = (mensaje) => NextResponse.json({ error: mensaje }, { status: 400 });
  * no corresponda. El descuento del saldo también es de acá: el cliente no resta nada.
  */
 export async function POST(peticion) {
-  const sesion = await sesionActual();
-  if (!sesion) return NextResponse.json({ error: 'Sin sesión.' }, { status: 401 });
-  if (!(await esCasino(sesion.usuario))) {
-    return NextResponse.json({ error: 'No autorizado.' }, { status: 403 });
-  }
+  const { sesion, corte } = await exigirCasino();
+  if (corte) return corte;
 
   const { apuestas } = await peticion.json().catch(() => ({}));
 

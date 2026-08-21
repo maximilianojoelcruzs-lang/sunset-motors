@@ -122,6 +122,29 @@ entre el login y la renovación **a propósito**: con opciones distintas —otro
 Comprobado: una cookie con 29 días por delante no se toca; con 10 días o con 12 horas se estira
 a 30; una vencida y una mal firmada van al login igual que antes.
 
+### Un solo portero para todas las rutas
+
+`lib/servidor.js` tiene los cuatro: `exigirSesion()`, `exigirTaller()`, `exigirCasino()` y
+`exigirAdmin()`. Devuelven `{ sesion, accesos, corte }`; si viene `corte`, la ruta lo devuelve
+tal cual y no hace nada más.
+
+Antes cada ruta traía su propia copia de esas cuatro líneas —catorce copias— y **todas
+arrastraban el mismo agujero**: `soloCasino()` responde `false` a una cuenta que ya no existe
+(no es del casino, porque no es de nada), así que borrar a alguien no lo echaba. Con la pestaña
+abierta seguía usando la calculadora, el tunning y la bodega hasta que caducara su cookie, que
+son 30 días. Ahora `puertasDe()` devuelve también `existe` y el portero exige que la cuenta
+esté; **no cuesta ninguna consulta extra**, porque la comprobación de siempre ya leía esa misma
+colección.
+
+El portero **devuelve los accesos ya leídos**. Una ruta que necesite saber si quien pregunta es
+admin usa `accesos.admin` en vez de llamar a `esAdmin()`, que sería leer la tabla de usuarios
+por segunda vez en la misma petición.
+
+`npm run probar` comprueba que **cada archivo importe el portero que usa**. Sin linter ni
+TypeScript, usar `exigirAdmin` sin importarlo compila igual y el fallo sale recién cuando
+alguien llama a esa ruta, como un 500: `/api/turnos` respondía 500 a un mecánico en vez de 403,
+y el build no dijo nada.
+
 ### El rol NO se comprueba en el middleware
 
 `middleware.js` corre en Edge y **no puede leer la base** (`lib/almacen.js` usa `node:fs`).
@@ -326,6 +349,13 @@ y vuelta por la red. Dos cambios:
 Medido en local: repartir 278 ms y cada acción 145 ms. Si vuelve a sentirse lento, cuenta los
 `leer`/`guardar` por petición antes de tocar la animación — casi siempre es eso.
 
+**Para contarlos hay `SUNSET_TRAZA=1`**, que hace que `lib/almacen.js` imprima cada lectura y
+cada escritura con su clave. Es como se encontró que la campanita hacía **61 idas al almacén en
+una sola petición**: `avisosDe()` preguntaba `esAdmin()` una vez por aviso, y la campanita
+consulta cada 20 segundos. Ahora el `admin` se recibe —el portero de la ruta ya lo leyó— y son
+**1**. Con la misma traza se vio que cada página del taller pedía la tabla de usuarios dos
+veces; ahora `sesionDeTaller()` devuelve los accesos y las páginas bajaron de 4-6 idas a 3-4.
+
 ### Mines: el pago sale de la probabilidad, no de una tabla
 
 `pago(k) = RETORNO × C(25,k) / C(25−m,k)`, o sea el inverso de la probabilidad de haber
@@ -494,6 +524,65 @@ Todo el CSS del casino cuelga de `.casino`, con sus propias variables (`--neon`,
 local distinto: no debe parecerse al taller ni pisarle los estilos. `<Barra variante="casino">`
 cambia marca y enlaces, y esconde el marcaje de turno y *Mis turnos* — quien entra al casino no
 ficha horas.
+
+## Seguridad de la app
+
+Todo esto es de una sola vez y no hay que volver a pensarlo, pero **no lo quites**: cada cosa
+tapa algo concreto.
+
+### Cabeceras y política de contenido
+
+`next.config.mjs` pone las fijas: `X-Frame-Options: DENY` (que la app no se pueda meter en un
+iframe ajeno encima de sus botones), `nosniff`, `Referrer-Policy: same-origin`,
+`Permissions-Policy` sin cámara ni micrófono ni ubicación, y HSTS de un año. También
+`poweredByHeader: false`.
+
+La **CSP va en el middleware** porque lleva un **nonce distinto en cada carga**: es lo que
+permite prohibir los scripts pegados en el HTML sin romper Next, que necesita uno para
+arrancar. Con `'unsafe-inline'` la CSP no defendería de nada.
+
+De ahí sale una regla que cuesta caro olvidar: **una página estática rompe el nonce**. El HTML
+prerenderizado en el build trae el nonce de entonces, el navegador bloquea el arranque y la
+página se queda muerta sin ningún error a la vista. Por eso `app/login/page.js` es un
+envoltorio de servidor con `force-dynamic` y el formulario vive en `formulario.js`. Si agregas
+una página que no lleve `dynamic = 'force-dynamic'`, compruébalo en el navegador con
+`npm run build && npm start`, no en `npm run dev`.
+
+`img-src` acepta cualquier `https:` **a propósito**: las capturas de devoluciones se pueden
+pegar como enlace y ese enlace lo escribe quien lo pega. Google Fonts está permitido por la
+página suelta de `public/`; la app no lo necesita porque `next/font` sirve las fuentes desde el
+propio servidor.
+
+### El middleware también mira de dónde viene
+
+Las peticiones que escriben (`POST`, `PUT`, `PATCH`, `DELETE`) se cortan con 403 si traen
+`Origin` de otro sitio o `Sec-Fetch-Site: cross-site`. La cookie es `sameSite: 'lax'`, así que
+esto es el segundo cerrojo, y cierra las variantes: un `fetch` con `credentials: 'include'`
+desde cualquier página, un formulario escondido, una etiqueta que dispare un DELETE.
+
+**Sin ninguna de las dos cabeceras se deja pasar**, que es el caso de `curl` y de los scripts
+de prueba — ésos ya necesitan la cookie para hacer algo. Comprobado: `Origin` ajeno 403,
+`cross-site` 403, `Origin` propio 200, sin cabeceras 200.
+
+El login pasa por el middleware pero **no por la comprobación de sesión** (`PUBLICAS` en
+`middleware.js`): necesita la CSP igual, y mandarlo al login desde el login sería un bucle.
+
+### Intentos de clave
+
+**[lib/intentos.js](lib/intentos.js)** — el taller entero está detrás de una clave y antes se
+podían probar sin ningún límite, que es lo único que necesita un script con una lista de claves
+comunes. Se cuentan los fallos en `sunset:intentos`, se consulta **antes** de comprobar la
+clave, y la espera se dobla con cada fallo hasta media hora.
+
+- Cinco fallos libres **por cuenta y equipo**, y quince **por equipo** contando todas las
+  cuentas que haya probado. Lo segundo es lo que frena a quien recorre una lista de usuarios.
+- Se cuenta por (cuenta, equipo) y no por cuenta a secas **para que nadie pueda dejar a otro
+  fuera** fallando adrede desde su casa.
+- Acertar la clave durante el bloqueo **no lo levanta**: sigue respondiendo 429.
+- Entrar bien borra el contador de esa cuenta, pero **no el del equipo**: si no, bastaría con
+  tener una cuenta propia y entrar con ella de vez en cuando para seguir probando.
+- Los fallos de más de una hora se olvidan, y la poda va en la misma escritura porque esta app
+  no tiene ningún proceso de fondo.
 
 ## Licencias y ausencias
 
@@ -909,6 +998,31 @@ un aviso compartido, desaparecería para los demás.
 No hay correo ni notificación al teléfono: eso necesita un servicio externo (Resend o similar) y
 no está montado.
 
+### Los avisos se borran
+
+Con la app en uso a diario la lista crece sola —cada cierre de turno, cada solicitud— y se hacía
+una columna interminable dentro de un menú de 300 px. `borrar(usuario, { id, admin })` saca uno,
+o todos los de quien pide si no viene `id`. La ruta es `DELETE /api/avisos` y
+`DELETE /api/avisos?id=…`, las dos en el mismo archivo porque hacen lo mismo con el mismo
+chequeo.
+
+- **Un aviso propio se borra de verdad; uno a `ADMINS` solo se esconde**, apuntando a quien lo
+  borró en `ocultoPor`. Borrar la fila de un aviso compartido se lo quitaría de la campanita a
+  los otros administradores, que no pidieron nada. Es exactamente el motivo por el que existe
+  `leidoPor` y no un `leido` suelto. Comprobado con dos admins: uno borra el compartido y el
+  otro sigue viendo sus cuatro.
+- **El dueño se comprueba en el servidor.** El identificador se puede mandar a mano; borrar el
+  aviso de otro responde `400 Ese aviso no es tuyo.` Verificado.
+- Borrar el mismo dos veces responde 400 la segunda, no un 500 ni el borrado de otro.
+- **La fila se saca de la pantalla antes de que el servidor conteste.** Con la lista llena,
+  esperar la respuesta para que desaparezca una línea se siente pegado; si la escritura falla se
+  vuelve a leer y la lista queda como esté de verdad, con el mensaje a la vista.
+- La `×` está **apagada hasta pasar por encima de la fila**: veinte cruces encendidas serían lo
+  único que se ve en el menú. En pantalla táctil no hay «pasar por encima», así que ahí se ve
+  siempre (`@media (hover: none)`) — sin esa regla, en el teléfono no habría forma de borrar.
+- La cabecera lleva la cuenta y el botón de *Borrar todos*, y ese botón **solo aparece si hay
+  algo**.
+
 ## Registro de turnos
 
 - **[lib/turnos.js](lib/turnos.js)** — la lógica: `marcarEntrada`, `marcarSalida`, `listar`,
@@ -962,6 +1076,41 @@ pierde usuarios y turnos en cada despliegue. El panel muestra cuál está activo
 intencional — no lo quites pensando que es ruido. Cuando agregues un backend, agrégalo también a
 las tres etiquetas: el panel, el aviso y el rótulo de `scripts/usuarios.mjs`. Un rótulo que miente
 sobre en qué base estás escribiendo es peor que no tenerlo.
+
+### Ninguna escritura es a ciegas: `cambiar()`
+
+`lib/almacen.js` exporta `cambiar(clave, aplicar)`, que es `modificar()` con la forma que usa
+todo `lib/`: `aplicar(lista)` recibe la lista **recién leída** y devuelve `{ lista, valor }`
+para guardar o `{ error }` para no tocar nada.
+
+Se llegó a esto midiendo. El patrón «leer, cambiar, guardar» estaba escrito a mano en cuarenta
+sitios, y en todos perdía escrituras simultáneas igual que los turnos:
+
+```
+SEIS ACCIONES EN EL MISMO INSTANTE          antes        ahora
+licencias: crear                            1 de 6       6 de 6
+devoluciones: crear                         1 de 6       6 de 6
+inventario: cargar captura                  1 de 6       6 de 6
+usuarios: crear cuenta                      1 de 6       6 de 6
+avisos, mensajes, turnos                     idem        6 de 6
+saldo: seis apuestas de 100 sobre 1.000      600         400 ✔
+```
+
+Dos reglas al usarlo:
+
+- **Las comprobaciones van dentro del callback**, no antes. Si otro escribió entremedio, se
+  vuelve a llamar con lo que hay ahora, y así «no existe», «no es tuya» o «es el único
+  administrador» se deciden contra la lista de verdad. Eso es lo que impide que dos borrados a
+  la vez dejen el taller sin ningún admin.
+- **Lo que no debe repetirse va fuera**: un `randomUUID()`, una fecha, o el hash de una clave
+  (200.000 iteraciones). Se calcula una vez y el reintento guarda lo mismo.
+
+Los efectos que no son la escritura —borrar la imagen de una devolución, anotar la carga del
+inventario, avisar por Discord— van **después** y solo si se guardó. Al revés se borraba la
+captura de una solicitud que seguía existiendo.
+
+`guardar()` sigue existiendo para el arranque y para las pruebas, pero **en `lib/` ya no queda
+ninguna llamada**: si escribes una nueva, estás reintroduciendo el fallo.
 
 ### Las escrituras simultáneas ya no se pisan
 

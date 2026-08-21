@@ -18,6 +18,7 @@ export default function Campana() {
   const [avisos, setAvisos] = useState([]);
   const [sinLeer, setSinLeer] = useState(0);
   const [abierta, setAbierta] = useState(false);
+  const [error, setError] = useState('');
   const caja = useRef(null);
   const boton = useRef(null);
 
@@ -57,6 +58,36 @@ export default function Campana() {
       document.removeEventListener('keydown', tecla);
     };
   }, [abierta]);
+
+  /**
+   * Borrar uno, o todos si no viene identificador.
+   *
+   * La fila se saca de la pantalla **antes** de que el servidor conteste: con la lista llena,
+   * esperar la respuesta para que desaparezca una línea se siente pegado. Si la escritura
+   * falla se vuelve a leer y la lista queda como esté de verdad, con el aviso a la vista.
+   */
+  const borrar = async (id) => {
+    const previos = avisos;
+    setAvisos(id ? avisos.filter((a) => a.id !== id) : []);
+    setError('');
+
+    try {
+      const r = await fetch(`/api/avisos${id ? `?id=${encodeURIComponent(id)}` : ''}`, {
+        method: 'DELETE',
+      });
+      if (!r.ok) {
+        setAvisos(previos);
+        const cuerpo = await r.json().catch(() => ({}));
+        setError(cuerpo.error || 'No se pudo borrar.');
+        return;
+      }
+      // El contador puede quedar desfasado si se borró algo sin leer.
+      await cargar();
+    } catch {
+      setAvisos(previos);
+      setError('Sin conexión con el servidor.');
+    }
+  };
 
   const alternar = async () => {
     const abriendo = !abierta;
@@ -98,19 +129,40 @@ export default function Campana() {
 
       {abierta && (
         <div className="campana-menu" role="menu">
-          <div className="campana-cabeza">Avisos</div>
+          <div className="campana-cabeza">
+            <span>
+              Avisos
+              {avisos.length > 0 && <em className="campana-cuenta">{avisos.length}</em>}
+            </span>
+            {/* Solo aparece con algo que borrar: un botón que no hace nada estorba. */}
+            {avisos.length > 0 && (
+              <button type="button" className="campana-limpiar" onClick={() => borrar()}>
+                Borrar todos
+              </button>
+            )}
+          </div>
+
+          {error && <p className="campana-error">{error}</p>}
+
           {avisos.length === 0 ? (
             <p className="campana-vacio">No tienes avisos.</p>
           ) : (
             <ul className="campana-lista">
               {avisos.map((a) => (
                 <li key={a.id} className={a.leido ? '' : 'nuevo'}>
-                  {a.enlace ? (
-                    <a href={a.enlace}>{a.texto}</a>
-                  ) : (
-                    <span>{a.texto}</span>
-                  )}
-                  <span className="campana-cuando">{cuando(a.creado)}</span>
+                  <div className="campana-texto">
+                    {a.enlace ? <a href={a.enlace}>{a.texto}</a> : <span>{a.texto}</span>}
+                    <span className="campana-cuando">{cuando(a.creado)}</span>
+                  </div>
+                  <button
+                    type="button"
+                    className="campana-quitar"
+                    onClick={() => borrar(a.id)}
+                    aria-label="Borrar este aviso"
+                    title="Borrar"
+                  >
+                    ×
+                  </button>
                 </li>
               ))}
             </ul>

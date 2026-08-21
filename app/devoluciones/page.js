@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
-import { accesosDe, sesionDeTaller } from '../../lib/servidor';
-import { listar, listarEnviadas } from '../../lib/devoluciones';
+import { sesionDeTaller } from '../../lib/servidor';
+import { listarPara } from '../../lib/devoluciones';
 import { hayStorage } from '../../lib/imagenes';
 import { turnoAbierto } from '../../lib/turnos';
 import Devoluciones from './devoluciones';
@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 export default async function PaginaDevoluciones() {
   const sesion = await sesionDeTaller();
 
-  const accesos = await accesosDe(sesion.usuario);
+  const { accesos } = sesion;
   const { admin } = accesos;
 
   let mias = [];
@@ -18,8 +18,8 @@ export default async function PaginaDevoluciones() {
   let abierto = null;
   let fallo = '';
   try {
-    mias = await listar(sesion.usuario);
-    if (admin) todas = await listarEnviadas();
+    // Una sola lectura para las dos listas.
+    ({ mias, enviadas: todas } = await listarPara(sesion.usuario, admin));
     abierto = await turnoAbierto(sesion.usuario);
   } catch (e) {
     fallo = e.message;

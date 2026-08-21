@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
-import { accesosDe, sesionDeTaller } from '../../lib/servidor';
-import { listar, listarEnviadas } from '../../lib/licencias';
+import { sesionDeTaller } from '../../lib/servidor';
+import { listarPara } from '../../lib/licencias';
 import { turnoAbierto } from '../../lib/turnos';
 import Licencias from './licencias';
 
@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 export default async function PaginaLicencias() {
   const sesion = await sesionDeTaller();
 
-  const accesos = await accesosDe(sesion.usuario);
+  const { accesos } = sesion;
   const { admin } = accesos;
 
   let mias = [];
@@ -17,9 +17,9 @@ export default async function PaginaLicencias() {
   let abierto = null;
   let fallo = '';
   try {
-    mias = await listar(sesion.usuario);
-    // El administrador ve además todo lo que le enviaron. Los borradores ajenos, nunca.
-    if (admin) pendientes = await listarEnviadas();
+    // Una sola lectura para las dos listas. El administrador ve además todo lo que le
+    // enviaron; los borradores ajenos, nunca.
+    ({ mias, enviadas: pendientes } = await listarPara(sesion.usuario, admin));
     abierto = await turnoAbierto(sesion.usuario);
   } catch (e) {
     fallo = e.message;

@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
-import { accesosDe, sesionDeTaller } from '../../lib/servidor';
-import { obtener, esSemilla } from '../../lib/precios';
+import { sesionDeTaller } from '../../lib/servidor';
+import { obtener } from '../../lib/precios';
 import { turnoAbierto } from '../../lib/turnos';
 import Editor from './editor';
 
@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function PaginaPrecios() {
   const sesion = await sesionDeTaller();
-  const accesos = await accesosDe(sesion.usuario);
+  const { accesos } = sesion;
   if (!accesos.admin) redirect('/');
 
   const catalogo = await obtener();
@@ -25,7 +25,7 @@ export default async function PaginaPrecios() {
       usuario={sesion.usuario}
       accesos={accesos}
       catalogo={catalogo}
-      sinEditar={await esSemilla()}
+      sinEditar={catalogo.semilla}
       turnoPropio={abierto}
     />
   );

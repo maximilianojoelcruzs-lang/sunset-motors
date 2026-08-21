@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { accesosDe, sesionDeTaller } from '../../lib/servidor';
+import { sesionDeTaller } from '../../lib/servidor';
 import { listarFlyers, listarMensajes } from '../../lib/anuncios';
 import { hayStorage } from '../../lib/imagenes';
 import { turnoAbierto } from '../../lib/turnos';
@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function PaginaAnuncios() {
   const sesion = await sesionDeTaller();
-  const accesos = await accesosDe(sesion.usuario);
+  const { accesos } = sesion;
 
   let flyers = [];
   let mensajes = [];

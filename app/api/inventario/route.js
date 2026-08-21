@@ -1,26 +1,9 @@
 import { NextResponse } from 'next/server';
-import { sesionActual } from '../../../lib/servidor';
-import { soloCasino } from '../../../lib/usuarios';
+import { exigirTaller } from '../../../lib/servidor';
 import { aplicar, listar, listarCargas } from '../../../lib/inventario';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-
-/**
- * El inventario es del taller entero, y lo actualiza cualquiera con cuenta de taller.
- *
- * A diferencia de los pedidos de tunning —que son de quien los abre—, acá la bodega es una
- * sola: si cada uno tuviera su inventario, no habría inventario. Un invitado del casino no
- * entra, como en el resto de la API del taller.
- */
-async function exigirTaller() {
-  const sesion = await sesionActual();
-  if (!sesion) return { corte: NextResponse.json({ error: 'Sin sesión.' }, { status: 401 }) };
-  if (await soloCasino(sesion.usuario)) {
-    return { corte: NextResponse.json({ error: 'No autorizado.' }, { status: 403 }) };
-  }
-  return { sesion };
-}
 
 export async function GET() {
   const { corte } = await exigirTaller();

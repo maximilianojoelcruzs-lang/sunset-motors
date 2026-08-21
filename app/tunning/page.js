@@ -1,4 +1,4 @@
-import { accesosDe, sesionDeTaller } from '../../lib/servidor';
+import { sesionDeTaller } from '../../lib/servidor';
 import { listar } from '../../lib/tunning';
 import { turnoAbierto } from '../../lib/turnos';
 import Tunning from './tunning';
@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function PaginaTunning() {
   const sesion = await sesionDeTaller();
-  const accesos = await accesosDe(sesion.usuario);
+  const { accesos } = sesion;
 
   let pedidos = [];
   let abierto = null;

@@ -1,20 +1,9 @@
 import { NextResponse } from 'next/server';
-import { sesionActual } from '../../../../lib/servidor';
-import { esAdmin, esCasino } from '../../../../lib/usuarios';
+import { exigirCasino } from '../../../../lib/servidor';
 import { cerrarCiclo, ciclos, ranking, sembrarDesdeJugadas } from '../../../../lib/wager';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-
-/** El top lo ve cualquiera que pueda entrar al casino: es una tabla pública de la sala. */
-async function exigirCasino() {
-  const sesion = await sesionActual();
-  if (!sesion) return { corte: NextResponse.json({ error: 'Sin sesión.' }, { status: 401 }) };
-  if (!(await esCasino(sesion.usuario))) {
-    return { corte: NextResponse.json({ error: 'No autorizado.' }, { status: 403 }) };
-  }
-  return { sesion };
-}
 
 export async function GET() {
   const { corte } = await exigirCasino();
@@ -34,9 +23,9 @@ export async function GET() {
  * Cerrar mueve fichas de verdad, así que no basta con esconder el botón: se comprueba acá.
  */
 export async function POST(peticion) {
-  const { sesion, corte } = await exigirCasino();
+  const { sesion, accesos, corte } = await exigirCasino();
   if (corte) return corte;
-  if (!(await esAdmin(sesion.usuario))) {
+  if (!accesos.admin) {
     return NextResponse.json({ error: 'Solo un administrador cierra el ciclo.' }, { status: 403 });
   }
 

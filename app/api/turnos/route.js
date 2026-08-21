@@ -1,19 +1,11 @@
 import { NextResponse } from 'next/server';
-import { sesionActual } from '../../../lib/servidor';
-import { esAdmin, nombres } from '../../../lib/usuarios';
+import { exigirAdmin, exigirTaller } from '../../../lib/servidor';
+import { nombres } from '../../../lib/usuarios';
 import { dondeGuarda } from '../../../lib/almacen';
 import { listar, marcarEntrada, marcarSalida } from '../../../lib/turnos';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-
-// El middleware ya exige sesión; igual se revisa acá porque un route handler no debe
-// depender de que alguien más lo haya protegido.
-async function exigirSesion() {
-  const sesion = await sesionActual();
-  if (!sesion) return { corte: NextResponse.json({ error: 'Sin sesión.' }, { status: 401 }) };
-  return { sesion };
-}
 
 /**
  * GET /api/turnos → el registro completo. Solo administradores.
@@ -23,12 +15,8 @@ async function exigirSesion() {
  * y eso se lo entrega la página en app/page.js para dibujar el botón de marcaje.
  */
 export async function GET() {
-  const { sesion, corte } = await exigirSesion();
+  const { sesion, corte } = await exigirAdmin();
   if (corte) return corte;
-
-  if (!(await esAdmin(sesion.usuario))) {
-    return NextResponse.json({ error: 'No autorizado.' }, { status: 403 });
-  }
 
   try {
     return NextResponse.json({
@@ -44,7 +32,7 @@ export async function GET() {
 
 /** POST /api/turnos  body: { accion: 'entrada' | 'salida' } */
 export async function POST(peticion) {
-  const { sesion, corte } = await exigirSesion();
+  const { sesion, corte } = await exigirTaller();
   if (corte) return corte;
 
   const { accion } = await peticion.json().catch(() => ({}));

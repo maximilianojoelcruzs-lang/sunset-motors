@@ -75,8 +75,17 @@ variable cierra de inmediato todas las sesiones abiertas: es el botón de "echar
 Hay un solo permiso: **administrador**. Es lo que abre el registro de turnos y la gestión de
 cuentas. Se da y se quita desde el mismo panel.
 
-Lo que este login **no** hace: no hay límite de intentos fallidos, y no hay recuperación
-automática de claves — el administrador le pone una nueva a quien la olvide.
+**Probar claves a lo bruto no funciona.** Después de cinco intentos fallidos hay que esperar,
+y la espera se dobla con cada fallo: 15 segundos, 30, un minuto… hasta media hora. El límite es
+por cuenta **y** por computador, así que nadie puede dejarte fuera fallando adrede desde otro
+lado. Si te pasa a ti, espera lo que diga el mensaje y entra normal.
+
+**Cerrar una cuenta la cierra al instante.** Antes, quien tuviera la app abierta seguía usándola
+hasta que su sesión caducara —hasta 30 días—. Ahora, en cuanto el encargado la borra, la
+siguiente pantalla que abra esa persona la manda al login.
+
+Lo que este login **no** hace: no hay recuperación automática de claves — el administrador le
+pone una nueva a quien la olvide.
 
 ## Registro de entrada y salida
 
@@ -576,6 +585,13 @@ de teléfono.
 
 La campanita de la barra, con el número de avisos sin leer. Ahí llegan las solicitudes nuevas
 para el encargado y las respuestas para el mecánico. Se marcan como leídos al abrirla.
+
+**Y se borran.** Cada aviso tiene una **×** a la derecha —siempre visible en el teléfono, y al
+pasar el mouse por encima en el computador—, y arriba está **Borrar todos** con la cuenta de
+cuántos hay. Con la app en uso a diario la lista se hacía interminable.
+
+Los avisos que van *a los administradores* se borran **solo para ti**: al otro encargado le
+siguen apareciendo hasta que él los borre. Y nadie puede borrar el aviso de otra persona.
 
 Son avisos **dentro de la app**: aparecen cuando la persona entra. No hay correo ni
 notificación al teléfono — eso necesita contratar un servicio aparte.

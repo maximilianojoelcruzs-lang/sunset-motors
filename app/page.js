@@ -1,4 +1,4 @@
-import { accesosDe, sesionDeTaller } from '../lib/servidor';
+import { sesionDeTaller } from '../lib/servidor';
 import { turnoAbierto } from '../lib/turnos';
 import { obtener } from '../lib/precios';
 import Boleta from './boleta';
@@ -13,14 +13,13 @@ export default async function Pagina() {
   // El catálogo sí es imprescindible: sin él no hay calculadora. Si falla, que falle.
   const { secciones } = await obtener();
 
-  // Lo demás es secundario: si la base falla, la calculadora igual tiene que abrir.
+  // Los accesos vienen con la sesión, de la misma lectura que ya comprobó la puerta.
+  const accesos = sesion.accesos;
+
+  // El turno sí es secundario: si la base falla, la calculadora igual tiene que abrir.
   let abierto = null;
-  let accesos = { admin: false, casino: false, taller: true };
   try {
-    if (usuario) {
-      abierto = await turnoAbierto(usuario);
-      accesos = await accesosDe(usuario);
-    }
+    if (usuario) abierto = await turnoAbierto(usuario);
   } catch {
     abierto = null;
   }

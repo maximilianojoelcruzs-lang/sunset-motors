@@ -32,6 +32,50 @@ const nota = (t) => console.log(`    \x1b[90m${t}\x1b[0m`);
 
 let problemas = 0;
 
+// ---------- 0. Los porteros de cada ruta ----------
+//
+// Sin linter ni TypeScript, un portero usado y no importado **compila igual**: el fallo sale
+// recién cuando alguien llama a esa ruta, y como un 500. Pasó de verdad al unificar los
+// porteros: `/api/turnos` respondía 500 a un mecánico en vez de 403. Esto lo caza en un
+// segundo y sin levantar el servidor.
+
+console.log('\nLOS PORTEROS DE LAS RUTAS');
+
+const { readdir } = await import('node:fs/promises');
+
+async function todosLosArchivos(carpeta) {
+  const salida = [];
+  for (const entrada of await readdir(carpeta, { withFileTypes: true })) {
+    const camino = `${carpeta}/${entrada.name}`;
+    if (entrada.isDirectory()) salida.push(...(await todosLosArchivos(camino)));
+    else if (entrada.name.endsWith('.js')) salida.push(camino);
+  }
+  return salida;
+}
+
+const DEL_SERVIDOR = /\b(exigirSesion|exigirTaller|exigirCasino|exigirAdmin|sesionActual|sesionDeTaller|sesionDeCasino|accesosDe)\b/g;
+let descuadrados = 0;
+
+for (const archivo of await todosLosArchivos('app')) {
+  const texto = await readFile(archivo, 'utf8');
+  const cuerpo = texto.replace(/import \{[^}]*\} from '[^']*';/g, '');
+  const usados = new Set(cuerpo.match(DEL_SERVIDOR) ?? []);
+  if (!usados.size) continue;
+
+  const linea = texto.match(/import \{([^}]*)\} from '(?:\.\.\/)+lib\/servidor'/);
+  const traidos = new Set(
+    (linea?.[1] ?? '').split(',').map((n) => n.trim()).filter(Boolean)
+  );
+  const faltan = [...usados].filter((n) => !traidos.has(n));
+  if (faltan.length) {
+    mal(`${archivo} usa ${faltan.join(', ')} sin importarlo`);
+    descuadrados++;
+    problemas++;
+  }
+}
+
+if (!descuadrados) ok('Todas las rutas importan el portero que usan');
+
 // ---------- 1. Desde este computador ----------
 
 console.log('\nDESDE ESTE COMPUTADOR');

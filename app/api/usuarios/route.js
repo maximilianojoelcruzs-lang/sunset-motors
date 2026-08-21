@@ -1,20 +1,9 @@
 import { NextResponse } from 'next/server';
-import { sesionActual } from '../../../lib/servidor';
-import { crearUsuario, esAdmin, listarUsuarios } from '../../../lib/usuarios';
+import { exigirAdmin } from '../../../lib/servidor';
+import { crearUsuario, listarUsuarios } from '../../../lib/usuarios';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-
-// Administrar usuarios es solo de administradores. Se verifica en cada handler y no solo
-// en el middleware, que además ya no puede: corre en Edge y no lee la base.
-async function exigirAdmin() {
-  const sesion = await sesionActual();
-  if (!sesion) return { corte: NextResponse.json({ error: 'Sin sesión.' }, { status: 401 }) };
-  if (!(await esAdmin(sesion.usuario))) {
-    return { corte: NextResponse.json({ error: 'No autorizado.' }, { status: 403 }) };
-  }
-  return { sesion };
-}
 
 /** Nunca devuelve sal ni hash: el panel no los necesita y no tienen por qué viajar. */
 const publico = ({ usuario, admin, casino, taller, discord }) => ({

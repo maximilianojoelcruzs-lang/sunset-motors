@@ -1,21 +1,9 @@
 import { NextResponse } from 'next/server';
-import { sesionActual } from '../../../../lib/servidor';
-import { esAdmin } from '../../../../lib/usuarios';
+import { exigirAdmin } from '../../../../lib/servidor';
 import { borrar, corregir } from '../../../../lib/turnos';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-
-// Corregir y borrar turnos es solo de administradores: si cada uno pudiera editar el
-// suyo, el registro no serviría para controlar nada.
-async function exigirAdmin() {
-  const sesion = await sesionActual();
-  if (!sesion) return { corte: NextResponse.json({ error: 'Sin sesión.' }, { status: 401 }) };
-  if (!(await esAdmin(sesion.usuario))) {
-    return { corte: NextResponse.json({ error: 'No autorizado.' }, { status: 403 }) };
-  }
-  return { sesion };
-}
 
 /** PATCH /api/turnos/:id  body: { entrada?, salida?, nota? } */
 export async function PATCH(peticion, { params }) {

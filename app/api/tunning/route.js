@@ -1,20 +1,9 @@
 import { NextResponse } from 'next/server';
-import { sesionActual } from '../../../lib/servidor';
-import { soloCasino } from '../../../lib/usuarios';
+import { exigirTaller } from '../../../lib/servidor';
 import { crear, listar } from '../../../lib/tunning';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-
-/** Los pedidos son del taller: un invitado del casino no tiene nada que hacer acá. */
-async function exigirTaller() {
-  const sesion = await sesionActual();
-  if (!sesion) return { corte: NextResponse.json({ error: 'Sin sesión.' }, { status: 401 }) };
-  if (await soloCasino(sesion.usuario)) {
-    return { corte: NextResponse.json({ error: 'No autorizado.' }, { status: 403 }) };
-  }
-  return { sesion };
-}
 
 /**
  * GET /api/tunning → los pedidos de quien pregunta, y solo los suyos.

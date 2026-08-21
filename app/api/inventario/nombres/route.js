@@ -1,20 +1,10 @@
 import { NextResponse } from 'next/server';
-import { sesionActual } from '../../../../lib/servidor';
-import { soloCasino } from '../../../../lib/usuarios';
+import { exigirTaller } from '../../../../lib/servidor';
 import { corregirVarios, listar, partesNombre } from '../../../../lib/inventario';
 import { hayLector, sugerirNombres } from '../../../../lib/gemini';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-
-async function exigirTaller() {
-  const sesion = await sesionActual();
-  if (!sesion) return { corte: NextResponse.json({ error: 'Sin sesión.' }, { status: 401 }) };
-  if (await soloCasino(sesion.usuario)) {
-    return { corte: NextResponse.json({ error: 'No autorizado.' }, { status: 403 }) };
-  }
-  return { sesion };
-}
 
 /**
  * POST — propone el nombre entero de los que están cortados. **No guarda nada.**
