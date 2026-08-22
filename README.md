@@ -130,6 +130,21 @@ Discord si está configurado.
 En el registro esos turnos aparecen marcados como **cerrado solo**, para que el encargado sepa
 por qué terminaron ahí.
 
+### Pop-ups al entrar
+
+En *Anuncios* → **Pop-ups al entrar**, el encargado escribe un cartel que le sale a todo el
+mundo al entrar a la app, con título, mensaje y, si quiere, una imagen (pegando su enlace).
+
+Cada pop-up lleva un **tiempo límite**: pasada esa hora deja de salir solo, sin que nadie tenga
+que acordarse de apagarlo. Hay atajos —2 horas, hoy, 3 días, 1 semana— y también se puede dejar
+sin límite. Un límite que ya pasó no se acepta: te avisa en vez de guardar un cartel que nadie
+vería.
+
+Sale **una vez por entrada**: al iniciar sesión y al abrir la app en otra pestaña. Recargar la
+misma pestaña no lo repite, para no estorbar a quien ya lo leyó. Los vencidos se quedan en la
+lista del encargado por si quiere volver a usarlos, y se pueden apagar y encender sin perder el
+texto.
+
 ### Avisos por Discord
 
 En *Registro* → **Avisos por Discord**, el encargado puede pegar la URL de un webhook. En tu
@@ -495,8 +510,10 @@ El encargado ve tres pestañas: *Por revisar* (con el número pendiente), *Resue
 Pestaña **Devoluciones**, para la plata que un mecánico puso de su bolsillo y el taller le
 tiene que reponer.
 
-Se crea con el monto, de qué es, y **la captura del juego donde se vea lo que pagó**. Sin esa
-captura no se puede enviar: es la prueba. Igual que en licencias, primero es un borrador
+Se crea con el monto, de qué es, y **el enlace de la captura del juego donde se vea lo que
+pagó** — la URL que deja FiveM al hacer la captura. Sin ella no se puede enviar: es la prueba.
+Ya no se sube el archivo desde el escritorio: la captura ya está subida, así que se pega y
+listo. Igual que en licencias, primero es un borrador
 privado que se puede editar o eliminar, y al pulsar **Enviar** queda *Pendiente de pagar*.
 
 El encargado la marca **Pagado** o la **Rechaza**, con un comentario. En su pestaña *Por
@@ -505,9 +522,10 @@ pagar* ve además el total que el taller debe en ese momento.
 Los avisos van a los dos lados: al encargado cuando llega una solicitud, y al mecánico cuando
 la envía y cuando se resuelve.
 
-**Las capturas son privadas.** Solo las abre quien subió la solicitud y el encargado; a
-cualquier otro le responde «No autorizado», aunque tenga el enlace. Ver [PUBLICAR.md](PUBLICAR.md)
-para crear el bucket.
+**Ojo con la privacidad del enlace.** Una captura pegada vive donde la subió FiveM: quien tenga
+esa URL la puede abrir, aunque no tenga cuenta en la app. Las capturas antiguas, las que se
+subieron como archivo cuando eso existía, siguen siendo privadas: solo las abre quien subió la
+solicitud y el encargado.
 
 ## Tunning
 
@@ -555,10 +573,13 @@ por la hora en que se abrió.
 
 Pestaña **Inventario**: qué hay en la bodega y cuánto, sin llevarlo en un papel.
 
-**Se sube la captura del juego y se lee sola.** La bodega no cabe en una pantalla, así que se
-baja y se sube sacando varias fotos: se suben todas juntas y las filas repetidas entre pantallas
-se juntan solas. En la prueba leyó 22 de 22 artículos con las 22 cantidades exactas, en cuatro
-segundos por captura.
+**Recortas la pantalla del juego y la pegas con Ctrl + V.** Nada de guardarla en el escritorio
+y buscarla en un diálogo de archivos: la recortas, pegas en la pestaña y se lee sola —el conteo
+se abre solo al pegar la primera—. La bodega no cabe en una pantalla, así que se baja y se sube
+pegando varias: las filas repetidas entre pantallas se juntan solas. En la prueba leyó 22 de 22
+artículos con las 22 cantidades exactas, en cuatro segundos por captura.
+
+Si tu navegador no deja pegar, al lado queda la opción de siempre para elegir el archivo.
 
 **Nada entra sin que lo mires.** Antes de guardar aparece la tabla con lo que entendió: qué es
 nuevo, qué cambió y de cuánto a cuánto. Lo que no se entendió queda marcado y no se guarda.
@@ -584,16 +605,21 @@ Si no hay lector configurado (`GEMINI_API_KEY`), la pestaña funciona igual anot
 
 ## Anuncios
 
-Pestaña **Anuncios**, con dos partes.
+Pestaña **Anuncios**, con tres partes.
 
-**Flyers.** La galería de imágenes que publica el encargado. Se abren en grande al hacer clic
-y se pueden descargar. Solo el encargado sube y elimina; todo el taller mira. Cuando publica
-uno nuevo, le llega el aviso a todos.
+**Flyers.** La galería de imágenes que publica el encargado. Se publica **pegando el enlace de
+la imagen** —la URL que sale al subirla a Discord, a Imgur o la que deja FiveM—, no subiendo el
+archivo: la imagen ya está en internet, así que basta con apuntar a ella. Se abren en grande al
+hacer clic. Solo el encargado publica y elimina; todo el taller mira. Cuando publica uno nuevo,
+le llega el aviso a todos.
 
 **Mensajes listos para copiar.** Textos que el encargado deja guardados —anuncio de apertura,
 promoción de la semana, lo que sea— con un botón **Copiar** al lado. El mecánico lo copia y lo
 pega tal cual en el anuncio del juego, sin escribirlo de memoria ni equivocarse en el número
 de teléfono.
+
+**Pop-ups al entrar.** Ver más arriba: el cartel que sale al entrar a la app, con su tiempo
+límite.
 
 ## Avisos
 

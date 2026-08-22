@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { exigirAdmin, exigirTaller } from '../../../lib/servidor';
 import { nombres } from '../../../lib/usuarios';
 import { crearFlyer, listarFlyers } from '../../../lib/anuncios';
-import { guardarImagen } from '../../../lib/imagenes';
 import { crearAvisos } from '../../../lib/avisos';
 
 export const runtime = 'nodejs';
@@ -20,30 +19,21 @@ export async function GET() {
   }
 }
 
-/** POST /api/flyers — multipart: titulo, imagen. Solo administradores publican. */
+/**
+ * POST /api/flyers  body: { titulo, enlace }. Solo administradores publican.
+ *
+ * El enlace **se valida pero no se descarga**: la imagen la carga el navegador de quien mira
+ * la galería, como cualquier otro enlace. Ir a buscar una URL escrita a mano desde el servidor
+ * es pedir que le pidan cosas de la red interna.
+ */
 export async function POST(peticion) {
   const { sesion, corte } = await exigirAdmin();
   if (corte) return corte;
 
   try {
-    const forma = await peticion.formData();
-    const archivo = forma.get('imagen');
+    const { titulo, enlace } = await peticion.json().catch(() => ({}));
 
-    if (!archivo || typeof archivo !== 'object' || archivo.size === 0) {
-      return NextResponse.json({ error: 'Falta la imagen del flyer.' }, { status: 400 });
-    }
-
-    const { ruta, error: fallo } = await guardarImagen(
-      await archivo.arrayBuffer(),
-      archivo.type,
-      'flyers'
-    );
-    if (fallo) return NextResponse.json({ error: fallo }, { status: 400 });
-
-    const { error, flyer } = await crearFlyer(sesion.usuario, {
-      titulo: forma.get('titulo') ?? '',
-      imagen: ruta,
-    });
+    const { error, flyer } = await crearFlyer(sesion.usuario, { titulo: titulo ?? '', enlace });
     if (error) return NextResponse.json({ error }, { status: 400 });
 
     // Un flyer nuevo es justamente lo que el taller tiene que ver, así que se avisa a todos.

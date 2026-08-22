@@ -134,6 +134,11 @@ export default function Inventario({
   // Cuántas casillas trajo cada captura. Se enseña porque es el número que permite darse
   // cuenta al instante de que algo salió mal: la rejilla se ve y se cuenta.
   const [capturas, setCapturas] = useState([]);
+  // Solo para ponerle nombre a lo pegado: el portapapeles no trae ninguno.
+  const capturasPegadas = useRef(0);
+  // Lo que el listener de pegar necesita de cada pintado, sin volver a suscribirse.
+  const leyendoRef = useRef(false);
+  const leerRef = useRef(null);
   // Nombres completos propuestos para los que el juego enseña cortados. Sugerencias: no se
   // guarda ninguno hasta que alguien pulsa.
   const [sugerencias, setSugerencias] = useState(null);
@@ -216,13 +221,15 @@ export default function Inventario({
    * («2 de 4») en vez de quedarse mirando un botón muerto medio minuto. Lo leído **no se
    * guarda**: cae en la misma tabla de confirmación que lo anotado a mano.
    */
-  const escanear = async (e) => {
-    const imagenes = [...e.target.files];
-    e.target.value = '';
+  const leerCapturas = async (imagenes, comoSeLlaman) => {
     if (!imagenes.length) return;
 
     setError('');
+    // Pegar abre el conteo si no había ninguno: quien acaba de recortar la pantalla del juego
+    // pega directo, sin pasar antes por «Registrar conteo».
+    setLeidos((antes) => antes ?? []);
     for (const [i, imagen] of imagenes.entries()) {
+      const nombre = imagen.name || comoSeLlaman?.(i) || `captura ${i + 1}`;
       setLeyendo(`Leyendo ${i + 1} de ${imagenes.length}…`);
       const datos = new FormData();
       datos.append('imagen', imagen);
@@ -230,13 +237,13 @@ export default function Inventario({
         const r = await fetch('/api/inventario/leer', { method: 'POST', body: datos });
         const cuerpo = await r.json().catch(() => ({}));
         if (!r.ok) {
-          setError(`${imagen.name}: ${cuerpo.error || 'no se pudo leer.'}`);
+          setError(`${nombre}: ${cuerpo.error || 'no se pudo leer.'}`);
           continue;
         }
         setLeidos((antes) => [...(antes ?? []), ...cuerpo.filas]);
         setCapturas((antes) => [
           ...antes,
-          { nombre: imagen.name, casillas: cuerpo.filas.length, repetidas: cuerpo.repetidas ?? 0 },
+          { nombre, casillas: cuerpo.filas.length, repetidas: cuerpo.repetidas ?? 0 },
         ]);
       } catch {
         setError('Sin conexión con el servidor.');
@@ -245,6 +252,45 @@ export default function Inventario({
     }
     setLeyendo('');
   };
+
+  leerRef.current = leerCapturas;
+  leyendoRef.current = Boolean(leyendo);
+
+  const escanear = async (e) => {
+    const imagenes = [...e.target.files];
+    e.target.value = '';
+    await leerCapturas(imagenes);
+  };
+
+  /**
+   * **Ctrl + V pega la captura.** Es como se saca de verdad: se recorta la pantalla del juego
+   * con la herramienta de Windows y queda en el portapapeles. Antes había que guardarla en el
+   * escritorio, buscarla en el diálogo de archivos y abrirla — tres pasos para nada.
+   *
+   * Va en `document` y no en un campo con el foco porque quien acaba de recortar la pantalla no
+   * ha hecho clic en ningún sitio: pega y ya. Las imágenes del portapapeles no traen nombre, así
+   * que se les pone uno para que la lista de capturas leídas se entienda.
+   */
+  useEffect(() => {
+    const pegar = (e) => {
+      if (leyendoRef.current) return;
+      const imagenes = [...(e.clipboardData?.items ?? [])]
+        .filter((i) => i.kind === 'file' && i.type.startsWith('image/'))
+        .map((i) => i.getAsFile())
+        .filter(Boolean);
+      if (!imagenes.length) return;
+
+      e.preventDefault();
+      const desde = capturasPegadas.current;
+      capturasPegadas.current += imagenes.length;
+      leerRef.current?.(imagenes, (i) => `captura pegada ${desde + i + 1}`);
+    };
+
+    // Una sola suscripción para toda la vida de la pantalla: lo que cambia en cada pintado
+    // —si está leyendo, y la función que lee— entra por refs.
+    document.addEventListener('paste', pegar);
+    return () => document.removeEventListener('paste', pegar);
+  }, []);
 
   /**
    * Resuelve una contradicción: el lector leyó la misma tarjeta dos veces con números
@@ -374,6 +420,15 @@ export default function Inventario({
 
         {error && <p className="panel-error">{error}</p>}
 
+        {/* Se dice acá arriba porque es lo primero que se hace al volver de la bodega, y el
+            área de pegar todavía no está a la vista. */}
+        {!leidos && (
+          <p className="inv-atajo">
+            Recorta la pantalla del juego y pégala con <strong>Ctrl + V</strong>: el conteo se
+            abre solo.
+          </p>
+        )}
+
         {/* ---------- Conteo en curso ---------- */}
         {leidos && (
           <section className="inv-conteo">
@@ -384,9 +439,17 @@ export default function Inventario({
               repeticiones entre pantallas se juntan solas.
             </p>
 
-            <div className="inv-capturas">
-              <label className="tun-boton-fuerte inv-subir">
-                📷 Subir capturas
+            <div className="inv-pegar">
+              <span className="inv-pegar-tecla" aria-hidden="true">
+                Ctrl + V
+              </span>
+              <span className="inv-pegar-texto">
+                <strong>Pega la captura de la bodega.</strong> Recorta la pantalla del juego y
+                pégala acá mismo — no hace falta guardarla en el escritorio. Pega todas las
+                pantallas de una misma pasada; el solape se junta solo.
+              </span>
+              <label className="inv-subir-chico">
+                o elige el archivo
                 <input
                   type="file"
                   accept="image/png,image/jpeg,image/webp"
@@ -395,10 +458,8 @@ export default function Inventario({
                   disabled={Boolean(leyendo)}
                 />
               </label>
-              <span className="inv-leyendo">
-                {leyendo || 'Sube todas las pantallas de una misma pasada; el solape se junta solo.'}
-              </span>
             </div>
+            {leyendo && <p className="inv-leyendo">{leyendo}</p>}
 
             {/* Cuenta las casillas de la rejilla en la foto y compáralo con esto: es la forma
                 más rápida de ver que el lector se dejó algo o leyó de más. */}

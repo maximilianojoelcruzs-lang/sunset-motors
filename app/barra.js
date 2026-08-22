@@ -8,6 +8,7 @@ import { duracionMs, enHoras, soloHora } from '../lib/tiempo';
 import { marcarTurno } from './marcar';
 import { restanMinutos } from './marcaje';
 import Campana from './campana';
+import PopupsAlEntrar from './popups-al-entrar';
 import { BotonAvisos, useAvisoTurno } from './aviso-escritorio';
 import Dialogo from './dialogo';
 import CambiarClave from './perfil-clave';
@@ -118,6 +119,10 @@ export default function Barra({
 
   return (
     <>
+      {/* Los pop-ups del encargado. Van acá porque la barra está en todas las pantallas del
+          taller y del casino: el cartel sale al entrar, estés en la que estés. */}
+      <PopupsAlEntrar />
+
       <header className={`barra ${enCasino ? 'barra-casino' : ''}`}>
         <div className="franja" />
 

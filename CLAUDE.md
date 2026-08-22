@@ -998,6 +998,22 @@ anotarla a mano.
 La pantalla dice **cuántas casillas trajo cada captura**. Es el número que permite darse cuenta
 al instante: la rejilla de la foto se cuenta con el dedo.
 
+### La captura se pega con Ctrl + V
+
+Es como se saca de verdad: se recorta la pantalla del juego con la herramienta de Windows y
+queda en el portapapeles. Antes había que guardarla en el escritorio, buscarla en el diálogo de
+archivos y abrirla — tres pasos para nada.
+
+- El listener va en **`document`**, no en un campo con el foco: quien acaba de recortar la
+  pantalla no ha hecho clic en ningún sitio. Se suscribe **una sola vez** y lo que cambia en
+  cada pintado (si está leyendo, y la función que lee) entra por refs.
+- **Pegar abre el conteo** si no había ninguno (`setLeidos((antes) => antes ?? [])`). Si no,
+  quien pega antes de pulsar *Registrar conteo* no vería absolutamente nada pasar.
+- Las imágenes del portapapeles **no traen nombre**, así que se les pone «captura pegada 1, 2…»
+  para que la lista de casillas leídas se entienda.
+- Queda la opción de elegir el archivo, en pequeño: hay navegadores y teclados donde pegar no
+  funciona.
+
 ### Completar los nombres cortados es una acción aparte
 
 El juego trunca los nombres en su propia pantalla, así que esas letras **no están en la imagen** y
@@ -1031,9 +1047,59 @@ publica y todo el taller lo ve. No le agregues un flujo de revisión; ese no es 
 - Al publicar se avisa a todo el taller con `crearAvisos()` (una sola escritura). Con
   `crearAviso()` en un bucle se reescribiría la colección entera una vez por persona.
 
+### Las imágenes se pegan como URL, no se suben
+
+**A pedido del usuario, ninguna pantalla pide un archivo del escritorio.** Los flyers, los
+pop-ups y las capturas de devoluciones llevan **un enlace**: la imagen ya está publicada en
+algún sitio —la deja FiveM al hacer la captura, o se sube a Discord— y bajarla para volver a
+subirla era un paso de más.
+
+`normalizarEnlace()` y `exigirEnlace()` viven en **[lib/enlaces.js](lib/enlaces.js)**, que no
+toca el almacén justamente para que también lo puedan importar las pantallas. **Se valida pero
+no se descarga**: ir a buscar desde el servidor una URL que escribe cualquiera es pedir que le
+pidan cosas de la red interna. La imagen la carga el navegador de quien mira.
+
+Lo publicado antes **sigue funcionando**: un flyer con `imagen` guardada se sirve por
+`/api/flyers/:id/imagen` como siempre, y `fuenteDeFlyer()` decide cuál de las dos usar. Por eso
+el aviso del bucket de Supabase solo aparece si quedan flyers de los antiguos.
+
+La CSP ya aceptaba cualquier `https:` en `img-src` por las capturas pegadas de devoluciones, así
+que no hubo que tocarla.
+
 El estilo "futurista" de la galería vive en `.flyer-marco`: el borde de degradado es un fondo con
 `padding: 1px` y un `::before`, porque los bordes CSS no aceptan degradados. El barrido de luz y
 el desplazamiento están anulados bajo `prefers-reduced-motion`.
+
+## Pop-ups al entrar
+
+**[lib/popups.js](lib/popups.js)** — el cartel que tapa la pantalla al entrar a la app, con lo
+que hay que leer **antes** de ponerse a trabajar. La campanita avisa de algo que pasó; esto es
+para algo que hay que ver sí o sí.
+
+- **`hasta` es el tiempo límite y lo decide el servidor.** `listarVigentes()` es lo único que
+  sale hacia el navegador de cualquiera: si saliera todo y la pantalla filtrara por fecha,
+  habría dos sitios donde equivocarse. Pasada la hora deja de salir **solo**, que es lo que
+  permite usar la función sin acordarse de apagar nada — un «hoy cerramos temprano» que sigue
+  saliendo el martes enseña a la gente a cerrar los pop-ups sin leerlos.
+- Un límite **ya pasado se rechaza** al guardar (400). Guardarlo dejaría el cartel muerto al
+  nacer y quien lo escribió creería que se está mostrando.
+- Vacío es **sin límite**: sale hasta que alguien lo apague.
+- Los vencidos **no se borran**: el encargado los sigue viendo en su lista para reutilizarlos,
+  y `Apagar`/`Encender` no toca el texto.
+
+**[app/popups-al-entrar.js](app/popups-al-entrar.js)** va dentro de `Barra`, que está en todas
+las pantallas del taller y del casino: así el cartel sale estés donde estés, sin repetir la
+misma línea en catorce páginas. Comprobado también dentro de una mesa del casino.
+
+**Se muestra una vez por sesión del navegador**, no en cada clic: la marca va en
+`sessionStorage`. Cada entrada nueva —el login, u otra pestaña— lo enseña otra vez; recargar la
+misma pestaña, no. Con `localStorage` saldría una sola vez en la vida de ese navegador y quien
+lo cerrara sin leerlo no volvería a verlo nunca.
+
+El panel para escribirlos es **[app/anuncios/popups.js](app/anuncios/popups.js)**, dentro de
+Anuncios y solo para admin: es lo mismo que los flyers y los mensajes — cosas que el encargado
+publica para que el taller las vea. El campo del tiempo límite pasa por `desdeInput()`, como el
+resto de la app: está en hora de Chile, y con `new Date()` se leería en la zona del navegador.
 
 ## Avisos (la campanita)
 

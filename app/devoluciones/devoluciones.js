@@ -35,26 +35,19 @@ const ROTULO = {
 function Formulario({ inicial, onGuardar, onCancelar, ocupado }) {
   const [monto, setMonto] = useState(inicial ? String(inicial.monto) : '');
   const [descripcion, setDescripcion] = useState(inicial?.descripcion ?? '');
-  const [archivo, setArchivo] = useState(null);
   const [enlace, setEnlace] = useState(inicial?.enlace ?? '');
-  const [vistaPrevia, setVistaPrevia] = useState(null);
-
-  const elegir = (e) => {
-    const f = e.target.files?.[0] ?? null;
-    setArchivo(f);
-    setVistaPrevia(f ? URL.createObjectURL(f) : null);
-  };
 
   return (
     <form
       className="soli-forma"
       onSubmit={(e) => {
         e.preventDefault();
+        // Sigue siendo un formulario y no JSON porque la ruta lo espera así desde cuando la
+        // captura se subía como archivo. Ahora solo lleva texto.
         const forma = new FormData();
         forma.set('monto', monto);
         forma.set('descripcion', descripcion);
         forma.set('enlace', enlace.trim());
-        if (archivo) forma.set('captura', archivo);
         onGuardar(forma);
       }}
     >
@@ -92,15 +85,11 @@ function Formulario({ inicial, onGuardar, onCancelar, ocupado }) {
         />
       </label>
 
+      {/* En FiveM la captura ya queda subida y sale una URL: se pega y listo. Subir el archivo
+          desde el escritorio se quitó a pedido del usuario — era bajar la imagen del juego para
+          volver a subirla. Las solicitudes viejas con archivo se siguen viendo igual. */}
       <label className="campo">
-        <span>Captura del juego con el monto</span>
-        <input type="file" accept="image/jpeg,image/png,image/webp" onChange={elegir} />
-      </label>
-
-      {/* En FiveM la captura ya queda subida y sale una URL: pegarla ahorra bajarla y
-          volver a subirla. Vale cualquiera de las dos, no hacen falta las dos. */}
-      <label className="campo">
-        <span>…o pega el enlace de la captura de FiveM</span>
+        <span>Enlace de la captura con el monto</span>
         <input
           type="url"
           value={enlace}
@@ -110,8 +99,7 @@ function Formulario({ inicial, onGuardar, onCancelar, ocupado }) {
         />
       </label>
 
-      {vistaPrevia && <img className="captura-previa" src={vistaPrevia} alt="Vista previa" />}
-      {!vistaPrevia && enlace.trim() && (
+      {enlace.trim() && (
         <img
           className="captura-previa"
           src={enlace.trim()}
@@ -121,8 +109,10 @@ function Formulario({ inicial, onGuardar, onCancelar, ocupado }) {
           }}
         />
       )}
-      {!vistaPrevia && !enlace.trim() && inicial?.imagen && (
-        <p className="forma-pie">Ya tiene una captura. Elige otra solo si quieres cambiarla.</p>
+      {!enlace.trim() && inicial?.imagen && (
+        <p className="forma-pie">
+          Ya tiene una captura subida de antes. Pega un enlace solo si quieres cambiarla.
+        </p>
       )}
 
       <div className="soli-botones">
@@ -377,7 +367,7 @@ export default function Devoluciones({
             />
             <p className="forma-pie">
               Adjunta la captura del juego donde se vea el monto que pagaste, o pega el
-              enlace que te deja FiveM. Sin una de las dos no se puede enviar: es la prueba
+              enlace que te deja FiveM. Sin el enlace no se puede enviar: es la prueba
               de lo que se te debe.
             </p>
           </section>

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Barra from '../barra';
+import Popups from './popups';
 import useSondeo from '../sondeo';
 import Dialogo from '../dialogo';
 
@@ -15,6 +16,15 @@ async function copiar(texto) {
     return false;
   }
 }
+
+/**
+ * De dónde sale la imagen de un flyer.
+ *
+ * Los nuevos traen `enlace` —se pega la URL— y los publicados antes de ese cambio tienen su
+ * archivo en el bucket, que sigue sirviéndose por la ruta de siempre. Con esto los dos se ven
+ * en la misma galería y no hay que migrar nada.
+ */
+const fuenteDeFlyer = (f) => f.enlace || `/api/flyers/${f.id}/imagen`;
 
 function Mensaje({ m, admin, onBorrar, onEditar, ocupado }) {
   const [copiado, setCopiado] = useState(false);
@@ -69,6 +79,7 @@ export default function Anuncios({
   fallo,
 }) {
   const [flyers, setFlyers] = useState(flyersIniciales);
+  const [enlace, setEnlace] = useState('');
   const [mensajes, setMensajes] = useState(mensajesIniciales);
   const [turno, setTurno] = useState(turnoPropio);
   const [viendo, setViendo] = useState(null);
@@ -79,8 +90,6 @@ export default function Anuncios({
   // Formularios del administrador
   const [subiendo, setSubiendo] = useState(false);
   const [tituloFlyer, setTituloFlyer] = useState('');
-  const [archivo, setArchivo] = useState(null);
-  const [previa, setPrevia] = useState(null);
   const [escribiendo, setEscribiendo] = useState(false);
   const [editando, setEditando] = useState(null);
   const [tituloMsj, setTituloMsj] = useState('');
@@ -122,15 +131,19 @@ export default function Anuncios({
 
   const publicarFlyer = async (e) => {
     e.preventDefault();
-    const forma = new FormData();
-    forma.set('titulo', tituloFlyer);
-    if (archivo) forma.set('imagen', archivo);
-    const ok = await pedir('/api/flyers', { method: 'POST', body: forma }, 'Flyer publicado.');
+    const ok = await pedir(
+      '/api/flyers',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ titulo: tituloFlyer, enlace }),
+      },
+      'Flyer publicado.'
+    );
     if (ok) {
       setSubiendo(false);
       setTituloFlyer('');
-      setArchivo(null);
-      setPrevia(null);
+      setEnlace('');
     }
   };
 
@@ -172,10 +185,13 @@ export default function Anuncios({
         {error && <p className="panel-error">{error}</p>}
         {aviso && <p className="mecanicos-aviso">{aviso}</p>}
 
-        {admin && !conStorage && (
+        {/* El bucket ya no hace falta para publicar: las imágenes son enlaces pegados. Solo
+            se avisa si hay flyers antiguos con archivo guardado, que son los que dependen de él. */}
+        {admin && !conStorage && flyers.some((f) => !f.enlace) && (
           <p className="panel-aviso">
-            Los flyers se están guardando en el disco de este servidor. En Vercel eso se borra
-            en cada despliegue: falta el bucket <code>sunset</code> en Supabase Storage.
+            Hay flyers publicados antes, con la imagen guardada en el disco de este servidor. En
+            Vercel ese disco se borra en cada despliegue: falta el bucket <code>sunset</code> en
+            Supabase Storage. Los flyers nuevos no lo necesitan.
           </p>
         )}
 
@@ -186,7 +202,7 @@ export default function Anuncios({
             <h2 className="ref-titulo">Flyers</h2>
             {admin && !subiendo && (
               <button type="button" className="accion destacada" onClick={() => setSubiendo(true)}>
-                Subir flyer
+                Publicar flyer
               </button>
             )}
           </div>
@@ -204,19 +220,30 @@ export default function Anuncios({
                 />
               </label>
               <label className="campo">
-                <span>Imagen del flyer</span>
+                <span>Enlace de la imagen</span>
                 <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  onChange={(e) => {
-                    const f = e.target.files?.[0] ?? null;
-                    setArchivo(f);
-                    setPrevia(f ? URL.createObjectURL(f) : null);
-                  }}
+                  value={enlace}
+                  onChange={(e) => setEnlace(e.target.value)}
+                  placeholder="https://…/flyer.png"
+                  inputMode="url"
                   required
                 />
               </label>
-              {previa && <img className="captura-previa" src={previa} alt="Vista previa" />}
+              <p className="tun-ayuda">
+                Pega la URL de la imagen: la que sale al subirla a Discord, a Imgur o la que deja
+                FiveM. La carga el navegador de quien mira la galería, así que tiene que ser un
+                enlace que se abra sin contraseña.
+              </p>
+              {enlace.trim() && (
+                <img
+                  className="captura-previa"
+                  src={enlace.trim()}
+                  alt="Vista previa"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              )}
               <div className="soli-botones">
                 <button type="submit" className="accion" disabled={ocupado}>
                   {ocupado ? 'Publicando…' : 'Publicar'}
@@ -242,7 +269,7 @@ export default function Anuncios({
                     onClick={() => setViendo(f)}
                     aria-label={`Ver ${f.titulo}`}
                   >
-                    <img src={`/api/flyers/${f.id}/imagen`} alt={f.titulo} loading="lazy" />
+                    <img src={fuenteDeFlyer(f)} alt={f.titulo} loading="lazy" />
                     <span className="flyer-brillo" aria-hidden="true" />
                   </button>
                   <figcaption className="flyer-pie">
@@ -251,7 +278,7 @@ export default function Anuncios({
                   </figcaption>
                   {admin && (
                     <div className="flyer-acciones">
-                      <a className="accion" href={`/api/flyers/${f.id}/imagen`} download>
+                      <a className="accion" href={fuenteDeFlyer(f)} target="_blank" rel="noreferrer">
                         Descargar
                       </a>
                       <button
@@ -366,6 +393,8 @@ export default function Anuncios({
           )}
         </section>
 
+        {admin && <Popups />}
+
         <p className="pie">
           Los flyers y los mensajes los publica el encargado. Todo el taller puede verlos y
           copiar los textos para pegarlos en los anuncios del juego.
@@ -374,11 +403,11 @@ export default function Anuncios({
 
       {viendo && (
         <Dialogo titulo={viendo.titulo} onCerrar={() => setViendo(null)}>
-          <img className="captura-grande" src={`/api/flyers/${viendo.id}/imagen`} alt={viendo.titulo} />
+          <img className="captura-grande" src={fuenteDeFlyer(viendo)} alt={viendo.titulo} />
           <p className="forma-pie">
             Publicado por {viendo.creadoPor}.{' '}
-            <a className="enlace" href={`/api/flyers/${viendo.id}/imagen`} download>
-              Descargar imagen
+            <a className="enlace" href={fuenteDeFlyer(viendo)} target="_blank" rel="noreferrer">
+              Abrir la imagen
             </a>
           </p>
         </Dialogo>
