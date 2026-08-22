@@ -1096,6 +1096,22 @@ misma línea en catorce páginas. Comprobado también dentro de una mesa del cas
 misma pestaña, no. Con `localStorage` saldría una sola vez en la vida de ese navegador y quien
 lo cerrara sin leerlo no volvería a verlo nunca.
 
+### Notificaciones internas: lo mismo, en frío
+
+**[app/anuncios/notificaciones.js](app/anuncios/notificaciones.js)** — el primer bloque de
+Anuncios, para todo el taller. El cartel del login se cierra con un clic y a veces se cierra sin
+leer; acá queda para volver a mirarlo mientras siga vigente, con cuánto le queda.
+
+Sale de **la misma lista que el cartel** (`GET /api/popups`, que ya devuelve solo lo vigente),
+así que al acabarse el tiempo desaparece de acá también sin que nadie borre nada. Si esta
+pantalla filtrara por su cuenta habría dos sitios donde equivocarse. Se refresca sola cada
+minuto: comprobado que una que vence mientras la miras se va sin recargar.
+
+**Los botones del panel no van sobre papel.** `.accion` es texto color crema porque siempre va
+sobre fondo oscuro; la fila de pop-ups usaba `var(--ticket)` de fondo y los botones quedaban
+crema sobre crema — invisibles. Las tarjetas de solo lectura sí son de papel, porque ahí no hay
+ningún `.accion` dentro.
+
 El panel para escribirlos es **[app/anuncios/popups.js](app/anuncios/popups.js)**, dentro de
 Anuncios y solo para admin: es lo mismo que los flyers y los mensajes — cosas que el encargado
 publica para que el taller las vea. El campo del tiempo límite pasa por `desdeInput()`, como el

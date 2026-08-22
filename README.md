@@ -140,6 +140,10 @@ que acordarse de apagarlo. Hay atajos —2 horas, hoy, 3 días, 1 semana— y ta
 sin límite. Un límite que ya pasó no se acepta: te avisa en vez de guardar un cartel que nadie
 vería.
 
+Y para el que lo cerró sin leer, en *Anuncios* está arriba del todo **Notificaciones
+internas**: las mismas notificaciones, en frío, con cuánto tiempo les queda. Cada una desaparece
+de ahí sola en cuanto se le acaba el plazo.
+
 Sale **una vez por entrada**: al iniciar sesión y al abrir la app en otra pestaña. Recargar la
 misma pestaña no lo repite, para no estorbar a quien ya lo leyó. Los vencidos se quedan en la
 lista del encargado por si quiere volver a usarlos, y se pueden apagar y encender sin perder el

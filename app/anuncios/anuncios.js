@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Barra from '../barra';
+import Notificaciones from './notificaciones';
 import Popups from './popups';
 import useSondeo from '../sondeo';
 import Dialogo from '../dialogo';
@@ -73,6 +74,7 @@ export default function Anuncios({
   admin,
   accesos,
   flyersIniciales,
+  notificacionesIniciales,
   mensajesIniciales,
   turnoPropio,
   conStorage,
@@ -178,7 +180,7 @@ export default function Anuncios({
         <header className="titulo">
           <div>
             <h1 className="titulo-texto">Anuncios</h1>
-            <p className="titulo-bajada">Flyers y mensajes del taller</p>
+            <p className="titulo-bajada">Notificaciones, flyers y mensajes del taller</p>
           </div>
         </header>
 
@@ -194,6 +196,9 @@ export default function Anuncios({
             Supabase Storage. Los flyers nuevos no lo necesitan.
           </p>
         )}
+
+        {/* Lo primero: es lo que caduca. Los flyers y los mensajes están ahí siempre. */}
+        <Notificaciones iniciales={notificacionesIniciales} />
 
         {/* ---------- Flyers ---------- */}
 

@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { sesionDeTaller } from '../../lib/servidor';
 import { listarFlyers, listarMensajes } from '../../lib/anuncios';
+import { listarVigentes } from '../../lib/popups';
 import { hayStorage } from '../../lib/imagenes';
 import { turnoAbierto } from '../../lib/turnos';
 import Anuncios from './anuncios';
@@ -13,11 +14,13 @@ export default async function PaginaAnuncios() {
 
   let flyers = [];
   let mensajes = [];
+  let notificaciones = [];
   let abierto = null;
   let fallo = '';
   try {
     flyers = await listarFlyers();
     mensajes = await listarMensajes();
+    notificaciones = await listarVigentes();
     abierto = await turnoAbierto(sesion.usuario);
   } catch (e) {
     fallo = e.message;
@@ -30,6 +33,7 @@ export default async function PaginaAnuncios() {
       accesos={accesos}
       flyersIniciales={flyers}
       mensajesIniciales={mensajes}
+      notificacionesIniciales={notificaciones}
       turnoPropio={abierto}
       conStorage={hayStorage()}
       fallo={fallo}
