@@ -234,7 +234,9 @@ ganó va último—, los cuatro pasos del ciclo y los desempates. Está para cua
 solo para el encargado.
 
 Cada ciclo **empieza de cero**: cuenta lo que se apuesta desde que se abrió, no lo que jugaste
-antes.
+antes. El encargado tiene dos botones y hacen cosas distintas: **Iniciar ciclo** pone el
+marcador a cero y empieza a contar desde ese momento **sin pagar nada** —para empezar limpio—, y
+**Cerrar ciclo y pagar** premia al podio, guarda el resultado y deja el marcador en cero.
 
 El ciclo **lo cierra el encargado** cuando quiera, no hay fecha automática. Al cerrarlo los
 premios entran solos a la cuenta de los tres primeros, los contadores vuelven a cero y el podio

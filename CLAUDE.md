@@ -466,6 +466,13 @@ y va envuelto en `try`: el top es un adorno y el saldo no.
 - `lib/fichas.js` importa `sumar` de `wager.js`, así que `wager.js` importa `fichas.js`
   **dentro de las funciones**: al revés sería un ciclo de módulos.
 
+**`iniciarCiclo()` y `cerrarCiclo()` no son lo mismo.** Cerrar premia al podio, guarda el
+resultado en `sunset:wager-ciclos` y deja el contador a cero; **iniciar solo pone a cero y
+empieza a contar desde ahora, sin mover una sola ficha**. Hacen falta los dos: reiniciar un
+marcador de prueba no debería repartir 55.000 fichas. El botón de iniciar avisa en el confirm
+cuántas personas se van a quedar sin premio, y la pantalla dice después cuánto wager se
+descartó.
+
 **Un ciclo nuevo arranca en cero.** Hubo un `sembrarDesdeJugadas()` que llenaba el contador con
 el registro de jugadas; **se quitó a pedido del usuario**. Metía el histórico entero en el primer
 ciclo —dejó a alguien con 49 millones de wager que no había apostado en ese ciclo— y encima era

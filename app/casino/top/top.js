@@ -53,6 +53,15 @@ export default function TopWager({ usuario, admin, accesos, inicial, ciclosInici
 
       // Si algún premio no se pudo pagar hay que decirlo con nombre y apellido: el ciclo ya
       // está cerrado y ese premio hay que pagarlo a mano, no se reintenta solo.
+      if (cuerpo.descartado !== undefined) {
+        setAviso(
+          cuerpo.descartado > 0
+            ? `Ciclo nuevo. Se descartaron ${new Intl.NumberFormat('es-CL').format(cuerpo.descartado)} ` +
+                `de wager de ${cuerpo.participantes} persona${cuerpo.participantes === 1 ? '' : 's'}, sin pagar premios.`
+            : 'Ciclo nuevo: se cuenta desde ahora.'
+        );
+      }
+
       if (cuerpo.pagos) {
         const fallidos = cuerpo.pagos.filter((p) => !p.ok);
         setAviso(
@@ -99,19 +108,40 @@ export default function TopWager({ usuario, admin, accesos, inicial, ciclosInici
             </button>
 
             {admin && (
-              <button
-                type="button"
-                className="accion peligro"
-                disabled={ocupado || !datos.puestos.length}
-                onClick={() =>
-                  pedir(
-                    'cerrar',
-                    '¿Cerrar el ciclo? Se pagan los premios del podio y los contadores vuelven a cero.'
-                  )
-                }
-              >
-                Cerrar ciclo y pagar
-              </button>
+              <>
+                {/* Empezar de cero sin pagar a nadie. Va antes de «Cerrar», que es el que
+                    mueve fichas. */}
+                <button
+                  type="button"
+                  className="accion"
+                  disabled={ocupado}
+                  onClick={() =>
+                    pedir(
+                      'iniciar',
+                      datos.puestos.length
+                        ? '¿Empezar un ciclo nuevo? El marcador vuelve a cero y NADIE cobra premios. ' +
+                            'Si querías premiar al podio, usa «Cerrar ciclo y pagar».'
+                        : '¿Empezar a contar desde ahora?'
+                    )
+                  }
+                >
+                  Iniciar ciclo
+                </button>
+
+                <button
+                  type="button"
+                  className="accion peligro"
+                  disabled={ocupado || !datos.puestos.length}
+                  onClick={() =>
+                    pedir(
+                      'cerrar',
+                      '¿Cerrar el ciclo? Se pagan los premios del podio y los contadores vuelven a cero.'
+                    )
+                  }
+                >
+                  Cerrar ciclo y pagar
+                </button>
+              </>
             )}
           </span>
         </header>
