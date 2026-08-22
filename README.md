@@ -140,10 +140,6 @@ que acordarse de apagarlo. Hay atajos —2 horas, hoy, 3 días, 1 semana— y ta
 sin límite. Un límite que ya pasó no se acepta: te avisa en vez de guardar un cartel que nadie
 vería.
 
-Y para el que lo cerró sin leer, en *Anuncios* está arriba del todo **Notificaciones
-internas**: las mismas notificaciones, en frío, con cuánto tiempo les queda. Cada una desaparece
-de ahí sola en cuanto se le acaba el plazo.
-
 Sale **una vez por entrada**: al iniciar sesión y al abrir la app en otra pestaña. Recargar la
 misma pestaña no lo repite, para no estorbar a quien ya lo leyó. Los vencidos se quedan en la
 lista del encargado por si quiere volver a usarlos, y se pueden apagar y encender sin perder el
@@ -614,7 +610,9 @@ Pestaña **Anuncios**, con tres partes.
 **Flyers.** La galería de imágenes que publica el encargado. Se publica **pegando el enlace de
 la imagen** —la URL que sale al subirla a Discord, a Imgur o la que deja FiveM—, no subiendo el
 archivo: la imagen ya está en internet, así que basta con apuntar a ella. Se abren en grande al
-hacer clic. Solo el encargado publica y elimina; todo el taller mira. Cuando publica uno nuevo,
+hacer clic, y cada uno tiene un botón **Copiar URL** —de cualquiera, no solo del encargado—
+para pegar el enlace en Discord o en el anuncio del juego. Solo el encargado publica y elimina;
+todo el taller mira. Cuando publica uno nuevo,
 le llega el aviso a todos.
 
 **Mensajes listos para copiar.** Textos que el encargado deja guardados —anuncio de apertura,

@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Barra from '../barra';
-import Notificaciones from './notificaciones';
 import Popups from './popups';
 import useSondeo from '../sondeo';
 import Dialogo from '../dialogo';
@@ -26,6 +25,71 @@ async function copiar(texto) {
  * en la misma galería y no hay que migrar nada.
  */
 const fuenteDeFlyer = (f) => f.enlace || `/api/flyers/${f.id}/imagen`;
+
+/**
+ * Una tarjeta de la galería.
+ *
+ * Es su propio componente por el «Copiado»: con el estado en la pantalla, copiar una URL
+ * marcaría las diez tarjetas a la vez.
+ */
+function Flyer({ f, admin, onVer, onBorrar, ocupado }) {
+  const [copiado, setCopiado] = useState(false);
+
+  // Los flyers nuevos traen la URL pegada; los antiguos, su archivo servido por la app —y esa
+  // ruta es relativa, así que se completa con el dominio para que sirva de algo al pegarla.
+  const url = f.enlace || new URL(`/api/flyers/${f.id}/imagen`, window.location.origin).toString();
+
+  return (
+    <figure className="flyer">
+      <button
+        type="button"
+        className="flyer-marco"
+        onClick={() => onVer(f)}
+        aria-label={`Ver ${f.titulo}`}
+      >
+        <img src={fuenteDeFlyer(f)} alt={f.titulo} loading="lazy" />
+        <span className="flyer-brillo" aria-hidden="true" />
+      </button>
+
+      <figcaption className="flyer-pie">
+        <span className="flyer-titulo">{f.titulo}</span>
+        <span className="flyer-autor">{f.creadoPor}</span>
+      </figcaption>
+
+      <div className="flyer-acciones">
+        {/* De cualquiera, no solo del encargado: el enlace es justo lo que se pega en Discord
+            o en el anuncio del juego. */}
+        <button
+          type="button"
+          className={`accion ${copiado ? 'destacada' : ''}`}
+          onClick={async () => {
+            const ok = await copiar(url);
+            if (!ok) return;
+            setCopiado(true);
+            setTimeout(() => setCopiado(false), 1800);
+          }}
+        >
+          {copiado ? 'URL copiada' : 'Copiar URL'}
+        </button>
+
+        <a className="accion" href={url} target="_blank" rel="noreferrer">
+          Abrir
+        </a>
+
+        {admin && (
+          <button
+            type="button"
+            className="accion peligro"
+            disabled={ocupado}
+            onClick={() => onBorrar(f)}
+          >
+            Eliminar
+          </button>
+        )}
+      </div>
+    </figure>
+  );
+}
 
 function Mensaje({ m, admin, onBorrar, onEditar, ocupado }) {
   const [copiado, setCopiado] = useState(false);
@@ -74,7 +138,6 @@ export default function Anuncios({
   admin,
   accesos,
   flyersIniciales,
-  notificacionesIniciales,
   mensajesIniciales,
   turnoPropio,
   conStorage,
@@ -180,7 +243,7 @@ export default function Anuncios({
         <header className="titulo">
           <div>
             <h1 className="titulo-texto">Anuncios</h1>
-            <p className="titulo-bajada">Notificaciones, flyers y mensajes del taller</p>
+            <p className="titulo-bajada">Flyers y mensajes del taller</p>
           </div>
         </header>
 
@@ -196,9 +259,6 @@ export default function Anuncios({
             Supabase Storage. Los flyers nuevos no lo necesitan.
           </p>
         )}
-
-        {/* Lo primero: es lo que caduca. Los flyers y los mensajes están ahí siempre. */}
-        <Notificaciones iniciales={notificacionesIniciales} />
 
         {/* ---------- Flyers ---------- */}
 
@@ -267,39 +327,17 @@ export default function Anuncios({
           ) : (
             <div className="galeria">
               {flyers.map((f) => (
-                <figure className="flyer" key={f.id}>
-                  <button
-                    type="button"
-                    className="flyer-marco"
-                    onClick={() => setViendo(f)}
-                    aria-label={`Ver ${f.titulo}`}
-                  >
-                    <img src={fuenteDeFlyer(f)} alt={f.titulo} loading="lazy" />
-                    <span className="flyer-brillo" aria-hidden="true" />
-                  </button>
-                  <figcaption className="flyer-pie">
-                    <span className="flyer-titulo">{f.titulo}</span>
-                    <span className="flyer-autor">{f.creadoPor}</span>
-                  </figcaption>
-                  {admin && (
-                    <div className="flyer-acciones">
-                      <a className="accion" href={fuenteDeFlyer(f)} target="_blank" rel="noreferrer">
-                        Descargar
-                      </a>
-                      <button
-                        type="button"
-                        className="accion peligro"
-                        disabled={ocupado}
-                        onClick={() => {
-                          if (!window.confirm(`¿Eliminar el flyer «${f.titulo}»?`)) return;
-                          pedir(`/api/flyers/${f.id}`, { method: 'DELETE' }, 'Flyer eliminado.');
-                        }}
-                      >
-                        Eliminar
-                      </button>
-                    </div>
-                  )}
-                </figure>
+                <Flyer
+                  key={f.id}
+                  f={f}
+                  admin={admin}
+                  ocupado={ocupado}
+                  onVer={setViendo}
+                  onBorrar={(x) => {
+                    if (!window.confirm(`¿Eliminar el flyer «${x.titulo}»?`)) return;
+                    pedir(`/api/flyers/${x.id}`, { method: 'DELETE' }, 'Flyer eliminado.');
+                  }}
+                />
               ))}
             </div>
           )}

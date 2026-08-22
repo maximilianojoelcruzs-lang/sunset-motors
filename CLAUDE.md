@@ -1066,6 +1066,12 @@ el aviso del bucket de Supabase solo aparece si quedan flyers de los antiguos.
 La CSP ya aceptaba cualquier `https:` en `img-src` por las capturas pegadas de devoluciones, así
 que no hubo que tocarla.
 
+Cada tarjeta lleva **Copiar URL**, y ese botón es de cualquiera, no solo del encargado: el
+enlace es justo lo que se pega en Discord o en el anuncio del juego. `Flyer` es su propio
+componente por eso mismo — con el «Copiado» en la pantalla, copiar una URL marcaría las diez
+tarjetas a la vez. Los flyers antiguos, los que tienen archivo guardado, copian su ruta de la
+app completada con el dominio; sirve dentro del taller, pero esa sí pide sesión para abrirse.
+
 El estilo "futurista" de la galería vive en `.flyer-marco`: el borde de degradado es un fondo con
 `padding: 1px` y un `::before`, porque los bordes CSS no aceptan degradados. El barrido de luz y
 el desplazamiento están anulados bajo `prefers-reduced-motion`.
@@ -1096,21 +1102,13 @@ misma línea en catorce páginas. Comprobado también dentro de una mesa del cas
 misma pestaña, no. Con `localStorage` saldría una sola vez en la vida de ese navegador y quien
 lo cerrara sin leerlo no volvería a verlo nunca.
 
-### Notificaciones internas: lo mismo, en frío
-
-**[app/anuncios/notificaciones.js](app/anuncios/notificaciones.js)** — el primer bloque de
-Anuncios, para todo el taller. El cartel del login se cierra con un clic y a veces se cierra sin
-leer; acá queda para volver a mirarlo mientras siga vigente, con cuánto le queda.
-
-Sale de **la misma lista que el cartel** (`GET /api/popups`, que ya devuelve solo lo vigente),
-así que al acabarse el tiempo desaparece de acá también sin que nadie borre nada. Si esta
-pantalla filtrara por su cuenta habría dos sitios donde equivocarse. Se refresca sola cada
-minuto: comprobado que una que vence mientras la miras se va sin recargar.
-
 **Los botones del panel no van sobre papel.** `.accion` es texto color crema porque siempre va
 sobre fondo oscuro; la fila de pop-ups usaba `var(--ticket)` de fondo y los botones quedaban
 crema sobre crema — invisibles. Las tarjetas de solo lectura sí son de papel, porque ahí no hay
 ningún `.accion` dentro.
+
+Hubo un bloque **Notificaciones internas** en Anuncios, con los pop-ups vigentes para releerlos.
+**Se quitó a pedido del usuario** al día siguiente de hacerlo: con el cartel al entrar basta.
 
 El panel para escribirlos es **[app/anuncios/popups.js](app/anuncios/popups.js)**, dentro de
 Anuncios y solo para admin: es lo mismo que los flyers y los mensajes — cosas que el encargado
