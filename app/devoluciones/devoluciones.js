@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Barra from '../barra';
 import useSondeo from '../sondeo';
 import Dialogo from '../dialogo';
@@ -35,19 +35,54 @@ const ROTULO = {
 function Formulario({ inicial, onGuardar, onCancelar, ocupado }) {
   const [monto, setMonto] = useState(inicial ? String(inicial.monto) : '');
   const [descripcion, setDescripcion] = useState(inicial?.descripcion ?? '');
-  const [enlace, setEnlace] = useState(inicial?.enlace ?? '');
+  const [captura, setCaptura] = useState(null);
+  const [previa, setPrevia] = useState(null);
+
+  /**
+   * **La captura se pega con Ctrl + V.** Es como sale del juego: se recorta la pantalla y queda
+   * en el portapapeles. Antes se pegaba la URL de FiveM; se cambió a pedido del usuario, y de
+   * paso la captura vuelve al bucket privado — un enlace pegado lo abre cualquiera que lo tenga.
+   *
+   * El listener va en `document` y no en un campo con el foco: quien acaba de recortar la
+   * pantalla no ha hecho clic en ningún sitio, pega y ya.
+   */
+  useEffect(() => {
+    const pegar = (e) => {
+      const imagen = [...(e.clipboardData?.items ?? [])]
+        .filter((i) => i.kind === 'file' && i.type.startsWith('image/'))
+        .map((i) => i.getAsFile())
+        .find(Boolean);
+      if (!imagen) return;
+
+      e.preventDefault();
+      setCaptura(imagen);
+      setPrevia((antes) => {
+        if (antes) URL.revokeObjectURL(antes);
+        return URL.createObjectURL(imagen);
+      });
+    };
+
+    document.addEventListener('paste', pegar);
+    return () => document.removeEventListener('paste', pegar);
+  }, []);
+
+  // La vista previa es un blob del navegador: hay que soltarlo al cerrar el formulario.
+  useEffect(() => () => previa && URL.revokeObjectURL(previa), [previa]);
 
   return (
     <form
       className="soli-forma"
       onSubmit={(e) => {
         e.preventDefault();
-        // Sigue siendo un formulario y no JSON porque la ruta lo espera así desde cuando la
-        // captura se subía como archivo. Ahora solo lleva texto.
         const forma = new FormData();
         forma.set('monto', monto);
         forma.set('descripcion', descripcion);
-        forma.set('enlace', enlace.trim());
+        if (captura) {
+          forma.set('captura', captura, 'captura.png');
+          // Si la solicitud venía de la época del enlace pegado, la captura nueva lo reemplaza:
+          // sin esto se seguiría mostrando el enlace viejo, que es el que manda al pintarla.
+          forma.set('enlace', '');
+        }
         onGuardar(forma);
       }}
     >
@@ -85,34 +120,35 @@ function Formulario({ inicial, onGuardar, onCancelar, ocupado }) {
         />
       </label>
 
-      {/* En FiveM la captura ya queda subida y sale una URL: se pega y listo. Subir el archivo
-          desde el escritorio se quitó a pedido del usuario — era bajar la imagen del juego para
-          volver a subirla. Las solicitudes viejas con archivo se siguen viendo igual. */}
-      <label className="campo">
-        <span>Enlace de la captura con el monto</span>
-        <input
-          type="url"
-          value={enlace}
-          onChange={(e) => setEnlace(e.target.value)}
-          placeholder="https://…"
-          spellCheck={false}
-        />
-      </label>
+      <div className="inv-pegar">
+        <span className="inv-pegar-tecla" aria-hidden="true">
+          Ctrl + V
+        </span>
+        <span className="inv-pegar-texto">
+          <strong>Pega la captura con el monto.</strong> Recorta la pantalla del juego y pégala
+          acá mismo; se guarda en privado, no como enlace.
+        </span>
+      </div>
 
-      {enlace.trim() && (
-        <img
-          className="captura-previa"
-          src={enlace.trim()}
-          alt="Vista previa del enlace"
-          onError={(e) => {
-            e.currentTarget.style.display = 'none';
-          }}
-        />
+      {previa && (
+        <div className="dev-previa">
+          <img className="captura-previa" src={previa} alt="Vista previa de la captura" />
+          <button
+            type="button"
+            className="accion"
+            onClick={() => {
+              URL.revokeObjectURL(previa);
+              setCaptura(null);
+              setPrevia(null);
+            }}
+          >
+            Quitar
+          </button>
+        </div>
       )}
-      {!enlace.trim() && inicial?.imagen && (
-        <p className="forma-pie">
-          Ya tiene una captura subida de antes. Pega un enlace solo si quieres cambiarla.
-        </p>
+
+      {!previa && (inicial?.imagen || inicial?.enlace) && (
+        <p className="forma-pie">Ya tiene una captura. Pega otra solo si quieres cambiarla.</p>
       )}
 
       <div className="soli-botones">
@@ -375,9 +411,8 @@ export default function Devoluciones({
               }
             />
             <p className="forma-pie">
-              Adjunta la captura del juego donde se vea el monto que pagaste, o pega el
-              enlace que te deja FiveM. Sin el enlace no se puede enviar: es la prueba
-              de lo que se te debe.
+              Pega con Ctrl + V la captura del juego donde se vea el monto que pagaste. Sin ella
+              no se puede enviar: es la prueba de lo que se te debe.
             </p>
           </section>
         )}
@@ -461,10 +496,10 @@ export default function Devoluciones({
         )}
 
         <p className="pie">
-          Las capturas <strong>subidas</strong> se guardan en privado: solo las ve quien
-          subió la solicitud y el encargado, y no se abren ni teniendo el enlace. Las que se
-          pegan como enlace viven donde las subió FiveM, así que quien tenga esa URL puede
-          verlas — si la captura es delicada, súbela en vez de pegarla.
+          Las capturas que pegas se guardan <strong>en privado</strong>: solo las ve quien subió
+          la solicitud y el encargado, y no se abren ni teniendo el enlace. Las de las
+          solicitudes antiguas que se pegaron como URL viven donde las dejó FiveM, así que ésas
+          las ve cualquiera que tenga ese enlace.
         </p>
       </main>
 

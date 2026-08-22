@@ -678,6 +678,22 @@ Reglas que no hay que aflojar:
   Mismo patrón que licencias: borrador privado, resuelta = solo lectura.
 - **[lib/imagenes.js](lib/imagenes.js)** — subida y borrado de capturas.
 
+### La captura de una devolución se pega con Ctrl + V
+
+Es como sale del juego: se recorta la pantalla y queda en el portapapeles. El listener va en
+`document`, no en un campo con el foco — quien acaba de recortar no ha hecho clic en ningún
+sitio.
+
+**Lo pegado se sube al bucket privado**, no se guarda como enlace: una devolución conserva su
+captura y el enlace de FiveM lo abre cualquiera que lo tenga. Es la misma ruta de subida de
+siempre (`guardarImagen()`, que valida los bytes de verdad), solo cambia cómo llega la imagen.
+
+Al pegar una captura nueva sobre una solicitud vieja se manda `enlace: ''`: si no, `fuenteDe()`
+seguiría mostrando el enlace antiguo, que es el que manda al pintarla.
+
+Hubo un rato en que la captura se pegaba **como URL** y no se subía; se volvió atrás a pedido
+del usuario. Lo pegado entonces sigue viéndose: `fuenteDe()` decide cuál de las dos usar.
+
 ### La captura vale subida o pegada, y no son lo mismo
 
 `normalizarEnlace()` acepta una URL —la que deja FiveM al hacer la captura— como alternativa a

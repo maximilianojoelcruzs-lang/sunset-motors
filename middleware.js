@@ -48,7 +48,7 @@ function deOtroSitio(peticion) {
  * `img-src` acepta cualquier `https:` **a propósito**: las capturas de devoluciones se pueden
  * pegar como enlace y ese enlace lo pone quien lo pega — puede ser de cualquier sitio.
  */
-function politica(nonce, dev) {
+function politica(nonce, dev, seguro) {
   return [
     "default-src 'self'",
     // 'strict-dynamic' deja que el script de arranque cargue los demás bundles sin listarlos
@@ -70,7 +70,11 @@ function politica(nonce, dev) {
     "form-action 'self'",
     // Lo mismo que X-Frame-Options, en la versión que entienden los navegadores nuevos.
     "frame-ancestors 'none'",
-    ...(dev ? [] : ['upgrade-insecure-requests']),
+    // Solo si la petición ya viene por https. Con http —un `npm start` en el propio equipo—
+    // esta línea reescribe a https hasta los redirect internos, y la imagen de una devolución
+    // deja de cargarse: el navegador pide https://localhost, que no existe. En Vercel siempre
+    // es https, así que ahí no cambia nada.
+    ...(seguro ? ['upgrade-insecure-requests'] : []),
   ].join('; ');
 }
 
@@ -83,7 +87,10 @@ export async function middleware(peticion) {
   }
 
   const nonce = nonceNuevo();
-  const csp = politica(nonce, process.env.NODE_ENV !== 'production');
+  const seguro =
+    peticion.headers.get('x-forwarded-proto') === 'https' ||
+    peticion.nextUrl.protocol === 'https:';
+  const csp = politica(nonce, process.env.NODE_ENV !== 'production', seguro);
 
   // Next pone el nonce en sus propias etiquetas leyendo estas dos cabeceras de la petición.
   const cabeceras = new Headers(peticion.headers);

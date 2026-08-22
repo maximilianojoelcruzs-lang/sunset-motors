@@ -519,10 +519,9 @@ El encargado ve tres pestañas: *Por revisar* (con el número pendiente), *Resue
 Pestaña **Devoluciones**, para la plata que un mecánico puso de su bolsillo y el taller le
 tiene que reponer.
 
-Se crea con el monto, de qué es, y **el enlace de la captura del juego donde se vea lo que
-pagó** — la URL que deja FiveM al hacer la captura. Sin ella no se puede enviar: es la prueba.
-Ya no se sube el archivo desde el escritorio: la captura ya está subida, así que se pega y
-listo. Igual que en licencias, primero es un borrador
+Se crea con el monto, de qué es, y **la captura del juego donde se vea lo que pagó**: se recorta
+la pantalla y se **pega con Ctrl + V** en el formulario. Sin ella no se puede enviar: es la
+prueba. Igual que en licencias, primero es un borrador
 privado que se puede editar o eliminar, y al pulsar **Enviar** queda *Pendiente de pagar*.
 
 El encargado la marca **Pagado** o la **Rechaza**, con un comentario. En su pestaña *Por
@@ -531,10 +530,10 @@ pagar* ve además el total que el taller debe en ese momento.
 Los avisos van a los dos lados: al encargado cuando llega una solicitud, y al mecánico cuando
 la envía y cuando se resuelve.
 
-**Ojo con la privacidad del enlace.** Una captura pegada vive donde la subió FiveM: quien tenga
-esa URL la puede abrir, aunque no tenga cuenta en la app. Las capturas antiguas, las que se
-subieron como archivo cuando eso existía, siguen siendo privadas: solo las abre quien subió la
-solicitud y el encargado.
+**Las capturas son privadas.** Lo que pegas se guarda en el bucket privado: solo lo abre quien
+subió la solicitud y el encargado, y no se ve ni teniendo el enlace. Las de las solicitudes
+antiguas que se pegaron como URL siguen viviendo donde las dejó FiveM, así que ésas las ve
+cualquiera que tenga ese enlace.
 
 ## Tunning
 
