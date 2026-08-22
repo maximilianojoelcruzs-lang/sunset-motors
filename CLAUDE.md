@@ -465,6 +465,9 @@ y va envuelto en `try`: el top es un adorno y el saldo no.
   [lib/devoluciones.js](lib/devoluciones.js)), y el dueño se la paga dentro del juego como
   cualquier otra. Antes se sumaba al saldo con `ajustarSaldo()`, y eso dejaba al ganador con más
   fichas para seguir jugando en vez de con el premio en la mano.
+- **La tarjeta del premio siempre lleva el nombre**, también la tuya. En una devolución propia
+  el nombre sobra —ya sabes que es tuya—, pero en un premio el nombre **es** el dato: a quién
+  hay que pagarle. Sin él, el encargado veía un monto suelto en su lista de por pagar.
 - **Esa solicitud nace sin captura y su dueño no la toca.** La prueba no es una foto: es el
   ciclo cerrado, que queda guardado con el podio y con quién lo cerró. Va marcada con `origen`,
   y por eso `editar()` y `borrar()` se la niegan a su dueño — si no, quien ganó el primer puesto

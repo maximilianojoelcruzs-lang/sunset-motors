@@ -138,7 +138,10 @@ function Tarjeta({ d, mia, admin, onAccion, ocupado, onVerImagen }) {
     <article className={`soli dev-${d.estado}`}>
       <div className="soli-cabeza">
         <span className="dev-monto">{plata(d.monto)}</span>
-        {!mia && <span className="soli-quien">{d.usuario}</span>}
+        {/* En las propias el nombre sobra: ya sabes que son tuyas. En las del sistema no —el
+            premio del top— porque ahí el nombre **es** el dato: quién quedó en el podio y a
+            quién hay que pagarle, aunque seas tú mismo. */}
+        {(!mia || d.origen) && <span className="soli-quien">{d.usuario}</span>}
         <span className={`soli-estado ${d.estado}`}>{ROTULO[d.estado]}</span>
       </div>
 
