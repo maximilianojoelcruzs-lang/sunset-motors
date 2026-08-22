@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { exigirCasino } from '../../../../lib/servidor';
-import { cerrarCiclo, ciclos, ranking, sembrarDesdeJugadas } from '../../../../lib/wager';
+import { cerrarCiclo, ciclos, ranking } from '../../../../lib/wager';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -18,7 +18,7 @@ export async function GET() {
 }
 
 /**
- * POST — cerrar el ciclo y pagar el podio, o sembrar el contador. **Solo administrador.**
+ * POST — cerrar el ciclo y pagar el podio. **Solo administrador.**
  *
  * Cerrar mueve fichas de verdad, así que no basta con esconder el botón: se comprueba acá.
  */
@@ -32,11 +32,6 @@ export async function POST(peticion) {
   const { accion } = await peticion.json().catch(() => ({}));
 
   try {
-    if (accion === 'sembrar') {
-      const r = await sembrarDesdeJugadas();
-      return NextResponse.json({ ...r, ...(await ranking()) });
-    }
-
     if (accion === 'cerrar') {
       const r = await cerrarCiclo(sesion.usuario);
       if (r.error) return NextResponse.json({ error: r.error }, { status: 400 });

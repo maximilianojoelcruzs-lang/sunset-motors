@@ -466,8 +466,11 @@ y va envuelto en `try`: el top es un adorno y el saldo no.
 - `lib/fichas.js` importa `sumar` de `wager.js`, así que `wager.js` importa `fichas.js`
   **dentro de las funciones**: al revés sería un ciclo de módulos.
 
-`sembrarDesdeJugadas()` arranca el contador con el registro que haya. Es de una sola vez y
-**parcial**, por el tope de 500 — la pantalla solo ofrece el botón con el contador vacío.
+**Un ciclo nuevo arranca en cero.** Hubo un `sembrarDesdeJugadas()` que llenaba el contador con
+el registro de jugadas; **se quitó a pedido del usuario**. Metía el histórico entero en el primer
+ciclo —dejó a alguien con 49 millones de wager que no había apostado en ese ciclo— y encima era
+parcial, porque `sunset:jugadas` solo guarda las 500 últimas. Lo que cuenta es lo apostado desde
+que el ciclo se abrió.
 
 ### Las reglas están dentro de la pantalla
 

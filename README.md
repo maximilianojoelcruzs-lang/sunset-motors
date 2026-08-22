@@ -233,6 +233,9 @@ qué no, un ejemplo de una tarde de dos personas —donde la que perdió fichas 
 ganó va último—, los cuatro pasos del ciclo y los desempates. Está para cualquiera que juegue, no
 solo para el encargado.
 
+Cada ciclo **empieza de cero**: cuenta lo que se apuesta desde que se abrió, no lo que jugaste
+antes.
+
 El ciclo **lo cierra el encargado** cuando quiera, no hay fecha automática. Al cerrarlo los
 premios entran solos a la cuenta de los tres primeros, los contadores vuelven a cero y el podio
 queda guardado en *Ciclos cerrados*. Si algún premio no se pudiera pagar, la pantalla dice a quién

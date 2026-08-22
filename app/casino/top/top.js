@@ -62,11 +62,6 @@ export default function TopWager({ usuario, admin, accesos, inicial, ciclosInici
             : `Ciclo cerrado y ${cuerpo.pagos.length} premios pagados.`
         );
       }
-      if (cuerpo.usuarios !== undefined) {
-        setAviso(
-          `Contador arrancado con ${cuerpo.jugadas} jugadas de ${cuerpo.usuarios} personas.`
-        );
-      }
     } catch {
       setError('Sin conexión con el servidor.');
     } finally {
@@ -104,32 +99,19 @@ export default function TopWager({ usuario, admin, accesos, inicial, ciclosInici
             </button>
 
             {admin && (
-              <>
-                {/* Solo con el contador vacío: sembrar sobre datos ya acumulados los machacaría. */}
-                {datos.puestos.length === 0 && (
-                  <button
-                    type="button"
-                    className="accion"
-                    disabled={ocupado}
-                    onClick={() => pedir('sembrar')}
-                  >
-                    Arrancar con el historial
-                  </button>
-                )}
-                <button
-                  type="button"
-                  className="accion peligro"
-                  disabled={ocupado || !datos.puestos.length}
-                  onClick={() =>
-                    pedir(
-                      'cerrar',
-                      '¿Cerrar el ciclo? Se pagan los premios del podio y los contadores vuelven a cero.'
-                    )
-                  }
-                >
-                  Cerrar ciclo y pagar
-                </button>
-              </>
+              <button
+                type="button"
+                className="accion peligro"
+                disabled={ocupado || !datos.puestos.length}
+                onClick={() =>
+                  pedir(
+                    'cerrar',
+                    '¿Cerrar el ciclo? Se pagan los premios del podio y los contadores vuelven a cero.'
+                  )
+                }
+              >
+                Cerrar ciclo y pagar
+              </button>
             )}
           </span>
         </header>
