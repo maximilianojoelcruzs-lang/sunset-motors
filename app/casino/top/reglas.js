@@ -36,10 +36,11 @@ const PASOS = [
       'juegues sigue contando.',
   },
   {
-    titulo: 'Se pagan los premios',
+    titulo: 'Te pagan en el juego',
     texto:
-      'Las fichas entran solas a la cuenta de los tres primeros, los contadores vuelven a cero ' +
-      'y el podio queda guardado en Ciclos cerrados.',
+      'A cada uno del podio se le crea una solicitud de devolución con su premio, y el encargado ' +
+      'se lo entrega en plata dentro del juego. Los contadores vuelven a cero y el podio queda ' +
+      'guardado en Ciclos cerrados.',
   },
 ];
 
@@ -86,7 +87,7 @@ export default function Reglas() {
       <p className="reglas-entrada">
         Cada ficha que apuestas en la sala cuenta para el ranking. No importa si ganas o si
         pierdes: importa <strong>cuánto has jugado</strong>. Los {PREMIOS.length} primeros al
-        cerrar el ciclo se reparten fichas.
+        cerrar el ciclo se llevan un premio <strong>en plata del juego</strong>, no en fichas.
       </p>
 
       <div className="reglas-bloque">
@@ -171,8 +172,10 @@ export default function Reglas() {
       </div>
 
       <p className="reglas-pie">
-        Las fichas son de rol: no se compran, no valen dinero y no se convierten en dinero. Las
-        reparte el encargado y se quedan dentro del juego. El resultado de cada mesa lo sortea el
+        Las fichas del casino son de rol: no se compran, no valen dinero de verdad y no se
+        convierten en dinero de verdad. El premio del podio tampoco: se paga en plata
+        <strong>del juego</strong>, como cualquier otra devolución del taller. El resultado de
+        cada mesa lo sortea el
         servidor, nunca el navegador, y el cierre de cada ciclo queda anotado con el nombre de
         quien lo cerró.
       </p>

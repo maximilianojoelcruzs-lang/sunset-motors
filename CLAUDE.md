@@ -460,6 +460,16 @@ y va envuelto en `try`: el top es un adorno y el saldo no.
 
 - Una recarga del admin **no** cuenta: llega con `apuesta: 0`.
 - Empate a wager: primero quien lo hizo en **menos jugadas**, que apostó más fuerte.
+- **El premio no son fichas: es plata del juego.** Al cerrar, cada puesto recibe una
+  **solicitud de devolución pendiente** a su nombre (`crearDelSistema()` en
+  [lib/devoluciones.js](lib/devoluciones.js)), y el dueño se la paga dentro del juego como
+  cualquier otra. Antes se sumaba al saldo con `ajustarSaldo()`, y eso dejaba al ganador con más
+  fichas para seguir jugando en vez de con el premio en la mano.
+- **Esa solicitud nace sin captura y su dueño no la toca.** La prueba no es una foto: es el
+  ciclo cerrado, que queda guardado con el podio y con quién lo cerró. Va marcada con `origen`,
+  y por eso `editar()` y `borrar()` se la niegan a su dueño — si no, quien ganó el primer puesto
+  se cambiaría el monto a 300.000 y quedaría esperando en la lista del encargado como si fuera
+  suya. La pantalla tampoco le ofrece esos botones ni el aviso de «sin captura».
 - **`cerrarCiclo()` guarda el ciclo antes de pagar.** Si pagara primero y fallara al guardar, el
   siguiente cierre volvería a pagar a los mismos — es exactamente el fallo del bingo. Si un pago
   falla, el ciclo queda `pagado: false` y la pantalla dice a quién hay que pagar a mano.

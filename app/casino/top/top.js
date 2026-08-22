@@ -66,9 +66,10 @@ export default function TopWager({ usuario, admin, accesos, inicial, ciclosInici
         const fallidos = cuerpo.pagos.filter((p) => !p.ok);
         setAviso(
           fallidos.length
-            ? `Ciclo cerrado, pero quedaron ${fallidos.length} premios sin pagar: ` +
-                `${fallidos.map((p) => p.usuario).join(', ')}. Págalos a mano desde Fichas.`
-            : `Ciclo cerrado y ${cuerpo.pagos.length} premios pagados.`
+            ? `Ciclo cerrado, pero ${fallidos.length} premios no se pudieron generar: ` +
+                `${fallidos.map((p) => p.usuario).join(', ')}. Créales la devolución a mano.`
+            : `Ciclo cerrado. Se crearon ${cuerpo.pagos.length} solicitudes de devolución, ` +
+              'pendientes de que les pagues en el juego.'
         );
       }
     } catch {
@@ -135,7 +136,8 @@ export default function TopWager({ usuario, admin, accesos, inicial, ciclosInici
                   onClick={() =>
                     pedir(
                       'cerrar',
-                      '¿Cerrar el ciclo? Se pagan los premios del podio y los contadores vuelven a cero.'
+                      '¿Cerrar el ciclo? Al podio se le crea una solicitud de devolución con su premio ' +
+                        '—se la pagas en el juego— y los contadores vuelven a cero.'
                     )
                   }
                 >
@@ -155,8 +157,8 @@ export default function TopWager({ usuario, admin, accesos, inicial, ciclosInici
               <span className="top-medalla" aria-hidden="true">
                 {MEDALLAS[i]}
               </span>
-              <strong>{fichas(premio)}</strong>
-              <em>fichas · {i + 1}º puesto</em>
+              <strong>${fichas(premio)}</strong>
+              <em>en el juego · {i + 1}º puesto</em>
             </div>
           ))}
         </section>
@@ -196,7 +198,7 @@ export default function TopWager({ usuario, admin, accesos, inicial, ciclosInici
                 </span>
                 <span className="top-jugadas">{fichas(p.jugadas)} jugadas</span>
                 <span className="top-wager">{fichas(p.wager)}</span>
-                <span className="top-gana">{p.premio ? `+${fichas(p.premio)}` : ''}</span>
+                <span className="top-gana">{p.premio ? `$${fichas(p.premio)}` : ''}</span>
               </li>
             ))}
           </ol>
@@ -236,8 +238,9 @@ export default function TopWager({ usuario, admin, accesos, inicial, ciclosInici
 
         <p className="pie">
           Cuenta lo apostado, no lo ganado: da igual si la mesa te trata bien o mal. El ciclo lo
-          cierra el encargado, y al cerrarlo se pagan los premios del podio y todos los contadores
-          vuelven a cero.
+          cierra el encargado, y al cerrarlo el podio recibe su premio <strong>en plata del
+          juego</strong>: queda como solicitud de devolución a su nombre y el encargado se la
+          entrega dentro del juego. Los contadores vuelven a cero.
         </p>
       </main>
     </div>

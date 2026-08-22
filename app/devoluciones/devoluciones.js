@@ -150,7 +150,11 @@ function Tarjeta({ d, mia, admin, onAccion, ocupado, onVerImagen }) {
           <span>Ver captura</span>
         </button>
       ) : (
-        <p className="dev-sin-captura">Sin captura: no se puede enviar hasta adjuntarla.</p>
+        // Las del sistema —el premio del top— no llevan captura y no la necesitan: la prueba
+        // es el ciclo cerrado, que queda guardado con el podio y con quién lo cerró.
+        !d.origen && (
+          <p className="dev-sin-captura">Sin captura: no se puede enviar hasta adjuntarla.</p>
+        )
       )}
 
       {d.respuesta && (
@@ -170,12 +174,14 @@ function Tarjeta({ d, mia, admin, onAccion, ocupado, onVerImagen }) {
             Enviar
           </button>
         )}
-        {mia && sinResolver && (
+        {/* Un premio del top no lo edita ni lo borra quien lo ganó: no lo escribió él, y
+            cambiarle el monto sería servirse solo. Lo resuelve el encargado. */}
+        {mia && sinResolver && !d.origen && (
           <button type="button" className="accion" disabled={ocupado} onClick={() => onAccion('editar', d)}>
             Editar
           </button>
         )}
-        {(mia && sinResolver) || admin ? (
+        {(mia && sinResolver && !d.origen) || admin ? (
           <button
             type="button"
             className="accion peligro"

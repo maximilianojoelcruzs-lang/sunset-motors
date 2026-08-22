@@ -221,8 +221,8 @@ triple pagan mucho pero valen poco, igual que en una mesa de verdad.
 ### Top de wager
 
 Pestaña **Top de wager** dentro del casino. Es un ranking por **fichas apostadas**: cada apuesta
-que haces suma, ganes o pierdas. Los tres primeros al cerrar el ciclo se llevan **30.000, 20.000 y
-5.000 fichas**.
+que haces suma, ganes o pierdas. Los tres primeros al cerrar el ciclo se llevan **$30.000, $20.000 y
+$5.000 en plata del juego** — no en fichas.
 
 Cuenta igual en las once mesas. Las recargas del encargado no suman. Si dos empatan, queda por
 delante quien lo hizo en menos jugadas. Y si estás fuera del podio, debajo de la tabla te dice
@@ -238,10 +238,14 @@ antes. El encargado tiene dos botones y hacen cosas distintas: **Iniciar ciclo**
 marcador a cero y empieza a contar desde ese momento **sin pagar nada** —para empezar limpio—, y
 **Cerrar ciclo y pagar** premia al podio, guarda el resultado y deja el marcador en cero.
 
-El ciclo **lo cierra el encargado** cuando quiera, no hay fecha automática. Al cerrarlo los
-premios entran solos a la cuenta de los tres primeros, los contadores vuelven a cero y el podio
-queda guardado en *Ciclos cerrados*. Si algún premio no se pudiera pagar, la pantalla dice a quién
-hay que pagarle a mano.
+El ciclo **lo cierra el encargado** cuando quiera, no hay fecha automática. Al cerrarlo, a cada uno del podio se le crea una
+**solicitud de devolución** con su premio: te aparece en *Devoluciones* → *Por pagar*, le
+entregas la plata dentro del juego y la marcas como pagada, igual que cualquier otra. Al ganador
+le llega el aviso a la campanita. Los contadores vuelven a cero y el podio queda guardado en
+*Ciclos cerrados*.
+
+Esas solicitudes las genera el sistema: no llevan captura —la prueba es el ciclo cerrado— y su
+dueño no las puede editar ni borrar, solo tú.
 
 ### Fichas
 
